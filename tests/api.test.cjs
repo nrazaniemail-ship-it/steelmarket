@@ -1,7 +1,8 @@
 const test=require('node:test');
+const { before }=require('node:test');
 const assert=require('node:assert/strict');
 let worker;
-test.before(async()=>{worker=await import('../workers/steel-api.js')});
+before(async()=>{worker=await import('../workers/steel-api.js')});
 
 function dbMock(rows=[]){
  const calls=[];
