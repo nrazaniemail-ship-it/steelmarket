@@ -1,0 +1,11 @@
+package com.fooladban.app;
+import android.Manifest;import android.app.*;import android.os.*;import android.webkit.*;import android.content.*;import android.content.pm.PackageManager;import androidx.appcompat.app.AppCompatActivity;import androidx.core.app.ActivityCompat;import androidx.core.content.ContextCompat;import androidx.work.*;import java.util.concurrent.TimeUnit;
+public class MainActivity extends AppCompatActivity {
+ private WebView web;
+ @Override public void onCreate(Bundle b){super.onCreate(b);getWindow().setStatusBarColor(android.graphics.Color.rgb(9,21,34));getWindow().setNavigationBarColor(android.graphics.Color.rgb(9,21,34));createChannel();if(Build.VERSION.SDK_INT>=33&&ContextCompat.checkSelfPermission(this,Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.POST_NOTIFICATIONS},8);
+ web=new WebView(this);web.setBackgroundColor(android.graphics.Color.rgb(9,21,34));web.getSettings().setJavaScriptEnabled(true);web.getSettings().setDomStorageEnabled(true);web.getSettings().setDatabaseEnabled(true);web.addJavascriptInterface(new Bridge(this),"FooladbanNative");web.setWebChromeClient(new WebChromeClient());web.setWebViewClient(new WebViewClient());setContentView(web);web.loadUrl("file:///android_asset/index.html");schedule();}
+ private void createChannel(){if(Build.VERSION.SDK_INT>=26){NotificationChannel c=new NotificationChannel("fooladban_prices","هشدار قیمت فولادبان",NotificationManager.IMPORTANCE_HIGH);c.setDescription("تغییر قیمت محصولات تحت پایش");getSystemService(NotificationManager.class).createNotificationChannel(c);}}
+ private void schedule(){PeriodicWorkRequest req=new PeriodicWorkRequest.Builder(PriceMonitorWorker.class,15,TimeUnit.MINUTES).build();WorkManager.getInstance(this).enqueueUniquePeriodicWork("fooladban-price-monitor",ExistingPeriodicWorkPolicy.UPDATE,req);}
+ public static class Bridge {private final Context c;Bridge(Context c){this.c=c.getApplicationContext();}@JavascriptInterface public void sync(String json){c.getSharedPreferences("fooladban",0).edit().putString("state",json).apply();}}
+ @Override public void onBackPressed(){if(web!=null&&web.canGoBack())web.goBack();else super.onBackPressed();}
+}
