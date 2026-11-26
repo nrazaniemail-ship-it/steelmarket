@@ -1,3 +1,44 @@
-// Cloudflare Worker sample: deploy separately and set ALLOWED_HOSTS secret/variable (comma-separated hostnames).
-// Example: ALLOWED_HOSTS=example.com,prices.example.ir
-export default {async fetch(request,env){const u=new URL(request.url);if(request.method==="OPTIONS")return new Response(null,{headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET,OPTIONS","Access-Control-Allow-Headers":"Content-Type"}});if(u.pathname!=="/fetch")return new Response("Not found",{status:404});const raw=u.searchParams.get("url");if(!raw)return new Response("Missing url",{status:400});let target;try{target=new URL(raw)}catch{return new Response("Invalid url",{status:400})}if(!["https:"].includes(target.protocol))return new Response("HTTPS required",{status:400});const allowed=(env.ALLOWED_HOSTS||"").split(",").map(x=>x.trim().toLowerCase()).filter(Boolean);if(!allowed.includes(target.hostname.toLowerCase()))return new Response("Host not allowlisted",{status:403});const upstream=await fetch(target.toString(),{headers:{"User-Agent":"Mozilla/5.0 FooladbanPriceMonitor/1.0","Accept":"text/html,application/json,*/*"},redirect:"follow"});const type=upstream.headers.get("content-type")||"text/plain";if(!/(text\/html|application\/json|text\/plain)/i.test(type))return new Response("Unsupported content type",{status:415});const headers=new Headers({"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET,OPTIONS","Access-Control-Allow-Headers":"Content-Type","Content-Type":type,"Cache-Control":"no-store","X-Content-Type-Options":"nosniff"});return new Response(await upstream.text(),{status:upstream.status,headers})}};
+// Optional CORS proxy for the local PWA. Configure ALLOWED_HOSTS and APP_ORIGIN.
+function cors(origin, env) {
+ const allowed = env.APP_ORIGIN || '';
+ return origin && origin === allowed ? {
+  'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods':'GET,OPTIONS',
+  'Access-Control-Allow-Headers':'Content-Type', 'Vary':'Origin'
+ } : {};
+}
+function safeUrl(raw, allowed) {
+ let u; try { u = new URL(raw); } catch { throw Error('Invalid URL'); }
+ if (u.protocol !== 'https:' || u.username || u.password) throw Error('HTTPS URL required');
+ const h = u.hostname.toLowerCase();
+ if (!allowed.includes(h)) throw Error('Host not allowlisted');
+ if (h === 'localhost' || h.endsWith('.local') || h.endsWith('.localhost') ||
+     /^127\.|^10\.|^192\.168\.|^169\.254\.|^172\.(1[6-9]|2\d|3[01])\./.test(h) || h === '::1') throw Error('Private host blocked');
+ return u;
+}
+export default {
+ async fetch(request, env) {
+  const origin = request.headers.get('Origin') || '', headers = cors(origin, env);
+  if (request.method === 'OPTIONS') return new Response(null, { headers });
+  const url = new URL(request.url);
+  if (url.pathname !== '/fetch' || request.method !== 'GET') return new Response('Not found', { status:404, headers });
+  try {
+   const raw = url.searchParams.get('url'); if (!raw) return new Response('Missing url', { status:400, headers });
+   const allowed = (env.ALLOWED_HOSTS || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+   let target = safeUrl(raw, allowed), upstream;
+   for (let hop = 0; hop < 4; hop++) {
+    upstream = await fetch(target, { redirect:'manual', signal:AbortSignal.timeout(15000),
+     headers:{ 'User-Agent':'FooladbanProxy/1.1', 'Accept':'text/html,application/json,text/plain,*/*' } });
+    if ([301,302,303,307,308].includes(upstream.status)) {
+     const location = upstream.headers.get('Location'); if (!location) throw Error('Redirect without Location');
+     target = safeUrl(new URL(location, target).toString(), allowed); continue;
+    }
+    break;
+   }
+   if (!upstream || !upstream.ok) return new Response('Upstream error', { status:502, headers });
+   const type = upstream.headers.get('content-type') || '';
+   if (!/text\/html|application\/json|text\/plain/i.test(type)) return new Response('Unsupported content type', { status:415, headers });
+   const body = await upstream.text(); if (body.length > 1500000) return new Response('Response too large', { status:413, headers });
+   return new Response(body, { status:200, headers:{ ...headers, 'Content-Type':type, 'Cache-Control':'no-store', 'X-Content-Type-Options':'nosniff' } });
+  } catch (error) { return new Response(error.message || 'Proxy error', { status:400, headers }); }
+ }
+};
