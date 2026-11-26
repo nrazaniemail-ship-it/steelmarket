@@ -63,14 +63,14 @@ body[data-density="compact"] .fb-settings-body{padding:9px 12px}
 
 .fb-top-main{max-width:1180px;margin:auto;min-height:76px;padding:10px 22px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px}
 .fb-top-lang,.fb-top-theme{width:58px;height:58px;border-radius:19px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-weight:800;font-size:1rem;box-shadow:inset 0 0 0 1px #ffffff08}
-.fb-top-lang{justify-self:end;color:var(--gold);grid-column:3}.fb-top-theme{justify-self:center;border-radius:50%;font-size:1.35rem;grid-column:2}
-.fb-top-brand{justify-self:start;grid-column:1;display:flex;align-items:center;gap:13px}.fb-top-brand-copy{text-align:right;display:flex;align-items:baseline;gap:5px}.fb-top-brand-copy strong{font-size:1.15rem}.fb-top-brand-copy small{font-size:.62rem;color:var(--muted)}
+.fb-top-lang{justify-self:end;color:var(--gold);grid-column:3;grid-row:1}.fb-top-theme{justify-self:center;border-radius:50%;font-size:1.35rem;grid-column:2;grid-row:1}
+.fb-top-brand{justify-self:start;grid-column:1;grid-row:1;display:flex;align-items:center;gap:11px}.fb-top-brand-copy{text-align:right;display:flex;align-items:baseline;gap:6px;white-space:nowrap}.fb-top-brand-copy strong{font-size:1.15rem}.fb-top-brand-copy small{font-size:.62rem;color:var(--muted)}
 .fb-top-logo{width:52px;height:52px;object-fit:contain;border:1px solid var(--line);border-radius:50%;padding:4px;background:var(--panel2)}
-.fb-top-time{max-width:1180px;margin:auto;padding:0 28px 17px;text-align:right;border-bottom:1px solid var(--line)}
-.fb-clock-line{display:flex;align-items:baseline;justify-content:flex-end;gap:15px}.fb-clock-caption{color:var(--muted);font-size:.88rem}.fb-clock-line strong{font-size:clamp(2.1rem,7vw,3.15rem);font-weight:600;letter-spacing:.04em;line-height:1.25;font-variant-numeric:tabular-nums}
-.fb-date-line{display:flex;justify-content:flex-end;gap:9px;align-items:center;color:var(--muted);font-size:.86rem;margin-top:3px}.fb-date-separator{opacity:.65}
+.fb-top-time{max-width:1180px;margin:auto;padding:1px 28px 13px;text-align:right;border-bottom:1px solid var(--line);font-family:Vazirmatn,Tahoma,Arial,sans-serif}
+.fb-clock-line{display:flex;align-items:baseline;justify-content:flex-end;gap:0}.fb-clock-line strong{font-family:Vazirmatn,Tahoma,Arial,sans-serif;font-size:clamp(2rem,7vw,2.8rem);font-weight:700;letter-spacing:.025em;line-height:1.3;font-variant-numeric:tabular-nums}
+.fb-date-line{display:flex;justify-content:flex-end;gap:9px;align-items:center;color:var(--muted);font-family:Vazirmatn,Tahoma,Arial,sans-serif;font-size:.82rem;font-weight:500;margin-top:3px;line-height:1.8}.fb-date-separator{opacity:.65}
 .fb-top-utilities{display:flex;justify-content:flex-end;gap:8px;padding:0 18px 8px;max-width:1180px;margin:auto}
-@media(max-width:600px){.fb-top-main{min-height:76px;padding:10px 20px}.fb-top-lang,.fb-top-theme{width:56px;height:56px}.fb-top-brand{gap:9px}.fb-top-brand-copy strong{font-size:1rem}.fb-top-logo{width:48px;height:48px}.fb-top-time{padding:0 24px 16px}.fb-clock-line strong{font-size:2.35rem}.fb-clock-caption{font-size:.8rem}.fb-date-line{font-size:.78rem}.fb-top-utilities{padding-bottom:7px}}
+@media(max-width:600px){.fb-top-main{min-height:70px;padding:8px 16px;grid-template-columns:1fr auto 1fr;gap:8px}.fb-top-lang,.fb-top-theme{width:52px;height:52px}.fb-top-brand{gap:8px}.fb-top-brand-copy strong{font-size:1rem}.fb-top-brand-copy small{font-size:.58rem}.fb-top-logo{width:46px;height:46px}.fb-top-time{padding:0 20px 12px}.fb-clock-line strong{font-size:2.2rem}.fb-date-line{font-size:.76rem}.fb-top-utilities{padding-bottom:7px}}
 
 .fb-assistant{display:grid;gap:16px;margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:20px;background:var(--panel)}
 .fb-assistant-help{margin:0;color:var(--muted);line-height:1.9}
@@ -98,12 +98,12 @@ html[data-app-icon="gold"] .fb-about-brand img{filter:sepia(.65) saturate(1.4)}
 html[data-app-icon="blue"] .fb-about-brand img{filter:hue-rotate(185deg)}
 @media(max-width:680px){.fb-layer-nav[data-display="vertical"]{top:105px;left:5px;width:76px;max-width:22vw;padding:6px}.fb-layer-nav[data-display="vertical"] button{min-height:62px;padding:5px;font-size:.62rem}.fb-layer-nav[data-display="vertical"] .fb-nav-icon{font-size:1.15rem}body:has(.fb-layer-nav[data-display="vertical"]) .wrap{padding-left:88px}}
 
-/* Match the Namello top header: language, centered theme, Fooladban identity and Tehran clock only */
+/* Compact, aligned Fooladban header with consistent Persian typography */
 #fooladbanTop .fb-top-utilities{display:none!important}
 .fb-top-brand-copy{gap:5px}
 .fb-top-brand-copy small{font-size:.62rem;color:var(--muted);align-self:flex-start;position:relative;top:-.35em}
 </style></head><body>
-<header class="top" id="fooladbanTop"><div class="fb-top-main"><button class="fb-top-lang" id="fbTopLanguage" type="button" aria-label="تغییر زبان">FA</button><button class="fb-top-theme" id="fbTopTheme" type="button" aria-label="تغییر پوسته">☀️</button><div class="fb-top-brand"><div class="fb-top-brand-copy"><strong>فولادبان</strong><small>1.5.0</small></div><img class="fb-top-logo" src="./icon.svg" alt="نشان فولادبان"></div></div><div class="fb-top-time"><div class="fb-clock-line"><span class="fb-clock-caption">به وقت تهران</span><strong id="fbTehranClock" dir="ltr">--:--:--</strong></div><div class="fb-date-line"><span id="fbPersianDate">—</span><span class="fb-date-separator">·</span><span id="fbGregorianDate">—</span></div></div><div class="fb-top-utilities"><button class="btn" id="notifyBtn">🔔 <span class="label">فعال‌سازی هشدار</span></button><button class="btn primary" id="installBtn" hidden>نصب برنامه</button></div></header>
+<header class="top" id="fooladbanTop"><div class="fb-top-main"><button class="fb-top-lang" id="fbTopLanguage" type="button" aria-label="تغییر زبان">FA</button><button class="fb-top-theme" id="fbTopTheme" type="button" aria-label="تغییر پوسته">☀️</button><div class="fb-top-brand"><div class="fb-top-brand-copy"><strong>فولادبان</strong><small>1.5.0</small></div><img class="fb-top-logo" src="./icon.svg" alt="نشان فولادبان"></div></div><div class="fb-top-time"><div class="fb-clock-line"><strong id="fbTehranClock" dir="ltr">--:--:--</strong></div><div class="fb-date-line"><span id="fbPersianDate">—</span><span class="fb-date-separator">·</span><span id="fbGregorianDate">—</span></div></div><div class="fb-top-utilities"><button class="btn" id="notifyBtn">🔔 <span class="label">فعال‌سازی هشدار</span></button><button class="btn primary" id="installBtn" hidden>نصب برنامه</button></div></header>
 <main class="wrap">
 <section class="hero"><div><h1>نبض بازار فولاد</h1><p>ارزیابی قیمت زنجیره فولاد در بازار ایران و بازارهای بین‌المللی</p></div><div class="status"><i class="dot"></i><span id="runStatus">پایش متوقف است</span></div></section>
 <section class="stats">
