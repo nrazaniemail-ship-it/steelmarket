@@ -26,3 +26,8 @@
 - JSON: مسیر نقطه‌ای مانند `data.price`
 
 پیش‌بینی نمودار صرفاً برون‌یابی آماری خطی است و توصیه سرمایه‌گذاری نیست.
+
+
+## Product strategy and research
+- [Competitive benchmark](docs/COMPETITIVE_BENCHMARK.md): public-product review of global, Middle East and Iran steel intelligence references.
+- [Product blueprint](docs/PRODUCT_BLUEPRINT.md): target modules, data model, source-quality rules, forecast standards, architecture and release roadmap.
