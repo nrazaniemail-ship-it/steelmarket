@@ -23,7 +23,8 @@ const analysis=layer('analysis','تحلیل بازار','مقایسه قیمت،
 const assistant=layer('assistant','دستیار معامله','مقایسه گزینه‌های خرید بر پایه قیمت تمام‌شده، حمل و سناریوهای فروش');
 const settingsLayer=layer('settings','تنظیمات','شخصی‌سازی محیط، مدیریت پایش و راهنمای استفاده');
 function move(parent,...nodes){nodes.filter(Boolean).forEach(n=>parent.append(n))}
-move(dashboard,hero,stats,market,picks,add);
+move(dashboard,hero,stats,picks,add);
+if(market){market.hidden=true;market.setAttribute('aria-hidden','true');market.style.display='none';document.body.append(market)}
 move(products,catalog);
 move(sources,source,registry,addSourcePanel);
 move(analysis,insights,compare,chart,eventPanel);
