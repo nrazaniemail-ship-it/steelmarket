@@ -27,7 +27,7 @@ move(products,add);
 move(sources,source,registry);
 move(analysis,insights,compare,chart,eventPanel);
 const nav=document.createElement('nav');nav.className='fb-layer-nav';nav.id='fbLayerNav';nav.setAttribute('aria-label','ناوبری لایه‌های برنامه');
-const navItems=[['dashboard','▦','داشبورد'],['products','▤','محصولات'],['sources','◎','منابع'],['analysis','▥','تحلیل'],['assistant','✦','دستیار هوشمند'],['settings','⚙','تنظیمات']];
+const navItems=[['dashboard','📊','داشبورد'],['products','🏗️','محصولات'],['sources','🌐','مراجع قیمت'],['analysis','📈','تحلیل'],['assistant','✨','دستیار هوشمند'],['settings','⚙️','تنظیمات']];
 for(const [id,ico,label] of navItems){const b=document.createElement('button');b.type='button';b.dataset.layerTarget=id;b.innerHTML='<span class="fb-nav-icon" aria-hidden="true">'+ico+'</span><span>'+label+'</span>';b.addEventListener('click',()=>activate(id));nav.append(b)}
 const top=document.querySelector('header.top');if(top)top.after(nav);root.insertBefore(shell,layout);if(layout)layout.remove();
 const oldNav=document.querySelector('.bottomnav');if(oldNav)oldNav.remove();
