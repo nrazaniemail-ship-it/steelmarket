@@ -19,55 +19,15 @@ const dashboard=layer('dashboard','داشبورد فولادبان','نمای ف
 const products=layer('products','سبد محصولات','انتخاب، تعریف و مدیریت محصولات تحت پایش');
 const sources=layer('sources','مراجع قیمت','مدیریت مراجع رسمی، خصوصی و بین‌المللی');
 const analysis=layer('analysis','تحلیل بازار','مقایسه قیمت، روندها و رویدادهای بازار');
-const assistant=layer('assistant','دستیار هوشمند','با گفت‌وگو درباره نیاز و مقصد، گزینه‌های مناسب را از داده‌های ثبت‌شده بازار پیدا کنید');
 const settingsLayer=layer('settings','تنظیمات','شخصی‌سازی محیط، مدیریت پایش و راهنمای استفاده');
 function move(parent,...nodes){nodes.filter(Boolean).forEach(n=>parent.append(n))}
-move(dashboard,hero,stats,market,catalog,picks);
-move(products,add);
+move(dashboard,hero,stats,market,picks);
+move(products,add,catalog);
 move(sources,source,registry);
 move(analysis,insights,compare,chart,eventPanel);
 
-/* Smart assistant: mostly selectable, with optional free-text fields */
-const assistantBox=document.createElement('div');assistantBox.className='fb-assistant';
-const intro=document.createElement('p');intro.className='fb-assistant-help';intro.textContent='به پرسش‌ها پاسخ دهید؛ گزینه‌های آماده انتخاب کنید و فقط در صورت نیاز توضیح دلخواه بنویسید.';assistantBox.append(intro);
-const assistantForm=document.createElement('div');assistantForm.className='fb-assistant-form';
-function assistantField(label,options){const w=document.createElement('label');w.className='fb-assistant-field';const t=document.createElement('span');t.textContent=label;const s=document.createElement('select');const first=document.createElement('option');first.value='';first.textContent='انتخاب کنید';s.append(first);options.forEach(([v,l])=>{const o=document.createElement('option');o.value=v;o.textContent=l;s.append(o)});w.append(t,s);assistantForm.append(w);return s}
-function assistantText(label,placeholder){const w=document.createElement('label');w.className='fb-assistant-field';const t=document.createElement('span');t.textContent=label;const i=document.createElement('input');i.type='text';i.placeholder=placeholder;w.append(t,i);assistantForm.append(w);return i}
-const aSector=assistantField('۱. حوزه مورد نظر',[['construction','ساختمان و سازه'],['infrastructure','زیرساخت و پروژه‌های عمرانی'],['automotive','خودروسازی و قطعه‌سازی'],['appliance','لوازم خانگی و صنایع فلزی'],['energy','نفت، گاز و پتروشیمی'],['steelmaking','تولید فولاد و صنایع پایین‌دستی'],['trading','بازرگانی و خریدوفروش'],['export','صادرات'],['other','سایر']]);
-const aPurpose=assistantField('۲. هدف شما',[['buy','خرید محصول'],['sell','فروش محصول'],['project','تأمین برای پروژه'],['compare','مقایسه قیمت‌ها'],['raw','تأمین مواد اولیه تولید']]);
-const aDestination=assistantField('۳. مقصد / محل تحویل',[['tehran','تهران'],['isfahan','اصفهان'],['mashhad','مشهد'],['shiraz','شیراز'],['tabriz','تبریز'],['ahvaz','اهواز'],['arak','اراک'],['bandarabbas','بندرعباس'],['other','شهر یا کشور دیگر']]);
-const aDestinationOther=assistantText('نام شهر یا کشور (اختیاری)','مثلاً یزد یا عراق');aDestinationOther.disabled=true;
-aDestination.addEventListener('change',()=>{aDestinationOther.disabled=aDestination.value!=='other';if(aDestination.value!=='other')aDestinationOther.value=''});
-const aProduct=assistantField('۴. گروه محصول',[['rebar','میلگرد'],['sections','تیرآهن، نبشی و ناودانی'],['sheet','ورق گرم، سرد و پوشش‌دار'],['billet','شمش، بیلت و بلوم'],['slab','اسلب'],['wire','مفتول و وایرراد'],['pipe','لوله و پروفیل'],['ore','سنگ‌آهن و کنسانتره'],['pellet','گندله'],['sponge','آهن اسفنجی و بریکت'],['scrap','قراضه آهن'],['unsure','هنوز نمی‌دانم']]);
-const aQuality=assistantField('۵. گرید / کیفیت',[['standard','استاندارد و تجاری'],['industrial','صنعتی'],['alloy','آلیاژی'],['high','مقاومت بالا'],['special','کیفیت خاص'],['unsure','نیاز به راهنمایی']]);
-const aSize=assistantField('۶. سایز / ابعاد',[['common','ابعاد رایج بازار'],['custom','ابعاد سفارشی'],['any','محدودیتی ندارم']]);
-const aVolume=assistantField('۷. مقدار مورد نیاز',[['lt25','کمتر از ۲۵ تن'],['25_100','۲۵ تا ۱۰۰ تن'],['100_500','۱۰۰ تا ۵۰۰ تن'],['500_1000','۵۰۰ تا ۱۰۰۰ تن'],['gt1000','بیش از ۱۰۰۰ تن'],['unknown','هنوز مشخص نیست']]);
-const aBudget=assistantField('۸. اولویت قیمت و بودجه (اختیاری)',[['economic','اقتصادی؛ کمترین قیمت'],['balanced','تعادل قیمت و کیفیت'],['quality','کیفیت و اطمینان مهم‌تر است'],['flexible','قابل مذاکره']]);
-const aTiming=assistantField('۹. زمان تحویل',[['urgent','فوری'],['week','تا یک هفته'],['month','تا یک ماه'],['flexible','انعطاف‌پذیر']]);
-const aBrand=assistantField('۱۰. تولیدکننده / برند (اختیاری)',[['any','محدودیتی ندارم'],['domestic','تولیدکننده معتبر داخلی'],['specific','برند مشخص']]);
-const aBrandOther=assistantText('نام برند دلخواه (اختیاری)','نام کارخانه یا برند');aBrandOther.disabled=true;
-aBrand.addEventListener('change',()=>{aBrandOther.disabled=aBrand.value!=='specific';if(aBrand.value!=='specific')aBrandOther.value=''});
-const aNotes=assistantText('توضیحات تکمیلی (اختیاری)','هر نکته دیگری را اینجا بنویسید…');
-assistantBox.append(assistantForm);
-const actions=document.createElement('div');actions.className='fb-assistant-actions';
-const result=document.createElement('div');result.className='fb-assistant-result';result.hidden=true;
-const submit=button('🔎 بررسی نیاز و پیشنهاد گزینه‌ها',()=>{},'primary');
-submit.addEventListener('click',()=>{
- if(!aSector.value||!aPurpose.value||!aDestination.value||!aProduct.value){toastSetting('لطفاً حوزه، هدف، مقصد و گروه محصول را انتخاب کنید.');return}
- const fields=[['حوزه',aSector],['هدف',aPurpose],['مقصد',aDestination],['گروه محصول',aProduct],['گرید',aQuality],['ابعاد',aSize],['مقدار',aVolume],['اولویت قیمت',aBudget],['زمان تحویل',aTiming],['تولیدکننده',aBrand]];
- const values=fields.filter(([,x])=>x.value).map(([k,x])=>k+': '+x.options[x.selectedIndex].text);
- if(aDestination.value==='other'&&aDestinationOther.value.trim())values[2]='مقصد: '+aDestinationOther.value.trim();
- if(aBrand.value==='specific'&&aBrandOther.value.trim())values.push('برند: '+aBrandOther.value.trim());
- if(aNotes.value.trim())values.push('توضیحات: '+aNotes.value.trim());
- result.replaceChildren();const h=document.createElement('h3');h.textContent='جمع‌بندی نیاز شما';result.append(h);
- const ul=document.createElement('ul');values.forEach(v=>{const li=document.createElement('li');li.textContent=v;ul.append(li)});result.append(ul);
- const p=document.createElement('p');p.textContent='این اطلاعات مبنای بررسی گزینه‌هاست. برای اعلام پیشنهاد خرید معتبر باید قیمت قابل‌مقایسه، مشخصات فنی، محل تحویل و زمان به‌روزرسانی مرجع بررسی شود؛ قیمت یا موجودی تأییدنشده حدس زده نمی‌شود.';result.append(p);
- result.append(button('رفتن به سبد محصولات',()=>activate('products')));result.hidden=false;
-});
-const reset=button('پاک کردن پاسخ‌ها',()=>{assistantForm.querySelectorAll('select').forEach(x=>x.value='');assistantForm.querySelectorAll('input').forEach(x=>{x.value='';x.disabled=x===aDestinationOther||x===aBrandOther});result.replaceChildren();result.hidden=true});
-actions.append(submit,reset);assistantBox.append(actions,result);assistant.append(assistantBox);
 const nav=document.createElement('nav');nav.className='fb-layer-nav';nav.id='fbLayerNav';nav.setAttribute('aria-label','ناوبری لایه‌های برنامه');
-const navItems=[['dashboard','📊','داشبورد'],['products','🏗️','محصولات'],['sources','🌐','مراجع قیمت'],['analysis','📈','تحلیل'],['assistant','✨','دستیار هوشمند'],['settings','⚙️','تنظیمات']];
+const navItems=[['dashboard','📊','داشبورد'],['products','🏗️','محصولات'],['sources','🌐','مراجع قیمت'],['analysis','📈','تحلیل'],['settings','⚙️','تنظیمات']];
 for(const [id,ico,label] of navItems){const b=document.createElement('button');b.type='button';b.dataset.layerTarget=id;b.innerHTML='<span class="fb-nav-icon" aria-hidden="true">'+ico+'</span><span>'+label+'</span>';b.addEventListener('click',()=>activate(id));nav.append(b)}
 const top=document.querySelector('header.top');if(top)top.after(nav);root.insertBefore(shell,layout);if(layout)layout.remove();
 const oldNav=document.querySelector('.bottomnav');if(oldNav)oldNav.remove();
