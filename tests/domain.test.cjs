@@ -12,3 +12,5 @@ test('Cloudflare worker parser handles JSON, regex and CSS class sources',async(
 test('source URL validation requires allowlisted HTTPS public hosts',async()=>{const w=await import('../workers/steel-api.js');assert.equal(w.validPublicUrl('https://prices.example.com/x',['prices.example.com']).hostname,'prices.example.com');assert.throws(()=>w.validPublicUrl('http://prices.example.com',['prices.example.com']));assert.throws(()=>w.validPublicUrl('https://127.0.0.1',['127.0.0.1']))});
 
 test('Iran and global steel quotes are never merged into one comparison',()=>{const g=D.compareQuotes([{name:'Iran quote',marketScope:'iran',productKey:'hrc',price:30000,unit:'تومان/کیلوگرم'},{name:'Global quote',marketScope:'global',productKey:'hrc',price:600,unit:'USD/ton',currency:'USD',measureUnit:'ton'}],{USD_IRR:600000});assert.equal(g.length,2);assert.deepEqual(new Set(g.map(x=>x.items[0].marketScope)),new Set(['iran','global']))});
+
+test('CNY per tonne converts to IRR per kilogram',()=>assert.equal(D.normalizePrice({price:3000,currency:'CNY',measureUnit:'ton'},{CNY_IRR:90000}).irrPerKg,270000));
