@@ -11,9 +11,9 @@
 @media(max-width:800px){.layout{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.hero{align-items:start;flex-direction:column}.topin{min-height:62px}.bottomnav{display:flex;position:fixed;bottom:0;inset-inline:0;z-index:8;background:#0b1a2bf2;border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom));justify-content:space-around}.bottomnav button{background:none;border:0;color:var(--muted);font-size:.72rem}.bottomnav button.active{color:var(--gold)}.wrap{padding-inline:13px}.top-actions .label{display:none}}
 @media(max-width:560px){.metric-grid{grid-template-columns:repeat(2,1fr)}.health-row{grid-template-columns:1fr}.health-state{white-space:normal}.chart-wrap{height:220px}.panel{padding:13px}.product{grid-template-columns:minmax(0,1fr) auto}.product-actions{overflow-x:auto;flex-wrap:nowrap}.product-actions button{flex:0 0 auto}}@media(max-width:420px){.formgrid{grid-template-columns:1fr}.field.full{grid-column:auto}.stat{padding:11px}.stat b{font-size:1.05rem}.brand strong{font-size:1rem}}
 </style></head><body>
-<header class="top"><div class="topin"><div class="brand"><img class="logo" src="./icon.svg" alt=""><div><strong>فولادبان</strong><small>دیده‌بان هوشمند بازار فولاد</small></div></div><div class="top-actions"><button class="btn" id="notifyBtn">🔔 <span class="label">فعال‌سازی هشدار</span></button><button class="btn primary" id="installBtn" hidden>نصب برنامه</button></div></div></header>
+<header class="top"><div class="topin"><div class="brand"><img class="logo" src="./icon.svg" alt=""><div><strong>فولادبان</strong><small>پایش تطبیقی بازار فولاد ایران و جهان</small></div></div><div class="top-actions"><button class="btn" id="notifyBtn">🔔 <span class="label">فعال‌سازی هشدار</span></button><button class="btn primary" id="installBtn" hidden>نصب برنامه</button></div></div></header>
 <main class="wrap">
-<section class="hero"><div><h1>نبض بازار فولاد</h1><p>پایش قیمت محصولات زنجیره فولاد ایران و خاورمیانه</p></div><div class="status"><i class="dot"></i><span id="runStatus">پایش متوقف است</span></div></section>
+<section class="hero"><div><h1>نبض بازار فولاد</h1><p>ارزیابی قیمت زنجیره فولاد در بازار ایران و بازارهای بین‌المللی</p></div><div class="status"><i class="dot"></i><span id="runStatus">پایش متوقف است</span></div></section>
 <section class="stats">
 <div class="stat"><small>محصولات تحت پایش</small><b id="statCount">۰</b><em>لینک‌های تعریف‌شده</em></div>
 <div class="stat"><small>آخرین تغییر قیمت</small><b id="statChange">—</b><em id="statChangeTime">هنوز تغییری ثبت نشده</em></div>
@@ -68,6 +68,7 @@
 <div class="footer">فولادبان · نسخه وب ۱.۲ · داده‌های مرکزی فقط از منابع ثبت‌شده و قابل‌دسترسی نمایش داده می‌شوند.</div></main>
 <nav class="bottomnav"><button class="active" data-go="marketPanel">بازار</button><button data-go="chartPanel">نمودار</button><button data-go="sourcePanel">منابع</button><button data-go="addPanel">افزودن</button><button data-go="alerts">هشدارها</button></nav><div id="toast" class="toast hidden"></div>
 <script src="./core/price-domain.js"></script><script src="./core/source-health.js"></script><script src="./core/price-ledger.js"></script><script src="./core/extractor.js"></script>
+<script src="./core/market-config.js"></script>
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id),fa=n=>Number(n||0).toLocaleString('fa-IR'),num=s=>{if(typeof s==='number')return s;let v=String(s??'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[,٬\s]/g,'').replace('٫','.').replace(/[^0-9.+-]/g,'');return Number(v)};
