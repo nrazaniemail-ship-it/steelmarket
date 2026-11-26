@@ -23,6 +23,7 @@ const assert = require('node:assert/strict');
   await page.locator('#mcProductCatalog input[data-catalog-id="rebar"]').check();
   assert.equal(await page.locator('#mcDashboardPicks').innerText().then(t=>t.includes('میلگرد')),true);
   await page.locator('#fbLayerNav [data-layer-target="dashboard"]').click();
+  await page.locator('#mcDashboardPicks [data-open-products]').first().click();
   await page.locator('#pCatalogSearch').fill('میلگرد');
   await page.locator('#pCatalogProduct').selectOption('rebar');
   assert.equal(await page.locator('#mcProductDetails').isVisible(),true);
