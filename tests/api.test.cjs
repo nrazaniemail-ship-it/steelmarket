@@ -1,0 +1,35 @@
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const worker=require('../workers/steel-api.js');
+
+function dbMock(rows=[]){
+ const calls=[];
+ return {calls,prepare(sql){return {args:[],bind(...args){this.args=args;return this},async all(){calls.push({sql,args:this.args});return{results:rows}},async first(){calls.push({sql,args:this.args});return null},async run(){calls.push({sql,args:this.args});return{success:true}}}}};
+}
+test('public market and source endpoints return data without admin token',async()=>{
+ const DB=dbMock([{id:'obs1',source_id:'src1',raw_price:25000}]);
+ const env={DB,APP_ORIGIN:'https://nrazaniemail-ship-it.github.io'};
+ for(const path of ['/public/market','/public/sources','/public/events']){
+  const req=new Request('https://api.example.workers.dev'+path,{headers:{Origin:env.APP_ORIGIN}});
+  const res=await worker.default.fetch(req,env);
+  assert.equal(res.status,200,path);
+  assert.equal(res.headers.get('access-control-allow-origin'),env.APP_ORIGIN);
+  assert.ok(Array.isArray(await res.json()));
+ }
+});
+test('admin source write remains protected',async()=>{
+ const DB=dbMock();
+ const env={DB,APP_ORIGIN:'https://nrazaniemail-ship-it.github.io',ALLOWED_HOSTS:'prices.example.com',API_TOKEN:'secret'};
+ const body={id:'src1',product_key:'rebar16',product_name:'میلگرد ۱۶',url:'https://prices.example.com/p',source_kind:'factory'};
+ const denied=await worker.default.fetch(new Request('https://api.example.workers.dev/sources',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}),env);
+ assert.equal(denied.status,401);
+ const accepted=await worker.default.fetch(new Request('https://api.example.workers.dev/sources',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer secret'},body:JSON.stringify(body)}),env);
+ assert.equal(accepted.status,201);
+ assert.ok(DB.calls.some(x=>x.sql.includes('ON CONFLICT(id)')));
+});
+test('public history requires a product key',async()=>{
+ const env={DB:dbMock()};
+ const res=await worker.default.fetch(new Request('https://api.example.workers.dev/public/observations'),env);
+ assert.equal(res.status,400);
+ assert.equal((await res.json()).error,'product_key_required');
+});
