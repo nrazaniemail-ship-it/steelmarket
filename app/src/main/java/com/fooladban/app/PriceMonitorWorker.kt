@@ -34,7 +34,7 @@ class PriceMonitorWorker(ctx: Context, params: WorkerParameters): Worker(ctx,par
      p.put("history",hist).put("verified",true).put("checkedAt",System.currentTimeMillis()).remove("error");changed=true
     }catch(ex:Exception){p.put("error",ex.message?: "دریافت ناموفق").put("checkedAt",System.currentTimeMillis());changed=true}
    }
-   if(changed){state.put("products",products).put("events",events);prefs.edit().putString("state",state.toString()).apply()}
+   if(changed){state.put("products",products).put("events",events);prefs.edit().putString("state",state.toString()).putLong("lastRunAt",System.currentTimeMillis()).apply()} else prefs.edit().putLong("lastRunAt",System.currentTimeMillis()).apply()
    Result.success()
   }catch(ex:Exception){Result.retry()}
  }
