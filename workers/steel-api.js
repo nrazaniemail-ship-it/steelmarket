@@ -117,6 +117,22 @@ export default {
      .bind(s.id,s.product_key,s.product_name,s.specification||'',s.source_kind,s.market||'Iran',s.url,s.parser_mode||'auto',s.selector||null,s.regex||null,s.json_path||'price',s.currency||'IRR',s.measure_unit||'kg',s.delivery||'',s.tax_basis||'',Math.max(15,Number(s.interval_minutes)||15),now()).run();
     return json({ ok:true, id:s.id }, 201, cors);
    }
+   if (u.pathname.startsWith('/sources/') && u.pathname.endsWith('/check') && request.method === 'POST') {
+    if(!authorized)return json({error:'unauthorized'},401,cors);
+    const id=decodeURIComponent(u.pathname.slice('/sources/'.length,-6).replace(/\/$/,''));
+    const source=await env.DB.prepare('SELECT * FROM sources WHERE id=? AND enabled=1').bind(id).first();
+    if(!source)return json({error:'source_not_found'},404,cors);
+    const attempted=now();
+    try {
+     const body=await fetchSafe(source,env),price=parse(body,source),rates={IRR:1,IRT:10,USD:Number(env.USD_IRR),AED:Number(env.AED_IRR),EUR:Number(env.EUR_IRR)};
+     const fx=rates[source.currency]||0,factor=source.measure_unit==='ton'?0.001:1,normalized=fx>0?price*factor*fx:null;
+     const previous=await env.DB.prepare('SELECT raw_price FROM observations WHERE source_id=? ORDER BY observed_at DESC LIMIT 1').bind(id).first();
+     await env.DB.prepare('INSERT INTO observations(id,source_id,product_key,source_kind,raw_price,currency,measure_unit,irr_per_kg,observed_at,recorded_at) VALUES(?,?,?,?,?,?,?,?,?,?)').bind(crypto.randomUUID(),id,source.product_key,source.source_kind,price,source.currency,source.measure_unit,normalized,attempted,attempted).run();
+     if(previous&&Number(previous.raw_price)!==price){const pct=(price-Number(previous.raw_price))/Number(previous.raw_price)*100;await env.DB.prepare('INSERT INTO market_events(id,product_key,source_id,old_price,new_price,change_pct,created_at) VALUES(?,?,?,?,?,?,?)').bind(crypto.randomUUID(),source.product_key,id,previous.raw_price,price,pct,attempted).run();}
+     await env.DB.prepare('UPDATE sources SET last_attempt_at=?,last_success_at=?,last_error=NULL,consecutive_failures=0 WHERE id=?').bind(attempted,attempted,id).run();
+     return json({ok:true,price,currency:source.currency,measure_unit:source.measure_unit,irr_per_kg:normalized,observed_at:attempted},200,cors);
+    }catch(error){await env.DB.prepare('UPDATE sources SET last_attempt_at=?,last_error=?,consecutive_failures=consecutive_failures+1 WHERE id=?').bind(attempted,String(error.message||error).slice(0,300),id).run();return json({error:error.message||'source_check_failed'},502,cors);}
+   }
    if (u.pathname.startsWith('/sources/') && request.method === 'PATCH') {
     if(!authorized)return json({error:'unauthorized'},401,cors);
     const id=decodeURIComponent(u.pathname.slice('/sources/'.length)); const body=await request.json();
@@ -125,7 +141,7 @@ export default {
    }
    if (u.pathname === '/sources' && request.method === 'GET') {
     if (!authorized) return json({ error:'unauthorized' }, 401, cors);
-    const r = await env.DB.prepare('SELECT id,product_key,product_name,specification,source_kind,market,currency,measure_unit,enabled,last_attempt_at,last_success_at,last_error,consecutive_failures FROM sources ORDER BY product_name').all();
+    const r = await env.DB.prepare('SELECT id,product_key,product_name,specification,source_kind,market,url,parser_mode,selector,regex,json_path,currency,measure_unit,delivery,tax_basis,interval_minutes,enabled,last_attempt_at,last_success_at,last_error,consecutive_failures FROM sources ORDER BY product_name').all();
     return json(r.results, 200, cors);
    }
    if (u.pathname === '/observations' && request.method === 'GET') {
