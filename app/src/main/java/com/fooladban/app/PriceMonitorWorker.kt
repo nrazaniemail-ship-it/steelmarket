@@ -48,10 +48,10 @@ class PriceMonitorWorker(ctx: Context, params: WorkerParameters): Worker(ctx,par
   val mode=p.optString("mode","auto");var raw:String?=null
   if(mode=="json"||url.path.endsWith(".json")){val obj=JSONObject(body);raw=path(obj,p.optString("jsonPath","price"))?.toString()}
   else {val doc=Jsoup.parse(body);if(mode=="selector"){val el=doc.selectFirst(p.optString("selector"))?:throw Exception("عنصر قیمت پیدا نشد");raw=el.attr("content").ifBlank{el.attr("data-price").ifBlank{el.text()}}}
-   else if(mode=="regex"){val m=Regex(p.optString("regex")).find(body)?:throw Exception("Regex تطبیق نداشت");raw=m.groups.getOrNull(1)?.value?:m.value}
+   else if(mode=="regex"){val m=Regex(p.optString("regex")).find(body)?:throw Exception("Regex تطبیق نداشت");raw=m.groups[1]?.value?:m.value}
    else {raw=doc.selectFirst("meta[property=product:price:amount],meta[itemprop=price],meta[property=og:price:amount]")?.attr("content");if(raw.isNullOrBlank())raw=doc.selectFirst("[data-price],.price,.price-value,.last-price,[itemprop=price]")?.let{it.attr("data-price").ifBlank{it.attr("content").ifBlank{it.text()}}};if(raw.isNullOrBlank())raw=Regex("(?:قیمت|price|آخرین نرخ)[^0-9۰-۹]{0,30}([0-9۰-۹][0-9۰-۹,٬.٫]*)",RegexOption.IGNORE_CASE).find(body)?.groupValues?.get(1)}
   }
-  val normalized=(raw?:throw Exception("قیمت استخراج نشد")).map{ch->when(ch){in '۰'..'۹'->('0'.code+ch.code-'۰'.code).toChar();in '٠'..'٩'->('0'.code+ch.code-'٠'.code).toChar();'٫'->'.';else->ch}}.filter{it.isDigit()||it=='.'||it=='-'||it=='+'}
+  val normalized=(raw?:throw Exception("قیمت استخراج نشد")).map{ch->when(ch){in '۰'..'۹'->('0'.code+ch.code-'۰'.code).toChar();in '٠'..'٩'->('0'.code+ch.code-'٠'.code).toChar();'٫'->'.';else->ch}}.filter{it.isDigit()||it=='.'||it=='-'||it=='+'}.joinToString("")
   return normalized.toDoubleOrNull()?:throw Exception("عدد قیمت معتبر نیست")
  }
  private fun path(o:JSONObject,path:String):Any?{var cur:Any=o;for(k in path.split(".")){cur=(cur as? JSONObject)?.opt(k)?:return null};return cur}
