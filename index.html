@@ -102,6 +102,27 @@ html[data-app-icon="blue"] .fb-about-brand img{filter:hue-rotate(185deg)}
 #fooladbanTop .fb-top-utilities{display:none!important}
 .fb-top-brand-copy{gap:5px}
 .fb-top-brand-copy small{font-size:.62rem;color:var(--muted);align-self:flex-start;position:relative;top:-.35em}
+
+/* Smaller Fooladban header controls and clock */
+#fooladbanTop .fb-top-main{min-height:60px;padding:6px 18px;gap:9px}
+#fooladbanTop .fb-top-logo{width:36px;height:36px;flex-basis:36px;padding:2px}
+#fooladbanTop .fb-top-brand{gap:8px}
+#fooladbanTop .fb-top-lang,#fooladbanTop .fb-top-theme{width:42px;height:42px;border-radius:13px;font-size:.82rem}
+#fooladbanTop .fb-top-theme{border-radius:50%;font-size:1.05rem}
+#fooladbanTop .fb-top-time{padding:0 22px 8px}
+#fooladbanTop .fb-clock-line strong{font-size:clamp(1.45rem,5vw,2rem);line-height:1.2}
+#fooladbanTop .fb-date-line{font-size:.72rem;margin-top:1px}
+@media(max-width:600px){
+ #fooladbanTop .fb-top-main{min-height:54px;padding:5px 12px;gap:6px}
+ #fooladbanTop .fb-top-logo{width:32px;height:32px;flex-basis:32px}
+ #fooladbanTop .fb-top-lang,#fooladbanTop .fb-top-theme{width:36px;height:36px;border-radius:11px;font-size:.72rem}
+ #fooladbanTop .fb-top-theme{border-radius:50%;font-size:.95rem}
+ #fooladbanTop .fb-top-brand{gap:6px}
+ #fooladbanTop .fb-top-brand-copy strong{font-size:.92rem}
+ #fooladbanTop .fb-top-time{padding:0 16px 7px}
+ #fooladbanTop .fb-clock-line strong{font-size:1.55rem}
+ #fooladbanTop .fb-date-line{font-size:.68rem}
+}
 </style></head><body>
 <header class="top" id="fooladbanTop"><div class="fb-top-main"><button class="fb-top-lang" id="fbTopLanguage" type="button" aria-label="تغییر زبان">FA</button><button class="fb-top-theme" id="fbTopTheme" type="button" aria-label="تغییر پوسته">☀️</button><div class="fb-top-brand"><img class="fb-top-logo" src="./fooladban-radar.svg" alt="نشان رادار فولادبان"><div class="fb-top-brand-copy"><strong>فولادبان</strong><small>1.5.0</small></div></div></div><div class="fb-top-time"><div class="fb-clock-line"><strong id="fbTehranClock" dir="ltr">--:--:--</strong></div><div class="fb-date-line"><span id="fbPersianDate">—</span><span class="fb-date-separator">·</span><span id="fbGregorianDate">—</span></div></div><div class="fb-top-utilities"><button class="btn" id="notifyBtn">🔔 <span class="label">فعال‌سازی هشدار</span></button><button class="btn primary" id="installBtn" hidden>نصب برنامه</button></div></header>
 <main class="wrap">
