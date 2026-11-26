@@ -2,9 +2,9 @@ name: Fooladban tests
 on:
   push:
     branches: [main]
-    paths: ['core/**','workers/**','tests/**','package.json','index.html','sw.js','.github/workflows/test.yml']
+    paths: ['core/**','workers/**','tests/**','package.json','index.html','sw.js','README.md','docs/**','.github/workflows/test.yml','.github/workflows/pages.yml','.github/workflows/android.yml']
   pull_request:
-    paths: ['core/**','workers/**','tests/**','package.json']
+    paths: ['core/**','workers/**','tests/**','package.json','index.html','sw.js']
   workflow_dispatch:
 permissions:
   contents: read
