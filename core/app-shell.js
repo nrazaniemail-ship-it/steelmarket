@@ -36,7 +36,7 @@ function button(text,fn,cls=''){const b=document.createElement('button');b.type=
 function select(options,value,onchange){const s=document.createElement('select');for(const [v,l] of options){const o=document.createElement('option');o.value=v;o.textContent=l;s.append(o)}s.value=value;s.addEventListener('change',()=>onchange(s.value));return s}
 let savedUI={};try{savedUI=JSON.parse(localStorage.getItem('fooladban.ui.v1')||'{}')||{}}catch{}let ui={theme:'dark',accent:'violet',density:'comfortable',pageBg:'#091522',iconColor:'',...savedUI};
 function applyUI(){const mode=ui.theme==='system'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):ui.theme;document.documentElement.dataset.theme=mode;document.documentElement.style.setProperty('--gold',ui.accent==='violet'?'#9b8cff':ui.accent==='teal'?'#54c7bd':ui.accent==='blue'?'#73b9e8':ui.accent==='emerald'?'#58c69a':'#d9b66c');document.documentElement.style.setProperty('--bg',ui.pageBg||'#091522');document.documentElement.style.setProperty('--icon-color',ui.iconColor||'var(--gold)');document.body.dataset.density=ui.density;document.documentElement.style.colorScheme=mode;}
-function saveUI(){localStorage.setItem('fooladban.ui.v1',JSON.stringify(ui));applyUI();if(window.toast)window.toast('تنظیمات ظاهری ذخیره شد')}
+function saveUI(){localStorage.setItem('fooladban.ui.v1',JSON.stringify(ui));applyUI()}
 applyUI();if(ui.theme==='system'&&window.matchMedia){matchMedia('(prefers-color-scheme: light)').addEventListener?.('change',applyUI)}
 const appearance=document.createElement('div');appearance.className='fb-settings-stack';
 const theme=select([['dark','تیره'],['light','روشن'],['system','پیروی از دستگاه']],ui.theme,v=>{ui.theme=v;saveUI()});
