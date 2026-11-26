@@ -13,7 +13,7 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('.bottomnav').isVisible(),true);
   await page.locator('#mcProductCatalog').waitFor();
   assert.equal(await page.locator('#mcProductCatalog input[data-catalog-id]').count(),19);
-  assert.equal(await page.locator('#mcSourceRegistry .mc-source').count(),21);
+  assert.equal(await page.locator('#mcSourceRegistry .mc-source').count(),22);
   assert.equal(await page.locator('#mcSourceRegistry').innerText().then(t=>t.includes('Trading Economics')),true);
   await page.locator('#pCatalogProduct').selectOption('rebar');
   await page.locator('#mcProductCatalog input[data-catalog-id="rebar"]').check();
