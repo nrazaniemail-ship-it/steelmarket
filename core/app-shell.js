@@ -50,8 +50,8 @@ function updateTehranClock(){
  const now=new Date(),zone='Asia/Tehran';
  const clock=$('fbTehranClock'),persian=$('fbPersianDate'),gregorian=$('fbGregorianDate');
  if(clock)clock.textContent=new Intl.DateTimeFormat('en-GB',{timeZone:zone,hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(now);
- if(persian)persian.textContent=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{timeZone:zone,weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(now);
- if(gregorian)gregorian.textContent=new Intl.DateTimeFormat('en-GB',{timeZone:zone,day:'numeric',month:'short',year:'numeric'}).format(now);
+ if(persian){const parts=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{timeZone:zone,day:'2-digit',month:'long',year:'numeric'}).formatToParts(now);const part=k=>parts.find(x=>x.type===k)?.value||'';persian.textContent=part('day')+' - '+part('month')+' - '+part('year')}
+ if(gregorian){const parts=new Intl.DateTimeFormat('en-GB',{timeZone:zone,day:'2-digit',month:'short',year:'numeric'}).formatToParts(now);const part=k=>parts.find(x=>x.type===k)?.value||'';gregorian.textContent=part('day')+' - '+part('month')+' - '+part('year')}
 }
 syncTopControls();updateTehranClock();setInterval(updateTehranClock,1000);
 applyUI();if(ui.theme==='system'&&window.matchMedia){matchMedia('(prefers-color-scheme: light)').addEventListener?.('change',applyUI)}
