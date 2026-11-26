@@ -1,3 +1,4 @@
+import { identifyAdapter, extractStructuredPrice } from './source-adapters.js';
 const now = () => Date.now();
 function json(data, status = 200, cors = {}) {
  return new Response(JSON.stringify(data), { status, headers: { 'content-type':'application/json; charset=utf-8', 'cache-control':'no-store', ...cors } });
@@ -52,8 +53,9 @@ function parse(body, source) {
  }
  if (source.parser_mode === 'selector') return normalize(selectorText(body, source.selector));
  if (source.parser_mode === 'auto') {
-  const meta = body.match(/<meta[^>]*(?:property=["']product:price:amount["']|itemprop=["']price["'])[^>]*content=["']([^"']+)["']/i);
-  if (meta) return normalize(meta[1]);
+  const adapter=identifyAdapter(source.url);
+  const structured=extractStructuredPrice(body,adapter.id);
+  if(structured!==null)return normalize(structured);
   try { return normalize(selectorText(body, '[data-price]')); } catch {}
   for (const cls of ['.price', '.price-value', '.last-price']) {
    try { return normalize(selectorText(body, cls)); } catch {}
