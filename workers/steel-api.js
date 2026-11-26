@@ -110,6 +110,11 @@ export default {
     if (!authorized) return json({ error:'unauthorized' }, 401, cors);
     const s = await request.json();
     if (!s.id || !s.product_key || !s.product_name || !s.url || !s.source_kind) return json({ error:'missing_required_fields' }, 400, cors);
+    if (!['factory','ime','free_market','export','other'].includes(s.source_kind)) return json({error:'invalid_source_kind'},400,cors);
+    if (!['IRR','IRT','USD','AED','EUR'].includes(s.currency||'IRR')) return json({error:'invalid_currency'},400,cors);
+    if (!['kg','ton'].includes(s.measure_unit||'kg')) return json({error:'invalid_measure_unit'},400,cors);
+    if (!['auto','json','regex','selector'].includes(s.parser_mode||'auto')) return json({error:'invalid_parser_mode'},400,cors);
+    if ((s.regex||'').length>300 || (s.json_path||'').length>200 || (s.selector||'').length>120) return json({error:'parser_config_too_long'},400,cors);
     validPublicUrl(s.url, (env.ALLOWED_HOSTS || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
     await env.DB.prepare(`INSERT INTO sources(id,product_key,product_name,specification,source_kind,market,url,parser_mode,selector,regex,json_path,currency,measure_unit,delivery,tax_basis,interval_minutes,enabled,created_at)
      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?)
