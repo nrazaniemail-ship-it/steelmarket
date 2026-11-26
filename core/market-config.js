@@ -27,7 +27,8 @@ const defaults=[
  {id:'cru',name:'CRU US Midwest HRC Index',market:'north-america',url:'https://www.crugroup.com/en/data/prices-and-indices/steel-prices/the-cru/',enabled:false,priority:1,type:'شاخص مرجع آمریکا · اشتراکی'},
  {id:'cme-hrc',name:'CME HRC Steel Futures',market:'north-america',url:'https://www.cmegroup.com/markets/metals/ferrous/hrc-steel.html',enabled:false,priority:2,type:'بورس آتی آمریکا'},
  {id:'steelorbis',name:'SteelOrbis Turkey',market:'turkey',url:'https://www.steelorbis.com/steel-market/turkey.htm',enabled:false,priority:1,type:'شاخص و قیمت‌های ترکیه'},
- {id:'bigmint',name:'BigMint Steel Prices',market:'india',url:'https://www.bigmint.co/industries/foundry/price/steel',enabled:false,priority:1,type:'قیمت‌های هند'}
+ {id:'bigmint',name:'BigMint Steel Prices',market:'india',url:'https://www.bigmint.co/industries/foundry/price/steel',enabled:false,priority:1,type:'قیمت‌های هند'},
+ {id:'lme-ferrous',name:'London Metal Exchange (LME) · Ferrous',market:'global',url:'https://www.lme.com/en/metals/ferrous',enabled:false,priority:3,type:'بورس آتی جهانی · قیمت مشتقه'}
 ];
 const labels={iran:'ایران',global:'جهانی / شاخص‌های بین‌المللی',china:'چین',europe:'اروپا', 'north-america':'آمریکای شمالی',turkey:'ترکیه',india:'هند','middle-east':'خاورمیانه'};
 let cfg;
