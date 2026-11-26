@@ -53,6 +53,10 @@
 <div class="settingsline"><div><b>پایش خودکار</b><div class="muted">تا وقتی برنامه باز است</div></div><input class="switch" type="checkbox" id="autoToggle" checked></div>
 <div class="field"><label>فاصله بررسی</label><select id="interval"><option value="15" selected>هر ۱۵ دقیقه</option><option value="30">هر ۳۰ دقیقه</option><option value="60">هر ۱ ساعت</option><option value="240">هر ۴ ساعت</option></select></div>
 <div class="field" style="margin-top:10px"><label>آدرس سرویس واسط (اختیاری)</label><input id="proxyUrl" type="url" placeholder="https://your-worker.example.workers.dev"></div>
+<div class="field" style="margin-top:10px"><label>آدرس API مرکزی فولادبان</label><input id="apiUrl" type="url" placeholder="https://fooladban-steel-api.YOUR_ACCOUNT.workers.dev"></div>
+<div class="field" style="margin-top:10px"><label>کلید مدیریتی API (فقط برای مدیریت منابع)</label><input id="apiToken" type="password" autocomplete="off" placeholder="در این نشست وارد کنید"></div>
+<div class="form-actions"><button class="btn primary" type="button" id="apiConnectBtn">اتصال و همگام‌سازی</button><button class="btn" type="button" id="apiSaveBtn">ذخیره تنظیمات</button></div>
+<div class="hint" id="apiStatus" role="status">اتصال API مرکزی هنوز تنظیم نشده است. کلید مدیریتی فقط در نشست فعلی مرورگر نگهداری می‌شود.</div>
 <div class="field" style="margin-top:10px"><label>نرخ تبدیل USD به IRR</label><input id="fxUsd" type="number" min="1" placeholder="نرخ روز بازار"></div>
 <div class="field" style="margin-top:10px"><label>نرخ تبدیل AED به IRR</label><input id="fxAed" type="number" min="1" placeholder="نرخ روز بازار"></div>
 <div class="field" style="margin-top:10px"><label>نرخ تبدیل EUR به IRR</label><input id="fxEur" type="number" min="1" placeholder="نرخ روز بازار"></div>
