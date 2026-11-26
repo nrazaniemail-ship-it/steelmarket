@@ -10,6 +10,7 @@ const ADAPTERS = Object.freeze([
   { id:'ahanonline', hosts:['ahanonline.com','www.ahanonline.com'], method:'product-page-jsonld', confidence:'conditional', note:'صفحه اختصاصی کالا؛ قیمت و تاریخ به‌روزرسانی باید از همان صفحه خوانده شود.' },
   { id:'markazeahan', hosts:['markazeahan.com','www.markazeahan.com'], method:'product-page-jsonld', confidence:'conditional', note:'صفحه اختصاصی کالا؛ نیازمند تطبیق گرید، سایز و کارخانه.' },
   { id:'iromart', hosts:['iromart.com','www.iromart.com'], method:'product-page-jsonld', confidence:'conditional', note:'صفحه اختصاصی کالا؛ ممکن است قیمت به‌صورت پویا بارگذاری شود.' },
+  { id:'pivan', hosts:['pivan.co','www.pivan.co'], method:'product-page-jsonld', confidence:'conditional', note:'صفحه اختصاصی محصول؛ قیمت و شرایط تحویل باید تطبیق داده شود.' },
   { id:'ahanprice', hosts:['ahanprice.com','www.ahanprice.com'], method:'product-page-jsonld', confidence:'conditional', note:'جدول قیمت؛ تاریخ و واحد قیمت باید همراه مقدار استخراج شود.' },
   { id:'tradingeconomics', hosts:['tradingeconomics.com','www.tradingeconomics.com','fa.tradingeconomics.com'], method:'commodity-page', confidence:'conditional', note:'شاخص/CFD مرجع است؛ الزاماً قیمت فیزیکی قابل معامله یا قیمت تحویل‌شده نیست.' }
 ]);
