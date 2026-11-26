@@ -23,9 +23,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      - name: Assemble web-only release bundle
+        run: |
+          mkdir -p dist/core
+          cp index.html manifest.webmanifest icon.svg sw.js dist/
+          cp core/*.js dist/core/
+          touch dist/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: dist
   deploy:
     environment:
       name: github-pages
