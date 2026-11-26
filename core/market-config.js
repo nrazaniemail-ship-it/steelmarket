@@ -68,9 +68,65 @@ const head=el('div','mc-product-details-head');const detailBadge=el('span','mc-p
 const grid=el('div','mc-product-detail-grid');
 function moveField(id,label,wide=false){const n=document.getElementById(id),w=n?.parentElement;if(!n||!w)return null;const l=w.querySelector('label');if(l)l.textContent=label;if(wide)w.classList.add('full');grid.append(w);return w}
 const nameField=moveField('pName','عنوان در دیده‌بان',true),groupField=moveField('pGroup','گروه'),specField=moveField('pSpecification','مشخصات',true),deliveryField=moveField('pDelivery','محل تحویل');
-const grade=el('input');grade.id='pGrade';grade.placeholder='مثلاً A3، ST37، Fe 67%';const size=el('input');size.id='pSize';size.placeholder='مثلاً قطر ۱۶، ضخامت ۲';const maker=el('input');maker.id='pManufacturer';maker.placeholder='نام کارخانه / تولیدکننده';
-function addInput(label,input){const w=el('div','field');w.append(el('label','',label),input);grid.append(w)}
-addInput('گرید / کیفیت',grade);addInput('سایز / ابعاد',size);addInput('تولیدکننده / برند',maker);
+function choice(id,placeholder,options){
+ const s=el('select');s.id=id;s.append(el('option','','انتخاب '+placeholder));s.options[0].value='';
+ for(const value of options)s.append(el('option','',value)).lastChild.value=value;
+ const custom=el('input');custom.type='text';custom.placeholder='گزینه دیگر را وارد کنید';custom.className='mc-custom-choice hidden';custom.setAttribute('aria-label',placeholder+' سفارشی');
+ const opt=el('option','','＋ ورود گزینه دلخواه');opt.value='__custom__';s.append(opt);
+ s.addEventListener('change',()=>{custom.classList.toggle('hidden',s.value!=='__custom__');if(s.value==='__custom__'){custom.value='';custom.focus()}});
+ custom.addEventListener('input',()=>{const v=custom.value.trim();let o=[...s.options].find(x=>x.dataset.custom==='1');if(!o){o=el('option');o.dataset.custom='1';s.append(o)}o.value=v;o.textContent=v||'گزینه دلخواه';if(v)s.value=v;});
+ s.setChoiceValue=v=>{const value=String(v??'');if(!value){s.value='';custom.classList.add('hidden');return}let o=[...s.options].find(x=>x.value===value);if(!o){o=el('option');o.value=value;o.textContent=value;o.dataset.custom='1';s.insertBefore(o,opt)}s.value=value;custom.classList.add('hidden')};
+ return {select:s,custom};
+}
+function addChoice(label,control){const w=el('div','field');w.append(el('label','',label),control.select,control.custom);grid.append(w)}
+const gradeOptions={
+ 'rebar':['A1','A2','A3','A4','S240','S340','S400','S500'],
+ 'alloy-rebar':['40Cr','42CrMo4','34CrNiMo6','CK45'],
+ 'hot-rolled':['ST12','ST13','ST14','ST37','ST44','ST52','S235JR','S275JR','S355JR'],
+ 'cold-rolled':['DC01','DC03','DC04','SPCC','SPCD'],
+ 'galvanized':['DX51D+Z','DX52D+Z','DX53D+Z','S220GD','S350GD'],
+ 'slab':['普通ی','کربنی','کم‌آلیاژ','میکروآلیاژی'],
+ 'billet-bloom':['3SP','5SP','SAE1006','SAE1008','CK45'],
+ 'iron-concentrate':['Fe 65%','Fe 66%','Fe 67%','Fe 68%','Fe 69%'],
+ 'pellet':['Fe 65%','Fe 66%','Fe 67%','Fe 68%'],
+ 'sponge-iron':['Fe  DRI 90%','Fe DRI 91%','Fe DRI 92%']
+};
+const sizeOptions={
+ 'rebar':['۸','۱۰','۱۲','۱۴','۱۶','۱۸','۲۰','۲۲','۲۵','۲۸','۳۲','۳۶','۴۰'],
+ 'alloy-rebar':['۱۲','۱۴','۱۶','۱۸','۲۰','۲۵','۳۰','۳۵','۴۰'],
+ 'hot-rolled':['۱.۵','۲','۲.۵','۳','۴','۵','۶','۸','۱۰','۱۲','۱۵','۲۰','۲۵'],
+ 'cold-rolled':['۰.۳','۰.۴','۰.۵','۰.۶','۰.۷','۰.۸','۱','۱.۲','۱.۵','۲'],
+ 'galvanized':['۰.۳','۰.۴','۰.۵','۰.۶','۰.۷','۰.۸','۱','۱.۲','۱.۵','۲'],
+ 'billet-bloom':['۱۰۰×۱۰۰','۱۲۰×۱۲۰','۱۲۵×۱۲۵','۱۳۰×۱۳۰','۱۵۰×۱۵۰'],
+ 'slab':['عرض ۱۰۰۰','عرض ۱۲۵۰','عرض ۱۵۰۰','عرض ۲۰۰۰'],
+ 'iron-concentrate':['دانه‌بندی زیر ۱۰۰ میکرون','دانه‌بندی زیر ۱۵۰ میکرون'],
+ 'pellet':['قطر ۹–۱۶ میلی‌متر']
+};
+const makerOptions={
+ 'rebar':['ذوب‌آهن اصفهان','فولاد مبارکه','فولاد خراسان','فولاد کویر','ظفر بناب','آذر فولاد امین','فولاد کاوه تیکمه‌داش'],
+ 'hot-rolled':['فولاد مبارکه','فولاد اکسین خوزستان','فولاد گیلان','فولاد کاویان'],
+ 'cold-rolled':['فولاد مبارکه','فولاد غرب آسیا','فولاد هفت الماس'],
+ 'galvanized':['فولاد مبارکه','امیرکبیر کاشان','ورق خودرو چهارمحال','هفت الماس'],
+ 'billet-bloom':['فولاد خوزستان','ذوب‌آهن اصفهان','فولاد کاوه جنوب کیش','فولاد خراسان','فولاد آلیاژی ایران'],
+ 'slab':['فولاد مبارکه','فولاد خوزستان','فولاد هرمزگان','فولاد کاویان'],
+ 'sponge-iron':['فولاد مبارکه','فولاد خوزستان','فولاد غدیر ایرانیان','میدکو']
+};
+const gradeChoice=choice('pGrade','گرید / کیفیت',gradeOptions['rebar']);
+const sizeChoice=choice('pSize','سایز / ابعاد',sizeOptions['rebar']);
+const makerChoice=choice('pManufacturer','تولیدکننده / برند',makerOptions['rebar']);
+const grade=gradeChoice.select,size=sizeChoice.select,maker=makerChoice.select;
+addChoice('گرید / کیفیت',gradeChoice);addChoice('سایز / ابعاد',sizeChoice);addChoice('تولیدکننده / برند',makerChoice);
+const titleInput=nameField?.querySelector('#pName');
+const titleChoice=choice('pName','عنوان در دیده‌بان',products.flatMap(g=>g[1].map(p=>p[1])));
+if(titleInput){titleInput.replaceWith(titleChoice.select);titleChoice.select.required=true;nameField.append(titleChoice.custom)}
+function setProductChoices(id){
+ const g=gradeOptions[id]||['استاندارد عمومی','گرید تجاری','گرید سفارشی'];
+ const z=sizeOptions[id]||['استاندارد','سایز متداول','ابعاد سفارشی'];
+ const m=makerOptions[id]||['تولیدکننده داخلی','وارداتی / خارجی'];
+ const fill=(s,values)=>{const keep=s.value;s.replaceChildren(el('option','','انتخاب'));s.options[0].value='';for(const v of values){const o=el('option','',v);o.value=v;s.append(o)}const custom=el('option','','＋ ورود گزینه دلخواه');custom.value='__custom__';s.append(custom);s.setChoiceValue(keep)};
+ fill(grade,g);fill(size,z);fill(maker,m);
+}
+
 const marketField=moveField('pMarket','بازار ارزیابی'),taxField=moveField('pTaxBasis','مبنای مالیات'),currencyField=moveField('pCurrency','ارز'),unitField=moveField('pMeasureUnit','واحد'),sourceKindField=moveField('pSourceKind','نوع منبع'),keyField=moveField('pProductKey','کلید کالا');
 const sourceField=el('div','field full');sourceField.append(el('label','','مرجع قیمت'),select);const sourceInfo=el('small','mc-muted','');sourceField.append(sourceInfo);grid.append(sourceField);
 const urlField=moveField('pUrl','لینک دقیق صفحه قیمت محصول',true);if(urlField){const u=urlField.querySelector('input');u.placeholder='https://site.com/product/price';u.required=true;urlField.append(el('small','mc-muted','صفحه اصلی سایت کافی نیست؛ لینک همان صفحه‌ای را وارد کنید که قیمت این محصول را نشان می‌دهد.'))}
@@ -81,17 +137,22 @@ detailBox.append(advanced);
 const preview=el('div','mc-price-preview');preview.id='mcQuickPrice';detailBox.append(preview);
 const key=keyField?.querySelector('#pProductKey');if(key){key.required=false;key.removeAttribute('required');key.readOnly=true;key.closest('.field')?.classList.add('hidden')}groupField?.classList.add('hidden');specField?.classList.add('hidden');sourceKindField?.classList.add('hidden');
 if(productForm){const fg=productForm.querySelector('.formgrid');if(fg)fg.replaceChildren(picker,detailBox)}
+const deliveryFieldNode=document.getElementById('pDelivery');
+const deliveryChoice=choice('pDelivery','محل تحویل',['درب کارخانه','انبار تهران','انبار اصفهان','انبار اهواز','انبار بندرعباس','تحویل در محل مشتری','FOB بندرعباس','CFR','CIF','EXW','FCA','DAP','DDP']);
+if(deliveryFieldNode){deliveryFieldNode.replaceWith(deliveryChoice.select);deliveryField?.append(deliveryChoice.custom)}
+function renderDeliveryOptions(){const m=marketSelect?.value||'ایران';const opts=m==='ایران'?['درب کارخانه','انبار تهران','انبار اصفهان','انبار اهواز','انبار بندرعباس','تحویل در محل مشتری','بورس کالا / محل تحویل اعلامی']:['FOB','CFR','CIF','EXW','FCA','DAP','DDP','تحویل بندر مقصد','تحویل انبار مقصد'];const old=deliveryChoice.select.value;deliveryChoice.select.replaceChildren(el('option','','انتخاب محل تحویل'));deliveryChoice.select.options[0].value='';for(const v of opts){const o=el('option','',v);o.value=v;deliveryChoice.select.append(o)}const custom=el('option','','＋ ورود گزینه دلخواه');custom.value='__custom__';deliveryChoice.select.append(custom);deliveryChoice.select.setChoiceValue(old)}
+renderDeliveryOptions();
 const marketSelect=document.getElementById('pMarket');
 function renderSourceSelect(){const old=select.value,m=marketSelect?.value==='ایران'?'iran':marketSelect?.value==='جهانی'?'global':({'چین':'china','اروپا':'europe','آمریکای شمالی':'north-america','ترکیه':'turkey','هند':'india','خاورمیانه':'middle-east','امارات':'middle-east','عمان':'middle-east','عربستان':'middle-east'}[marketSelect?.value]||'iran');select.replaceChildren(el('option','','انتخاب مرجع'));select.options[0].value='';for(const x of cfg.sources.filter(x=>x.enabled&&x.market===m).sort((a,b)=>a.priority-b.priority)){const o=el('option','',x.priority+' · '+x.name);o.value=x.id;select.append(o)}if(cfg.sources.some(x=>x.id===old&&x.enabled&&x.market===m))select.value=old;else if(select.options.length>1)select.selectedIndex=1;const src=cfg.sources.find(x=>x.id===select.value);sourceInfo.textContent=src?src.name+' · اولویت '+src.priority+' · '+(src.id==='tradingeconomics'?'صفحه شاخص در صورت پشتیبانی محصول خودکار تنظیم می‌شود.':'صفحه دقیق کالا لازم است.'):'برای این بازار مرجع فعالی ثبت نشده است.';applySourceProfile()}
 function renderQuickPrice(){let all=[];try{all=JSON.parse(localStorage.getItem('fooladban.v1')||'{}').products||[]}catch{}const id=catalogSelect.value,m=marketSelect?.value||'ایران',g=grade.value.trim(),z=size.value.trim(),mk=maker.value.trim();const match=all.filter(p=>(!id||p.catalogId===id)&&p.market===m&&(p.productGrade||'')===g&&(p.productSize||'')===z&&(p.productManufacturer||'')===mk).sort((a,b)=>(b.checkedAt||0)-(a.checkedAt||0))[0],last=match?.history?.at(-1);preview.replaceChildren();const info=el('div');info.append(el('b','','آخرین قیمت ثبت‌شده'));info.append(el('small','',match?(match.sourceName||'مرجع انتخابی')+' · '+(last?new Date(last.time).toLocaleString('fa-IR'):'قیمت هنوز دریافت نشده'):'برای این محصول هنوز قیمت ثبت نشده است'));preview.append(info,el('strong','',last?Number(last.price).toLocaleString('fa-IR')+' '+(match.currency||'')+' / '+(match.measureUnit==='kg'?'کیلوگرم':'تن'):'—'))}
-function syncProductSelection(){const p=productMap.get(catalogSelect.value);detailBox.classList.toggle('is-empty',!p);detailBadge.textContent=p?p.group:'ابتدا محصول را انتخاب کنید';if(p){document.getElementById('pName').value=p.name;document.getElementById('pGroup').value=p.group;key.value=p.id;grade.value='';size.value='';maker.value='';document.getElementById('pSpecification').value='';renderSourceSelect()}renderQuickPrice()}
+function syncProductSelection(){const p=productMap.get(catalogSelect.value);detailBox.classList.toggle('is-empty',!p);detailBadge.textContent=p?p.group:'ابتدا محصول را انتخاب کنید';if(p){titleChoice.select.setChoiceValue(p.name);document.getElementById('pGroup').value=p.group;key.value=p.id;setProductChoices(p.id);grade.value='';size.value='';maker.value='';document.getElementById('pSpecification').value='';renderSourceSelect()}renderQuickPrice()}
 catalogSelect.addEventListener('change',syncProductSelection);
-[grade,size,maker].forEach(x=>x.addEventListener('input',()=>{document.getElementById('pSpecification').value=[grade.value,size.value,maker.value].filter(Boolean).join(' · ')}));
-marketSelect?.addEventListener('change',()=>{renderSourceSelect();document.getElementById('pCurrency').value=marketSelect.value==='ایران'?'IRT':'USD';document.getElementById('pMeasureUnit').value=marketSelect.value==='ایران'?'kg':'ton';document.getElementById('pUrl').value='';renderQuickPrice()});
+[grade,size,maker].forEach(x=>x.addEventListener('change',()=>{document.getElementById('pSpecification').value=[grade.value,size.value,maker.value].filter(Boolean).join(' · ')}));
+marketSelect?.addEventListener('change',()=>{renderDeliveryOptions();renderSourceSelect();document.getElementById('pCurrency').value=marketSelect.value==='ایران'?'IRT':'USD';document.getElementById('pMeasureUnit').value=marketSelect.value==='ایران'?'kg':'ton';document.getElementById('pUrl').value='';renderQuickPrice()});
 function applySourceProfile(){const x=cfg.sources.find(v=>v.id===select.value);const input=document.getElementById('pUrl');if(!x||!input)return;const key=catalogSelect.value;const teMap={'hot-rolled':'hrc-steel','cold-rolled':'hrc-steel','iron-ore-lump':'iron-ore','iron-ore-fines':'iron-ore','iron-concentrate':'iron-ore','pellet':'iron-ore','scrap-steel':'scrap-steel','rebar':'steel','alloy-rebar':'steel','billet-bloom':'steel','alloy-billet-bloom':'steel','slab':'steel','sponge-iron':'steel','hbi':'steel','wire-rod':'steel','long-sections':'steel'};let target=x.url||'';if(x.id==='tradingeconomics'&&teMap[key]){target='https://fa.tradingeconomics.com/commodity/'+teMap[key];const ccy=teMap[key]==='steel'?'CNY':'USD';document.getElementById('pCurrency').value=ccy;document.getElementById('pMeasureUnit').value='ton';sourceInfo.textContent=teMap[key]==='steel'?'شاخص عمومی فولاد با واحد CNY/تن به‌صورت خودکار درج شد؛ این شاخص قیمت دقیق میلگرد/شمش/مقاطع نیست.':'صفحه شاخص متناسب با محصول با واحد '+ccy+'/تن به‌صورت خودکار درج شد؛ شاخص الزاماً قیمت فیزیکی تحویل‌شده نیست.'}else{sourceInfo.textContent=x.name+' · نشانی مرجع به‌صورت خودکار درج شد. اگر صفحه اختصاصی کالا را دارید، می‌توانید آن را جایگزین کنید؛ صفحه اصلی به‌تنهایی قیمت محصول را تأیید نمی‌کند.'}if(target)input.value=target;input.required=!!target;const k=document.getElementById('pSourceKind');if(k)k.value=x.id==='ime'?'ime':x.market==='iran'?'free_market':'other';}
 select.addEventListener('change',applySourceProfile);
 document.getElementById('pUrl')?.addEventListener('input',renderQuickPrice);
-document.getElementById('products')?.addEventListener('click',e=>{const b=e.target.closest('[data-edit]');if(!b)return;setTimeout(()=>{try{const p=(JSON.parse(localStorage.getItem('fooladban.v1')||'{}').products||[]).find(x=>x.id===b.dataset.edit);if(!p)return;catalogSelect.value=p.catalogId||'';document.getElementById('pName').value=p.name||'';document.getElementById('pGroup').value=p.group||'سایر';marketSelect.value=p.market||'ایران';select.value=p.sourceRef||'';grade.value=p.productGrade||'';size.value=p.productSize||'';maker.value=p.productManufacturer||'';document.getElementById('pSpecification').value=p.specification||'';document.getElementById('pDelivery').value=p.delivery||'';document.getElementById('pTaxBasis').value=p.taxBasis||'unknown';document.getElementById('pCurrency').value=p.currency||'IRT';document.getElementById('pMeasureUnit').value=p.measureUnit||'kg';document.getElementById('pUrl').value=p.url||'';document.getElementById('pMode').value=p.mode||'auto';document.getElementById('pSelector').value=p.selector||'';document.getElementById('pRegex').value=p.regex||'';document.getElementById('pJsonPath').value=p.jsonPath||'price';document.getElementById('pThreshold').value=p.threshold||0;document.getElementById('pNote').value=p.note||'';document.getElementById('pMode').dispatchEvent(new Event('change'));detailBox.classList.remove('is-empty');detailBadge.textContent=productMap.get(p.catalogId)?.group||p.group||'مشخصات محصول';renderSourceSelect();renderQuickPrice()}catch{}} ,0)});
+document.getElementById('products')?.addEventListener('click',e=>{const b=e.target.closest('[data-edit]');if(!b)return;setTimeout(()=>{try{const p=(JSON.parse(localStorage.getItem('fooladban.v1')||'{}').products||[]).find(x=>x.id===b.dataset.edit);if(!p)return;catalogSelect.value=p.catalogId||'';titleChoice.select.setChoiceValue(p.name||'');setProductChoices(p.catalogId||'');document.getElementById('pGroup').value=p.group||'سایر';marketSelect.value=p.market||'ایران';select.value=p.sourceRef||'';gradeChoice.select.setChoiceValue(p.productGrade||'');sizeChoice.select.setChoiceValue(p.productSize||'');makerChoice.select.setChoiceValue(p.productManufacturer||'');document.getElementById('pSpecification').value=p.specification||'';deliveryChoice.select.setChoiceValue(p.delivery||'');document.getElementById('pTaxBasis').value=p.taxBasis||'unknown';document.getElementById('pCurrency').value=p.currency||'IRT';document.getElementById('pMeasureUnit').value=p.measureUnit||'kg';document.getElementById('pUrl').value=p.url||'';document.getElementById('pMode').value=p.mode||'auto';document.getElementById('pSelector').value=p.selector||'';document.getElementById('pRegex').value=p.regex||'';document.getElementById('pJsonPath').value=p.jsonPath||'price';document.getElementById('pThreshold').value=p.threshold||0;document.getElementById('pNote').value=p.note||'';document.getElementById('pMode').dispatchEvent(new Event('change'));detailBox.classList.remove('is-empty');detailBadge.textContent=productMap.get(p.catalogId)?.group||p.group||'مشخصات محصول';renderSourceSelect();renderQuickPrice()}catch{}} ,0)});
 window.addEventListener('fooladban:product-updated',renderQuickPrice);
 if(sourcePanel){sourcePanel.after(catalog,picks,registry)}else if(main)main.prepend(catalog,picks,registry);
 renderProducts();renderDashboardPicks();renderSources();renderSourceSelect();syncProductSelection();
