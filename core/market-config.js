@@ -2,53 +2,30 @@
 'use strict';
 const KEY='fooladban.market-config.v1';
 const products=[
- ['بالادست فولاد',[['iron-ore-lump','سنگ‌آهن کلوخه'],['iron-ore-fines','سنگ‌آهن دانه‌بندی'],['iron-concentrate','کنسانتره سنگ‌آهن'],['pellet','گندله'],['sponge-iron','آهن اسفنجی'],['hbi','بریکت آهن اسفنجی']]],
  ['شمش‌ها',[['slab','اسلب (تختال)'],['billet-bloom','بلوم و بیلت فولادی'],['alloy-billet-bloom','بلوم و بیلت فولاد آلیاژی']]],
  ['مقاطع طولی',[['long-sections','تیرآهن، ناودانی و نبشی'],['rebar','میلگرد'],['alloy-rebar','میلگرد فولاد آلیاژی'],['wire-rod','سیم فولادی'],['rail','ریل راه‌آهن']]],
- ['مقاطع تخت',[['hot-rolled','ورق گرم'],['cold-rolled','ورق سرد'],['galvanized','ورق گالوانیزه'],['tinplate','ورق قلع‌اندود'],['prepainted','ورق رنگی']]]
+ ['مقاطع تخت',[['hot-rolled','ورق گرم'],['cold-rolled','ورق سرد'],['galvanized','ورق گالوانیزه'],['tinplate','ورق قلع‌اندود'],['prepainted','ورق رنگی']]],
+ ['زنجیره بالادست فولاد',[['iron-ore-lump','سنگ‌آهن کلوخه'],['iron-ore-fines','سنگ‌آهن دانه‌بندی'],['iron-concentrate','کنسانتره سنگ‌آهن'],['pellet','گندله'],['sponge-iron','آهن اسفنجی'],['hbi','بریکت آهن اسفنجی']]]
 ];
 const defaults=[
- {id:'ime',name:'بورس کالای ایران (IME)',market:'iran',url:'https://www.ime.co.ir/',enabled:true,priority:1,type:'رسمی'},
- {id:'ahanonline',name:'آهن آنلاین',market:'iran',url:'https://ahanonline.com/',enabled:true,priority:2,type:'بازار خصوصی'},
- {id:'markazeahan',name:'مرکز آهن',market:'iran',url:'https://markazeahan.com/',enabled:true,priority:3,type:'بازار خصوصی'},
- {id:'pivan',name:'پیوان',market:'iran',url:'https://pivan.co/',enabled:true,priority:4,type:'بازار خصوصی'},
- {id:'iromart',name:'آیرومارت',market:'iran',url:'https://iromart.com/',enabled:true,priority:5,type:'بازار خصوصی'},
- {id:'ahanprice',name:'آهن پرایس',market:'iran',url:'https://ahanprice.com/',enabled:true,priority:6,type:'بازار خصوصی'},
- {id:'tradingeconomics',name:'Trading Economics',market:'global',url:'https://fa.tradingeconomics.com/',enabled:true,priority:1,type:'مرجع بین‌المللی'},
- {id:'china',name:'بازار چین',market:'china',url:'',enabled:false,priority:1,type:'بازار منطقه‌ای'},
- {id:'europe',name:'بازار اروپا',market:'europe',url:'',enabled:false,priority:1,type:'بازار منطقه‌ای'},
- {id:'north-america',name:'بازار آمریکای شمالی',market:'north-america',url:'',enabled:false,priority:1,type:'بازار منطقه‌ای'},
- {id:'turkey',name:'بازار ترکیه',market:'turkey',url:'',enabled:false,priority:1,type:'بازار منطقه‌ای'},
- {id:'india',name:'بازار هند',market:'india',url:'',enabled:false,priority:1,type:'بازار منطقه‌ای'},
- {id:'middle-east',name:'بازار خاورمیانه',market:'middle-east',url:'',enabled:false,priority:1,type:'بازار منطقه‌ای'},
- {id:'argus-global',name:'Argus Media',market:'global',url:'https://www.argusmedia.com/en/solutions/products/argus-global-steel',enabled:false,priority:2,type:'مرجع تخصصی بین‌المللی · نیازمند دسترسی'},
- {id:'fastmarkets',name:'Fastmarkets',market:'global',url:'',enabled:false,priority:4,type:'مرجع تخصصی بین‌المللی · نیازمند دسترسی'},
- {id:'sp-global-platts',name:'S&P Global Platts',market:'global',url:'',enabled:false,priority:5,type:'مرجع تخصصی بین‌المللی · نیازمند دسترسی'},
- {id:'messteel',name:'MESteel',market:'global',url:'',enabled:false,priority:6,type:'مرجع منطقه‌ای خاورمیانه'},
- {id:'steel-market',name:'Steel Market',market:'global',url:'',enabled:false,priority:7,type:'مرجع بین‌المللی'},
- {id:'ahantime',name:'Ahantime',market:'iran',url:'',enabled:false,priority:7,type:'مرجع داخلی / منطقه‌ای'},
- {id:'zharfahan',name:'Zharfahan',market:'iran',url:'',enabled:false,priority:8,type:'مرجع داخلی / منطقه‌ای'},
- {id:'arznab',name:'Arznab',market:'iran',url:'',enabled:false,priority:9,type:'مرجع داخلی / منطقه‌ای'},
- {id:'ferojam',name:'Ferojam',market:'iran',url:'',enabled:false,priority:10,type:'مرجع داخلی / منطقه‌ای'},
- {id:'artanpress',name:'Artanpress',market:'iran',url:'',enabled:false,priority:11,type:'مرجع خبری و بازار فولاد'},
- {id:'ahan-assa',name:'Ahan Assa',market:'iran',url:'',enabled:false,priority:12,type:'مرجع داخلی / منطقه‌ای'},
- {id:'mysteel',name:'Mysteel',market:'china',url:'https://www.mysteel.net/',enabled:false,priority:1,type:'شاخص تخصصی چین · نیازمند دسترسی'},
- {id:'shfe',name:'بورس آتی شانگهای (SHFE)',market:'china',url:'https://www.shfe.com.cn/eng/reports/StatisticalData/',enabled:false,priority:2,type:'بورس رسمی چین'},
- {id:'meps',name:'MEPS International',market:'europe',url:'https://mepsinternational.com/gb/en/products/europe-steel-index',enabled:false,priority:1,type:'شاخص تخصصی اروپا · اشتراکی'},
- {id:'cru',name:'CRU Group',market:'north-america',url:'https://www.crugroup.com/en/data/prices-and-indices/steel-prices/the-cru/',enabled:false,priority:1,type:'شاخص مرجع آمریکا · اشتراکی'},
- {id:'cme-hrc',name:'CME HRC Steel Futures',market:'north-america',url:'https://www.cmegroup.com/markets/metals/ferrous/hrc-steel.html',enabled:false,priority:2,type:'بورس آتی آمریکا'},
- {id:'steelorbis',name:'SteelOrbis',market:'turkey',url:'https://www.steelorbis.com/steel-market/turkey.htm',enabled:false,priority:1,type:'شاخص و قیمت‌های ترکیه'},
- {id:'bigmint',name:'BigMint Steel Prices',market:'india',url:'https://www.bigmint.co/industries/foundry/price/steel',enabled:false,priority:1,type:'قیمت‌های هند'},
- {id:'lme-ferrous',name:'London Metal Exchange (LME) · Ferrous',market:'global',url:'https://www.lme.com/en/metals/ferrous',enabled:false,priority:3,type:'بورس آتی جهانی · قیمت مشتقه'}
+ {id:'ime',name:'بورس کالای ایران (IME)',market:'iran',url:'https://www.ime.co.ir/',enabled:true,priority:1,type:'منبع رسمی · قیمت پایه و معاملات عمده'},
+ {id:'ahanonline',name:'آهن آنلاین',market:'iran',url:'https://ahanonline.com/',enabled:true,priority:2,type:'مرجع خصوصی بازار · فروشنده'},
+ {id:'markazeahan',name:'مرکز آهن',market:'iran',url:'https://markazeahan.com/',enabled:true,priority:3,type:'مرجع خصوصی بازار · فروشنده'},
+ {id:'pivan',name:'پیوان',market:'iran',url:'https://pivan.co/',enabled:true,priority:4,type:'مرجع خصوصی بازار · فروشنده'},
+ {id:'iromart',name:'آیرومارت',market:'iran',url:'https://iromart.com/',enabled:true,priority:5,type:'مرجع خصوصی بازار · فروشنده'},
+ {id:'ahanprice',name:'آهن پرایس',market:'iran',url:'https://ahanprice.com/',enabled:true,priority:6,type:'مرجع خصوصی بازار · جدول قیمت روز'},
+ {id:'tradingeconomics',name:'Trading Economics',market:'global',url:'https://fa.tradingeconomics.com/',enabled:true,priority:1,type:'مرجع قیمت جهانی'}
 ];
 const labels={iran:'ایران',global:'جهانی / شاخص‌های بین‌المللی',china:'چین',europe:'اروپا', 'north-america':'آمریکای شمالی',turkey:'ترکیه',india:'هند','middle-east':'خاورمیانه'};
 let cfg;
 try{cfg=JSON.parse(localStorage.getItem(KEY)||'{}')}catch{cfg={}}
 const storedSources=Array.isArray(cfg.sources)?cfg.sources:[];
-const migratedSources=[...storedSources];
-if((Number(cfg.sourceCatalogVersion)||0)<2){
- for(const item of defaults){if(!migratedSources.some(x=>x.id===item.id))migratedSources.push({...item})}
- cfg.sourceCatalogVersion=2;
+let migratedSources=[...storedSources];
+if((Number(cfg.sourceCatalogVersion)||0)<3){
+ const officialIds=new Set(defaults.map(x=>x.id));
+ migratedSources=migratedSources.filter(x=>officialIds.has(x.id)||String(x.id||'').startsWith('custom-'));
+ for(const item of defaults){const existing=migratedSources.find(x=>x.id===item.id);if(!existing)migratedSources.push({...item});else Object.assign(existing,item)}
+ cfg.sourceCatalogVersion=3;
 }
 cfg={...cfg,selected:Array.isArray(cfg.selected)?cfg.selected:[],sources:migratedSources};
 const save=()=>localStorage.setItem(KEY,JSON.stringify(cfg));
