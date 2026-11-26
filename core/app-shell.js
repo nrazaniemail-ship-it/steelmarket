@@ -155,6 +155,10 @@ const marketDataBox=document.createElement('div');marketDataBox.className='fb-se
 const refreshInterval=select([['5','هر ۵ دقیقه'],['15','هر ۱۵ دقیقه'],['30','هر ۳۰ دقیقه'],['60','هر ساعت']],String(ui.refreshInterval||15),v=>{ui.refreshInterval=Number(v);saveUI()});
 const calcBasis=select([['latest','آخرین قیمت معتبر'],['median','میانه مراجع معتبر']],ui.calcBasis||'latest',v=>{ui.calcBasis=v;saveUI()});
 marketDataBox.append(row('دوره بررسی خودکار قیمت‌ها',refreshInterval,'تنظیم ترجیح کاربر؛ اجرای واقعی تابع زمان‌بندی Worker است'),row('مبنای نمایش قیمت منتخب',calcBasis,'قیمت‌های غیرقابل‌مقایسه نباید با هم ادغام شوند'),button('بررسی همه مراجع قیمت',()=>$('checkNow')?.click()));
+const metricPrefs=[['price','قیمت محصول'],['volume','حجم معاملات (در صورت ارائه مرجع)'],['fx','نرخ ارز مبنا'],['delivery','هزینه و محل تحویل'],['quality','کنترل هم‌خوانی مشخصات محصول']];
+const metricBox=document.createElement('div');metricBox.className='fb-settings-stack';
+for(const [key,label] of metricPrefs){const check=document.createElement('input');check.type='checkbox';check.checked=ui.marketMetrics?.[key]!==false;check.addEventListener('change',()=>{ui.marketMetrics={...(ui.marketMetrics||{}),[key]:check.checked};saveUI()});metricBox.append(row('پایش '+label,check,'فعال / غیرفعال‌سازی این مؤلفه در تنظیمات کاربر'))}
+marketDataBox.append(metricBox);
 const launchBox=document.createElement('div');launchBox.className='fb-settings-stack';
 const mt5=button('بازکردن MetaTrader 5',()=>{location.href='metatrader5://'});const tv=button('بازکردن TradingView',()=>{window.open('https://www.tradingview.com/','_blank','noopener')});
 launchBox.append(row('MetaTrader 5',mt5,'اجرای برنامه در صورت نصب و پشتیبانی دستگاه'),row('TradingView',tv,'بازکردن وب‌سایت یا برنامه متصل'));
