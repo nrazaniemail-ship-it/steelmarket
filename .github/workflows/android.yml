@@ -30,6 +30,7 @@ jobs:
         run: |
           mkdir -p app/src/main/assets
           cp index.html manifest.webmanifest icon.svg sw.js app/src/main/assets/
+          cp -r core app/src/main/assets/core
       - name: Build debug APK
         run: gradle --no-daemon clean assembleDebug
       - name: Upload APK
