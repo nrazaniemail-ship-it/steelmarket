@@ -35,4 +35,4 @@
 - `README.md` و `package.json` — مستندات و نسخه ۱.۴
 
 ## وضعیت اعتبارسنجی
-اجرای CI پس از آخرین تغییرات لازم است کامل شود. تا زمان مشاهده نتیجه موفق workflow و استقرار GitHub Pages، این گزارش به معنی تأیید نهایی روی دستگاه واقعی نیست.
+- بررسی syntax ماژول‌ها: موفق\n- آزمون‌های Node و SQLite schema: موفق\n- بررسی UI: موفق\n- آزمون مرورگر Chromium روی موبایل شبیه‌سازی‌شده (ناوبری لایه‌ها، افزودن/ویرایش محصول، کارت‌های تنظیمات، تغییر پوسته و ترتیب لایه‌ها): موفق\n- اعتبارسنجی Wrangler با dry-run: موفق\n- استقرار GitHub Pages: workflow موفق\n\nلینک آزمون: https://github.com/nrazaniemail-ship-it/steelmarket/actions/runs/45894592626\nلینک استقرار: https://github.com/nrazaniemail-ship-it/steelmarket/actions/runs/45894592712\n\nاین اعتبارسنجی در Chromium شبیه‌سازی‌شده انجام شده است؛ آزمون جداگانه روی گوشی فیزیکی هنوز انجام نشده است.
