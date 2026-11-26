@@ -111,7 +111,7 @@ export default {
     const s = await request.json();
     if (!s.id || !s.product_key || !s.product_name || !s.url || !s.source_kind) return json({ error:'missing_required_fields' }, 400, cors);
     if (!['factory','ime','free_market','export','other'].includes(s.source_kind)) return json({error:'invalid_source_kind'},400,cors);
-    if (!['IRR','IRT','USD','AED','EUR'].includes(s.currency||'IRR')) return json({error:'invalid_currency'},400,cors);
+    if (!['IRR','IRT','USD','AED','EUR','CNY','INR','TRY','GBP'].includes(s.currency||'IRR')) return json({error:'invalid_currency'},400,cors);
     if (!['kg','ton'].includes(s.measure_unit||'kg')) return json({error:'invalid_measure_unit'},400,cors);
     if (!['auto','json','regex','selector'].includes(s.parser_mode||'auto')) return json({error:'invalid_parser_mode'},400,cors);
     if ((s.regex||'').length>300 || (s.json_path||'').length>200 || (s.selector||'').length>120) return json({error:'parser_config_too_long'},400,cors);
@@ -129,7 +129,7 @@ export default {
     if(!source)return json({error:'source_not_found'},404,cors);
     const attempted=now();
     try {
-     const body=await fetchSafe(source,env),price=parse(body,source),rates={IRR:1,IRT:10,USD:Number(env.USD_IRR),AED:Number(env.AED_IRR),EUR:Number(env.EUR_IRR)};
+     const body=await fetchSafe(source,env),price=parse(body,source),rates={IRR:1,IRT:10,USD:Number(env.USD_IRR),AED:Number(env.AED_IRR),EUR:Number(env.EUR_IRR),CNY:Number(env.CNY_IRR),INR:Number(env.INR_IRR),TRY:Number(env.TRY_IRR),GBP:Number(env.GBP_IRR)};
      const fx=rates[source.currency]||0,factor=source.measure_unit==='ton'?0.001:1,normalized=fx>0?price*factor*fx:null;
      const previous=await env.DB.prepare('SELECT raw_price FROM observations WHERE source_id=? ORDER BY observed_at DESC LIMIT 1').bind(id).first();
      await env.DB.prepare('INSERT INTO observations(id,source_id,product_key,source_kind,raw_price,currency,measure_unit,irr_per_kg,observed_at,recorded_at) VALUES(?,?,?,?,?,?,?,?,?,?)').bind(crypto.randomUUID(),id,source.product_key,source.source_kind,price,source.currency,source.measure_unit,normalized,attempted,attempted).run();
