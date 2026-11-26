@@ -48,9 +48,10 @@ $('fbTopTheme')?.addEventListener('click',()=>{ui.theme=document.documentElement
 $('fbTopLanguage')?.addEventListener('click',()=>{ui.language=ui.language==='en'?'fa':'en';saveUI();syncTopControls();toastSetting(ui.language==='en'?'English selected; full interface translation is not enabled yet.':'زبان فارسی انتخاب شد')});
 function updateTehranClock(){
  const now=new Date(),zone='Asia/Tehran';
- const clock=$('fbTehranClock'),persian=$('fbPersianDate'),gregorian=$('fbGregorianDate');
+ const clock=$('fbTehranClock'),persian=$('fbPersianDate'),weekday=$('fbWeekday'),gregorian=$('fbGregorianDate');
  if(clock)clock.textContent=new Intl.DateTimeFormat('en-GB',{timeZone:zone,hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(now);
  if(persian){const parts=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{timeZone:zone,day:'2-digit',month:'long',year:'numeric'}).formatToParts(now);const part=k=>parts.find(x=>x.type===k)?.value||'';persian.textContent=part('day')+' - '+part('month')+' - '+part('year')}
+ if(weekday)weekday.textContent=new Intl.DateTimeFormat('fa-IR',{timeZone:zone,weekday:'long'}).format(now)
  if(gregorian){const parts=new Intl.DateTimeFormat('en-GB',{timeZone:zone,day:'2-digit',month:'short',year:'numeric'}).formatToParts(now);const part=k=>parts.find(x=>x.type===k)?.value||'';gregorian.textContent=part('day')+' - '+part('month')+' - '+part('year')}
 }
 syncTopControls();updateTehranClock();setInterval(updateTehranClock,1000);
