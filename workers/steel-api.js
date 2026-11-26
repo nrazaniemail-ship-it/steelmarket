@@ -5,7 +5,7 @@ function json(data, status = 200, cors = {}) {
 function corsHeaders(req, env) {
  const origin = req.headers.get('origin') || '';
  const allowed = env.APP_ORIGIN || '';
- return origin && origin === allowed ? { 'access-control-allow-origin':origin, 'access-control-allow-methods':'GET,POST,OPTIONS', 'access-control-allow-headers':'content-type,authorization', 'vary':'Origin' } : {};
+ return origin && origin === allowed ? { 'access-control-allow-origin':origin, 'access-control-allow-methods':'GET,POST,PATCH,OPTIONS', 'access-control-allow-headers':'content-type,authorization', 'vary':'Origin' } : {};
 }
 function validPublicUrl(raw, allowed) {
  let u; try { u = new URL(raw); } catch { throw Error('invalid_url'); }
@@ -86,14 +86,42 @@ export default {
   if (!env.DB) return json({ error:'D1 binding DB is not configured' }, 503, cors);
   const authorized = env.API_TOKEN && request.headers.get('authorization') === 'Bearer ' + env.API_TOKEN;
   try {
+   if (u.pathname === '/public/market' && request.method === 'GET') {
+    const r = await env.DB.prepare(`SELECT o.id,o.source_id,o.product_key,o.source_kind,o.raw_price,o.currency,o.measure_unit,o.irr_per_kg,o.observed_at,o.recorded_at,s.product_name,s.specification,s.market,s.delivery,s.tax_basis,s.enabled,s.last_attempt_at,s.last_success_at,s.last_error,s.consecutive_failures
+     FROM observations o JOIN sources s ON s.id=o.source_id
+     WHERE o.observed_at=(SELECT MAX(o2.observed_at) FROM observations o2 WHERE o2.source_id=o.source_id)
+     ORDER BY o.product_key,s.source_kind`).all();
+    return json(r.results,200,cors);
+   }
+   if (u.pathname === '/public/sources' && request.method === 'GET') {
+    const r = await env.DB.prepare('SELECT id,product_key,product_name,specification,source_kind,market,currency,measure_unit,delivery,tax_basis,enabled,last_attempt_at,last_success_at,last_error,consecutive_failures,interval_minutes FROM sources ORDER BY product_name').all();
+    return json(r.results,200,cors);
+   }
+   if (u.pathname === '/public/observations' && request.method === 'GET') {
+    const key=u.searchParams.get('product_key'); if(!key)return json({error:'product_key_required'},400,cors);
+    const r=await env.DB.prepare('SELECT o.id,o.source_id,o.product_key,o.source_kind,o.raw_price,o.currency,o.measure_unit,o.irr_per_kg,o.observed_at,o.recorded_at,s.product_name,s.specification FROM observations o JOIN sources s ON s.id=o.source_id WHERE o.product_key=? ORDER BY o.observed_at DESC LIMIT 500').bind(key).all();
+    return json(r.results,200,cors);
+   }
+   if (u.pathname === '/public/events' && request.method === 'GET') {
+    const r=await env.DB.prepare('SELECT id,product_key,source_id,old_price,new_price,change_pct,created_at FROM market_events ORDER BY created_at DESC LIMIT 100').all();
+    return json(r.results,200,cors);
+   }
    if (u.pathname === '/sources' && request.method === 'POST') {
     if (!authorized) return json({ error:'unauthorized' }, 401, cors);
     const s = await request.json();
     if (!s.id || !s.product_key || !s.product_name || !s.url || !s.source_kind) return json({ error:'missing_required_fields' }, 400, cors);
     validPublicUrl(s.url, (env.ALLOWED_HOSTS || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
-    await env.DB.prepare('INSERT INTO sources(id,product_key,product_name,specification,source_kind,market,url,parser_mode,selector,regex,json_path,currency,measure_unit,delivery,tax_basis,interval_minutes,enabled,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?)')
+    await env.DB.prepare(`INSERT INTO sources(id,product_key,product_name,specification,source_kind,market,url,parser_mode,selector,regex,json_path,currency,measure_unit,delivery,tax_basis,interval_minutes,enabled,created_at)
+     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,?)
+     ON CONFLICT(id) DO UPDATE SET product_key=excluded.product_key,product_name=excluded.product_name,specification=excluded.specification,source_kind=excluded.source_kind,market=excluded.market,url=excluded.url,parser_mode=excluded.parser_mode,selector=excluded.selector,regex=excluded.regex,json_path=excluded.json_path,currency=excluded.currency,measure_unit=excluded.measure_unit,delivery=excluded.delivery,tax_basis=excluded.tax_basis,interval_minutes=excluded.interval_minutes,enabled=1`)
      .bind(s.id,s.product_key,s.product_name,s.specification||'',s.source_kind,s.market||'Iran',s.url,s.parser_mode||'auto',s.selector||null,s.regex||null,s.json_path||'price',s.currency||'IRR',s.measure_unit||'kg',s.delivery||'',s.tax_basis||'',Math.max(15,Number(s.interval_minutes)||15),now()).run();
     return json({ ok:true, id:s.id }, 201, cors);
+   }
+   if (u.pathname.startsWith('/sources/') && request.method === 'PATCH') {
+    if(!authorized)return json({error:'unauthorized'},401,cors);
+    const id=decodeURIComponent(u.pathname.slice('/sources/'.length)); const body=await request.json();
+    if(body.enabled===false){await env.DB.prepare('UPDATE sources SET enabled=0 WHERE id=?').bind(id).run();return json({ok:true,id,enabled:false},200,cors);}
+    return json({error:'unsupported_patch'},400,cors);
    }
    if (u.pathname === '/sources' && request.method === 'GET') {
     if (!authorized) return json({ error:'unauthorized' }, 401, cors);
@@ -105,6 +133,11 @@ export default {
     const key = u.searchParams.get('product_key'); if (!key) return json({ error:'product_key_required' }, 400, cors);
     const r = await env.DB.prepare('SELECT * FROM observations WHERE product_key=? ORDER BY observed_at DESC LIMIT 1000').bind(key).all();
     return json(r.results, 200, cors);
+   }
+   if (u.pathname === '/events' && request.method === 'GET') {
+    if(!authorized)return json({error:'unauthorized'},401,cors);
+    const r=await env.DB.prepare('SELECT * FROM market_events ORDER BY created_at DESC LIMIT 100').all();
+    return json(r.results,200,cors);
    }
    if (u.pathname === '/compare' && request.method === 'GET') {
     if (!authorized) return json({ error:'unauthorized' }, 401, cors);
@@ -126,8 +159,13 @@ export default {
      const rates = { IRR:1, IRT:10, USD:Number(env.USD_IRR), AED:Number(env.AED_IRR), EUR:Number(env.EUR_IRR) };
      const fx = rates[source.currency] || 0, factor = source.measure_unit === 'ton' ? 0.001 : 1;
      const normalized = fx > 0 ? price * factor * fx : null, id = crypto.randomUUID(), recorded = now();
+     const previous = await env.DB.prepare('SELECT raw_price FROM observations WHERE source_id=? ORDER BY observed_at DESC LIMIT 1').bind(source.id).first();
      await env.DB.prepare('INSERT INTO observations(id,source_id,product_key,source_kind,raw_price,currency,measure_unit,irr_per_kg,observed_at,recorded_at) VALUES(?,?,?,?,?,?,?,?,?,?)')
       .bind(id,source.id,source.product_key,source.source_kind,price,source.currency,source.measure_unit,normalized,recorded,recorded).run();
+     if(previous && Number(previous.raw_price)!==price){
+      const pct=(price-Number(previous.raw_price))/Number(previous.raw_price)*100;
+      await env.DB.prepare('INSERT INTO market_events(id,product_key,source_id,old_price,new_price,change_pct,created_at) VALUES(?,?,?,?,?,?,?)').bind(crypto.randomUUID(),source.product_key,source.id,previous.raw_price,price,pct,recorded).run();
+     }
      await env.DB.prepare('UPDATE sources SET last_attempt_at=?,last_success_at=?,last_error=NULL,consecutive_failures=0 WHERE id=?').bind(recorded,recorded,source.id).run();
     } catch (error) {
      await env.DB.prepare('UPDATE sources SET last_attempt_at=?,last_error=?,consecutive_failures=consecutive_failures+1 WHERE id=?').bind(now(),String(error.message||error).slice(0,300),source.id).run();
