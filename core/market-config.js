@@ -21,21 +21,38 @@ const defaults=[
  {id:'turkey',name:'بازار ترکیه',market:'turkey',url:'',enabled:false,priority:1,type:'بازار منطقه‌ای'},
  {id:'india',name:'بازار هند',market:'india',url:'',enabled:false,priority:1,type:'بازار منطقه‌ای'},
  {id:'middle-east',name:'بازار خاورمیانه',market:'middle-east',url:'',enabled:false,priority:1,type:'بازار منطقه‌ای'},
- {id:'argus-global',name:'Argus Global Steel',market:'global',url:'https://www.argusmedia.com/en/solutions/products/argus-global-steel',enabled:false,priority:2,type:'شاخص تخصصی بین‌المللی · نیازمند دسترسی'},
+ {id:'argus-global',name:'Argus Media',market:'global',url:'https://www.argusmedia.com/en/solutions/products/argus-global-steel',enabled:false,priority:2,type:'مرجع تخصصی بین‌المللی · نیازمند دسترسی'},
+ {id:'fastmarkets',name:'Fastmarkets',market:'global',url:'',enabled:false,priority:4,type:'مرجع تخصصی بین‌المللی · نیازمند دسترسی'},
+ {id:'sp-global-platts',name:'S&P Global Platts',market:'global',url:'',enabled:false,priority:5,type:'مرجع تخصصی بین‌المللی · نیازمند دسترسی'},
+ {id:'messteel',name:'MESteel',market:'global',url:'',enabled:false,priority:6,type:'مرجع منطقه‌ای خاورمیانه'},
+ {id:'steel-market',name:'Steel Market',market:'global',url:'',enabled:false,priority:7,type:'مرجع بین‌المللی'},
+ {id:'ahantime',name:'Ahantime',market:'iran',url:'',enabled:false,priority:7,type:'مرجع داخلی / منطقه‌ای'},
+ {id:'zharfahan',name:'Zharfahan',market:'iran',url:'',enabled:false,priority:8,type:'مرجع داخلی / منطقه‌ای'},
+ {id:'arznab',name:'Arznab',market:'iran',url:'',enabled:false,priority:9,type:'مرجع داخلی / منطقه‌ای'},
+ {id:'ferojam',name:'Ferojam',market:'iran',url:'',enabled:false,priority:10,type:'مرجع داخلی / منطقه‌ای'},
+ {id:'artanpress',name:'Artanpress',market:'iran',url:'',enabled:false,priority:11,type:'مرجع خبری و بازار فولاد'},
+ {id:'ahan-assa',name:'Ahan Assa',market:'iran',url:'',enabled:false,priority:12,type:'مرجع داخلی / منطقه‌ای'},
  {id:'mysteel',name:'Mysteel',market:'china',url:'https://www.mysteel.net/',enabled:false,priority:1,type:'شاخص تخصصی چین · نیازمند دسترسی'},
  {id:'shfe',name:'بورس آتی شانگهای (SHFE)',market:'china',url:'https://www.shfe.com.cn/eng/reports/StatisticalData/',enabled:false,priority:2,type:'بورس رسمی چین'},
- {id:'meps',name:'MEPS Europe Steel Index',market:'europe',url:'https://mepsinternational.com/gb/en/products/europe-steel-index',enabled:false,priority:1,type:'شاخص تخصصی اروپا · اشتراکی'},
- {id:'cru',name:'CRU US Midwest HRC Index',market:'north-america',url:'https://www.crugroup.com/en/data/prices-and-indices/steel-prices/the-cru/',enabled:false,priority:1,type:'شاخص مرجع آمریکا · اشتراکی'},
+ {id:'meps',name:'MEPS International',market:'europe',url:'https://mepsinternational.com/gb/en/products/europe-steel-index',enabled:false,priority:1,type:'شاخص تخصصی اروپا · اشتراکی'},
+ {id:'cru',name:'CRU Group',market:'north-america',url:'https://www.crugroup.com/en/data/prices-and-indices/steel-prices/the-cru/',enabled:false,priority:1,type:'شاخص مرجع آمریکا · اشتراکی'},
  {id:'cme-hrc',name:'CME HRC Steel Futures',market:'north-america',url:'https://www.cmegroup.com/markets/metals/ferrous/hrc-steel.html',enabled:false,priority:2,type:'بورس آتی آمریکا'},
- {id:'steelorbis',name:'SteelOrbis Turkey',market:'turkey',url:'https://www.steelorbis.com/steel-market/turkey.htm',enabled:false,priority:1,type:'شاخص و قیمت‌های ترکیه'},
+ {id:'steelorbis',name:'SteelOrbis',market:'turkey',url:'https://www.steelorbis.com/steel-market/turkey.htm',enabled:false,priority:1,type:'شاخص و قیمت‌های ترکیه'},
  {id:'bigmint',name:'BigMint Steel Prices',market:'india',url:'https://www.bigmint.co/industries/foundry/price/steel',enabled:false,priority:1,type:'قیمت‌های هند'},
  {id:'lme-ferrous',name:'London Metal Exchange (LME) · Ferrous',market:'global',url:'https://www.lme.com/en/metals/ferrous',enabled:false,priority:3,type:'بورس آتی جهانی · قیمت مشتقه'}
 ];
 const labels={iran:'ایران',global:'جهانی / شاخص‌های بین‌المللی',china:'چین',europe:'اروپا', 'north-america':'آمریکای شمالی',turkey:'ترکیه',india:'هند','middle-east':'خاورمیانه'};
 let cfg;
 try{cfg=JSON.parse(localStorage.getItem(KEY)||'{}')}catch{cfg={}}
-cfg={selected:Array.isArray(cfg.selected)?cfg.selected:[],sources:Array.isArray(cfg.sources)?cfg.sources:defaults.map(x=>({...x}))};
+const storedSources=Array.isArray(cfg.sources)?cfg.sources:[];
+const migratedSources=[...storedSources];
+if((Number(cfg.sourceCatalogVersion)||0)<2){
+ for(const item of defaults){if(!migratedSources.some(x=>x.id===item.id))migratedSources.push({...item})}
+ cfg.sourceCatalogVersion=2;
+}
+cfg={...cfg,selected:Array.isArray(cfg.selected)?cfg.selected:[],sources:migratedSources};
 const save=()=>localStorage.setItem(KEY,JSON.stringify(cfg));
+save();
 const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n};
 const style=el('style');style.textContent='.market-config-panel{background:linear-gradient(145deg,var(--panel),#102035);border:1px solid var(--line);border-radius:15px;padding:15px;margin:0 0 14px}.mc-groups{display:grid;gap:10px}.mc-group{border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:10px}.mc-group h3{font-size:.82rem;color:var(--gold);margin:0 0 8px}.mc-items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.mc-item{display:flex;align-items:center;gap:7px;padding:7px;background:#0b1a2a;border-radius:7px;font-size:.75rem}.mc-item input,.mc-source input{accent-color:var(--gold);width:17px;height:17px;flex:0 0 auto}.mc-source{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px;margin:7px 0}.mc-source small{display:block;color:var(--muted);font-size:.68rem;overflow-wrap:anywhere}.mc-source-actions{display:flex;gap:3px}.mc-source-actions button{padding:4px 7px;font-size:.7rem}.mc-source button{border:1px solid var(--line);border-radius:7px;background:#10243a;color:var(--text)}.mc-tools{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.mc-tools button{border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:var(--panel2);color:var(--text)}.mc-tools .primary{background:var(--gold);color:#172333}.mc-form{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.mc-form input,.mc-form select{width:100%;padding:9px;background:#0b1a2a;color:var(--text);border:1px solid var(--line);border-radius:8px}.mc-form .wide{grid-column:1/-1}.mc-product-picker{padding:12px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);margin-bottom:8px}.mc-product-picker select{width:100%;padding:12px;border-radius:9px;background:#0b1a2a;color:var(--text);border:1px solid var(--line);font-size:.9rem}.mc-product-details{border:1px solid var(--line);border-radius:11px;padding:12px;background:var(--panel2);margin:0 0 10px}.mc-product-details.is-empty{opacity:.78}.mc-product-details-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.mc-product-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.mc-product-details .field{min-width:0}.mc-product-details .field input{width:100%}.mc-product-picker input[type=search]{margin:5px 0 8px;background:var(--panel);font-size:.86rem}.mc-product-picker select{margin-top:3px}.mc-advanced{border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-top:10px}.mc-advanced summary{cursor:pointer;font-size:.76rem;color:var(--muted);font-weight:700}.mc-advanced[open] summary{margin-bottom:10px}.mc-price-preview{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;margin-top:12px;border:1px solid var(--line);border-radius:10px;background:linear-gradient(110deg,var(--panel),var(--panel2))}.mc-price-preview b{display:block;font-size:.82rem}.mc-price-preview small{display:block;color:var(--muted);font-size:.68rem;margin-top:4px}.mc-price-preview strong{font-size:1.2rem;white-space:nowrap;color:var(--gold)}.mc-product-detail-grid .field.full{grid-column:1/-1}.mc-muted{color:var(--muted);font-size:.72rem;line-height:1.8}.mc-pill{font-size:.7rem;color:var(--gold);border:1px solid var(--line);border-radius:18px;padding:3px 8px}@media(max-width:560px){.mc-product-detail-grid{grid-template-columns:1fr}.mc-items{grid-template-columns:1fr}.mc-source{grid-template-columns:auto minmax(0,1fr)}.mc-source-actions{grid-column:2}.mc-form{grid-template-columns:1fr}.mc-form .wide{grid-column:auto}}';
 document.head.append(style);
@@ -70,7 +87,7 @@ function moveField(id,label,wide=false){const n=document.getElementById(id),w=n?
 const nameField=moveField('pName','عنوان در دیده‌بان',true),groupField=moveField('pGroup','گروه'),specField=moveField('pSpecification','مشخصات',true),deliveryField=moveField('pDelivery','محل تحویل');
 function choice(id,placeholder,options){
  const s=el('select');s.id=id;s.append(el('option','','انتخاب '+placeholder));s.options[0].value='';
- for(const value of options)s.append(el('option','',value)).lastChild.value=value;
+ for(const value of options){const option=el('option','',value);option.value=value;s.append(option);}
  const custom=el('input');custom.type='text';custom.placeholder='گزینه دیگر را وارد کنید';custom.className='mc-custom-choice hidden';custom.setAttribute('aria-label',placeholder+' سفارشی');
  const opt=el('option','','＋ ورود گزینه دلخواه');opt.value='__custom__';s.append(opt);
  s.addEventListener('change',()=>{const isCustom=s.value==='__custom__';custom.classList.toggle('hidden',!isCustom);custom.required=isCustom;if(isCustom){custom.value='';custom.focus()}});
