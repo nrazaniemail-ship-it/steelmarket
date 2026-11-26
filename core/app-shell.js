@@ -37,14 +37,14 @@ function select(options,value,onchange){const s=document.createElement('select')
 let savedUI={};try{savedUI=JSON.parse(localStorage.getItem('fooladban.ui.v1')||'{}')||{}}catch{}let ui={theme:'dark',accent:'violet',density:'comfortable',pageBg:'#091522',iconColor:'',...savedUI};
 function applyUI(){const mode=ui.theme==='system'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):ui.theme;document.documentElement.dataset.theme=mode;document.document.documentElement.style.setProperty('--gold',ui.accent==='violet'?'#9b8cff':ui.accent==='teal'?'#54c7bd':ui.accent==='blue'?'#73b9e8':ui.accent==='emerald'?'#58c69a':'#d9b66c');document.documentElement.style.setProperty('--bg',ui.pageBg||'#091522');document.documentElement.style.setProperty('--icon-color',ui.iconColor||'var(--gold)');document.body.dataset.density=ui.density;document.documentElement.style.colorScheme=mode;}
 function saveUI(){localStorage.setItem('fooladban.ui.v1',JSON.stringify(ui));applyUI();if(window.toast)window.toast('تنظیمات ظاهری ذخیره شد')}
-applyUI();
+applyUI();if(ui.theme==='system'&&window.matchMedia){matchMedia('(prefers-color-scheme: light)').addEventListener?.('change',applyUI)}
 const appearance=document.createElement('div');appearance.className='fb-settings-stack';
 const theme=select([['dark','تیره'],['light','روشن'],['system','پیروی از دستگاه']],ui.theme,v=>{ui.theme=v;saveUI()});
 const accent=select([['violet','بنفش ناملو'],['gold','طلایی'],['teal','فیروزه‌ای'],['blue','آبی'],['emerald','سبز']],ui.accent,v=>{ui.accent=v;saveUI()});
 const bg=document.createElement('input');bg.type='color';bg.value=ui.pageBg||'#091522';bg.addEventListener('input',()=>{ui.pageBg=bg.value;applyUI()});bg.addEventListener('change',saveUI);
 const icons=select([['','هم‌رنگ پوسته'],['#9b8cff','بنفش'],['#d9b66c','طلایی'],['#54c7bd','فیروزه‌ای'],['#73b9e8','آبی']],ui.iconColor,v=>{ui.iconColor=v;saveUI()});
 appearance.append(row('پوسته برنامه',theme,'حالت روشن، تیره یا هماهنگ با دستگاه'),row('رنگ پوسته',accent,'رنگ تأکیدی کارت‌ها و کنترل‌ها'),row('رنگ زمینه صفحه',bg,'رنگ پس‌زمینه اصلی برنامه'),row('رنگ آیکون‌ها',icons,'رنگ آیکون‌های ناوبری و ابزارها'),button('ذخیره تنظیمات ظاهری',saveUI,'primary'));
-const monitor=document.createElement('div');monitor.append(settings);
+const monitor=document.createElement('div');if(settings){settings.classList.remove('panel');settings.querySelector('.panel-head')?.remove()}monitor.append(settings);
 const navOrder=['dashboard','products','sources','analysis','settings'];
 const navNames={dashboard:'داشبورد',products:'محصولات',sources:'مراجع قیمت',analysis:'تحلیل بازار',settings:'تنظیمات'};
 ui.navOrder=Array.isArray(ui.navOrder)&&ui.navOrder.length===navOrder.length&&navOrder.every(x=>ui.navOrder.includes(x))?ui.navOrder:navOrder.slice();
