@@ -33,3 +33,20 @@ test('public history requires a product key',async()=>{
  assert.equal(res.status,400);
  assert.equal((await res.json()).error,'product_key_required');
 });
+
+test('authenticated immediate check fetches, normalizes and appends a price observation',async()=>{
+ const source={id:'src1',product_key:'rebar16',product_name:'میلگرد ۱۶',url:'https://prices.example.com/p',source_kind:'factory',parser_mode:'regex',regex:'price: ([0-9]+)',currency:'IRT',measure_unit:'kg',enabled:1};
+ const calls=[];
+ const DB={prepare(sql){return{args:[],bind(...args){this.args=args;return this},async first(){return sql.includes('SELECT * FROM sources')?source:null},async run(){calls.push({sql,args:this.args});return{success:true}},async all(){return{results:[]}}}}};
+ const oldFetch=global.fetch;
+ global.fetch=async()=>new Response('price: 12345',{status:200,headers:{'content-type':'text/plain'}});
+ try{
+  const env={DB,APP_ORIGIN:'https://nrazaniemail-ship-it.github.io',ALLOWED_HOSTS:'prices.example.com',API_TOKEN:'secret'};
+  const req=new Request('https://api.example.workers.dev/sources/src1/check',{method:'POST',headers:{authorization:'Bearer secret'}});
+  const res=await worker.default.fetch(req,env),body=await res.json();
+  assert.equal(res.status,200);
+  assert.equal(body.price,12345);
+  assert.equal(body.irr_per_kg,123450);
+  assert.ok(calls.some(x=>x.sql.includes('INSERT INTO observations')));
+ }finally{global.fetch=oldFetch}
+});
