@@ -27,5 +27,5 @@ jobs:
       - run: python3 tests/schema_test.py
       - run: python3 tests/check_ui.py
       - run: npm install --no-save playwright@latest
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
       - run: python3 -m http.server 4173 >/tmp/fooladban-http.log 2>&1 & sleep 2; node tests/browser.smoke.cjs
