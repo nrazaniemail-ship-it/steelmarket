@@ -13,18 +13,18 @@ function validPublicUrl(raw, allowed) {
  const h = u.hostname.toLowerCase();
  if (!allowed.includes(h)) throw Error('host_not_allowlisted');
  if (h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.local') ||
-     /^127\\.|^10\\.|^192\\.168\\.|^169\\.254\\.|^172\\.(1[6-9]|2\\d|3[01])\\./.test(h) || h === '::1') throw Error('private_host_blocked');
+     /^127\.|^10\.|^192\.168\.|^169\.254\.|^172\.(1[6-9]|2\d|3[01])\./.test(h) || h === '::1') throw Error('private_host_blocked');
  return u;
 }
 function normalize(value) {
  const s = String(value ?? '').replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
-  .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٬,\\s]/g, '')
+  .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٬,\s]/g, '')
   .replace('٫', '.').replace(/[^0-9.+-]/g, '');
  const n = Number(s); if (!(n > 0 && Number.isFinite(n))) throw Error('invalid_price'); return n;
 }
 function attr(attrs, name) {
  const re = /([a-z-]+)\s*=\s*["']([^"']*)["']/gi; for (const m of attrs.matchAll(re)) if (m[1].toLowerCase() === name.toLowerCase()) return m[2]; return '';
- return attrs.match(re)?.[2] || '';
+}
 }
 function selectorText(body, selector) {
  const q = String(selector || '').trim();
@@ -33,8 +33,8 @@ function selectorText(body, selector) {
   const attrs = m[2] || '';
   let ok = false;
   if (q.startsWith('#')) ok = attr(attrs, 'id') === q.slice(1);
-  else if (q.startsWith('.')) ok = attr(attrs, 'class').split(/\\s+/).includes(q.slice(1));
-  else if (q === '[data-price]') ok = /\\bdata-price(?:\\s|=|>)/i.test(attrs);
+  else if (q.startsWith('.')) ok = attr(attrs, 'class').split(/\s+/).includes(q.slice(1));
+  else if (q === '[data-price]') ok = /\bdata-price(?:\s|=|>)/i.test(attrs);
   else if (q === '[itemprop=price]') ok = attr(attrs, 'itemprop') === 'price';
   else throw Error('supported_selectors: #id, .class, [data-price], [itemprop=price]');
   if (ok) return attr(attrs, 'content') || attr(attrs, 'data-price') || m[3].replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ');
