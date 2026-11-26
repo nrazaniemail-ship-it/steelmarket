@@ -35,4 +35,14 @@
 - `README.md` و `package.json` — مستندات و نسخه ۱.۴
 
 ## وضعیت اعتبارسنجی
-- بررسی syntax ماژول‌ها: موفق\n- آزمون‌های Node و SQLite schema: موفق\n- بررسی UI: موفق\n- آزمون مرورگر Chromium روی موبایل شبیه‌سازی‌شده (ناوبری لایه‌ها، افزودن/ویرایش محصول، کارت‌های تنظیمات، تغییر پوسته و ترتیب لایه‌ها): موفق\n- اعتبارسنجی Wrangler با dry-run: موفق\n- استقرار GitHub Pages: workflow موفق\n\nلینک آزمون: https://github.com/nrazaniemail-ship-it/steelmarket/actions/runs/45894592626\nلینک استقرار: https://github.com/nrazaniemail-ship-it/steelmarket/actions/runs/45894592712\n\nاین اعتبارسنجی در Chromium شبیه‌سازی‌شده انجام شده است؛ آزمون جداگانه روی گوشی فیزیکی هنوز انجام نشده است.
+- بررسی syntax ماژول‌ها: موفق
+- آزمون‌های Node و SQLite schema: موفق
+- بررسی UI: موفق
+- آزمون مرورگر Chromium روی موبایل شبیه‌سازی‌شده (ناوبری لایه‌ها، افزودن/ویرایش محصول، کارت‌های تنظیمات، تغییر پوسته و ترتیب لایه‌ها): موفق
+- اعتبارسنجی Wrangler با dry-run: موفق
+- استقرار GitHub Pages: workflow موفق
+
+لینک آزمون: https://github.com/nrazaniemail-ship-it/steelmarket/actions/runs/45894592626
+لینک استقرار: https://github.com/nrazaniemail-ship-it/steelmarket/actions/runs/45894592712
+
+این اعتبارسنجی در Chromium شبیه‌سازی‌شده انجام شده است؛ آزمون جداگانه روی گوشی فیزیکی هنوز انجام نشده است.
