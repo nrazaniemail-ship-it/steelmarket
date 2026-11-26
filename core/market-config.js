@@ -73,7 +73,7 @@ const nameField=moveField('pName','عنوان در دیده‌بان',true),grou
 const grade=el('input');grade.id='pGrade';grade.placeholder='مثلاً A3، ST37، Fe 67%';const size=el('input');size.id='pSize';size.placeholder='مثلاً قطر ۱۶، ضخامت ۲';const maker=el('input');maker.id='pManufacturer';maker.placeholder='نام کارخانه / تولیدکننده';
 function addInput(label,input){const w=el('div','field');w.append(el('label','',label),input);grid.append(w)}
 addInput('گرید / کیفیت',grade);addInput('سایز / ابعاد',size);addInput('تولیدکننده / برند',maker);
-const marketField=moveField('pMarket','بازار ارزیابی'),taxField=moveField('pTaxBasis','مبنای مالیات'),currencyField=moveField('pCurrency','ارز'),unitField=moveField('pMeasureUnit','واحد');
+const marketField=moveField('pMarket','بازار ارزیابی'),taxField=moveField('pTaxBasis','مبنای مالیات'),currencyField=moveField('pCurrency','ارز'),unitField=moveField('pMeasureUnit','واحد'),sourceKindField=moveField('pSourceKind','نوع منبع'),keyField=moveField('pProductKey','کلید کالا');
 const sourceField=el('div','field full');sourceField.append(el('label','','مرجع قیمت'),select);const sourceInfo=el('small','mc-muted','');sourceField.append(sourceInfo);grid.append(sourceField);
 const urlField=moveField('pUrl','لینک دقیق صفحه قیمت محصول',true);if(urlField){const u=urlField.querySelector('input');u.placeholder='https://site.com/product/price';u.required=true;urlField.append(el('small','mc-muted','صفحه اصلی سایت کافی نیست؛ لینک همان صفحه‌ای را وارد کنید که قیمت این محصول را نشان می‌دهد.'))}
 detailBox.append(grid);
@@ -81,7 +81,7 @@ const advanced=document.createElement('details');advanced.className='mc-advanced
 for(const id of ['pMode','selectorField','regexField','jsonField','pThreshold','pNote']){const n=document.getElementById(id);if(n){const w=id.endsWith('Field')?n:n.parentElement;if(w)advGrid.append(w)}}
 detailBox.append(advanced);
 const preview=el('div','mc-price-preview');preview.id='mcQuickPrice';detailBox.append(preview);
-const key=document.getElementById('pProductKey');if(key){key.required=false;key.readOnly=true;key.closest('.field')?.classList.add('hidden')}groupField?.classList.add('hidden');specField?.classList.add('hidden');
+const key=document.getElementById('pProductKey');if(key){key.required=false;key.readOnly=true;key.closest('.field')?.classList.add('hidden')}groupField?.classList.add('hidden');specField?.classList.add('hidden');sourceKindField?.classList.add('hidden');
 if(productForm){const fg=productForm.querySelector('.formgrid');if(fg)fg.replaceChildren(picker,detailBox)}
 const marketSelect=document.getElementById('pMarket');
 function renderSourceSelect(){const old=select.value,m=marketSelect?.value==='ایران'?'iran':marketSelect?.value==='جهانی'?'global':({'چین':'china','اروپا':'europe','آمریکای شمالی':'north-america','ترکیه':'turkey','هند':'india','خاورمیانه':'middle-east','امارات':'middle-east','عمان':'middle-east','عربستان':'middle-east'}[marketSelect?.value]||'iran');select.replaceChildren(el('option','','انتخاب مرجع'));select.options[0].value='';for(const x of cfg.sources.filter(x=>x.enabled&&x.market===m).sort((a,b)=>a.priority-b.priority)){const o=el('option','',x.priority+' · '+x.name);o.value=x.id;select.append(o)}if(cfg.sources.some(x=>x.id===old&&x.enabled&&x.market===m))select.value=old;else if(select.options.length>1)select.selectedIndex=1;const src=cfg.sources.find(x=>x.id===select.value);sourceInfo.textContent=src?src.name+' · اولویت '+src.priority+' · لینک دقیق صفحه قیمت را وارد کنید.':'برای این بازار مرجع فعالی ثبت نشده است.'}
