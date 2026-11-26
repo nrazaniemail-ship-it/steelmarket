@@ -1,16 +1,5 @@
 name: Build Fooladban Android APK
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'index.html'
-      - 'manifest.webmanifest'
-      - 'icon.svg'
-      - 'sw.js'
-      - 'app/**'
-      - '*.gradle'
-      - 'settings.gradle'
-      - '.github/workflows/android.yml'
   workflow_dispatch:
 permissions:
   contents: read
