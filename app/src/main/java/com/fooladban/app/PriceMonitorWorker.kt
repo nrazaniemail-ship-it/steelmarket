@@ -19,6 +19,9 @@ class PriceMonitorWorker(ctx: Context, params: WorkerParameters): Worker(ctx,par
   return try {
    val state=JSONObject(raw);val settings=state.optJSONObject("settings")?:JSONObject()
    if(!settings.optBoolean("auto",true))return Result.success()
+   val intervalMs=(settings.optLong("interval",15).coerceAtLeast(15))*60_000L
+   val lastRun=prefs.getLong("lastRunAt",0L)
+   if(System.currentTimeMillis()-lastRun<intervalMs)return Result.success()
    val products=state.optJSONArray("products")?:JSONArray();val events=state.optJSONArray("events")?:JSONArray()
    var changed=false
    for(i in 0 until products.length()){
