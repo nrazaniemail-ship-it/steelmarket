@@ -12,8 +12,25 @@
 
 Workflow: `.github/workflows/pages.yml`
 
+## اتصال داشبورد وب به API مرکزی
+نسخه وب اکنون از مسیرهای عمومی `/public/sources`، `/public/market`، `/public/observations` و `/public/events` داده‌های مرکزی را دریافت می‌کند. مدیر منابع با API Token می‌تواند منبع را ثبت/ویرایش و بررسی فوری انجام دهد. کلید مدیریتی در نسخه وب فقط در sessionStorage همان نشست نگهداری می‌شود و داخل مخزن یا فایل‌های عمومی قرار نمی‌گیرد.
+
+در پنل تنظیمات وب:
+1. آدرس Worker را در «آدرس API مرکزی فولادبان» وارد کنید.
+2. API Token را وارد کنید (برای مشاهده عمومی لازم نیست؛ برای مدیریت منابع لازم است).
+3. «اتصال و همگام‌سازی» را بزنید.
+4. منبع‌ها را از فرم محصول ثبت کنید. Worker تنها دامنه‌های موجود در ALLOWED_HOSTS را می‌پذیرد.
+5. برای منبع‌های جدید، روش استخراج خودکار/JSON/Regex/CSS را انتخاب و «آزمایش لینک» را انجام دهید.
+
 ## انتشار وب و اتصال داده زنده
-GitHub Pages فقط فایل‌های استاتیک PWA را میزبانی می‌کند. برای دریافت داده از سایت‌های قیمت و ذخیره تاریخچه مرکزی باید سرویس Cloudflare Worker و D1 جداگانه Deploy شوند. مراحل پیکربندی در `workers/wrangler.toml` و `docs/IMPLEMENTATION_REPORT_R1_R2.md` آمده است.
+GitHub Pages فقط فایل‌های استاتیک PWA را میزبانی می‌کند. برای دریافت داده از سایت‌های قیمت و ذخیره تاریخچه مرکزی باید سرویس Cloudflare Worker و D1 جداگانه Deploy شوند. مراحل پیکربندی در `workers/wrangler.toml` و `docs/IMPLEMENTATION_REPORT_R1_R2.md` آمده است. Workflow دستی `.github/workflows/deploy-api.yml` نیز برای اجرای schema و Deploy کردن Worker اضافه شده است.
+
+برای فعال‌کردن آن، در GitHub مخزن → Settings → Secrets and variables → Actions این موارد را تنظیم کنید:
+- Secrets: `CLOUDFLARE_API_TOKEN`، `CLOUDFLARE_ACCOUNT_ID`، `D1_DATABASE_ID`، `FOOLADB_API_TOKEN`
+- Variables: `FOOLADB_APP_ORIGIN` (فقط origin، بدون مسیر، مانند `https://OWNER.github.io`) و `FOOLADB_ALLOWED_HOSTS` (فهرست دامنه‌های مجاز با کاما)
+- اختیاری: Secrets با نام‌های `FOOLADB_USD_IRR`، `FOOLADB_AED_IRR` و `FOOLADB_EUR_IRR` برای نرخ تبدیل ارزها
+
+پایگاه D1 با نام `fooladban` باید از قبل در Cloudflare ساخته شود و شناسه آن در secret قرار گیرد. سپس از Actions، گردش‌کار Deploy Fooladban API را دستی اجرا کنید.
 
 تا قبل از تعریف منابع واقعی، مجاز و تست‌شده، قیمت زنده را نباید به‌عنوان داده معتبر نمایش داد. نرخ ارز خارجی نیز باید از منبع/اپراتور معتبر دریافت و همراه زمان به‌روزرسانی ثبت شود.
 
