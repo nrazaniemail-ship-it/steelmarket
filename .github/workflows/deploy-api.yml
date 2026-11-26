@@ -1,0 +1,50 @@
+name: Deploy Fooladban API
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Configure Cloudflare deployment
+        env:
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+          APP_ORIGIN: ${{ vars.FOOLADB_APP_ORIGIN }}
+          ALLOWED_HOSTS: ${{ vars.FOOLADB_ALLOWED_HOSTS }}
+        run: |
+          test -n "$D1_DATABASE_ID" || (echo "Missing D1_DATABASE_ID secret" && exit 1)
+          test -n "$APP_ORIGIN" || (echo "Missing FOOLADB_APP_ORIGIN variable" && exit 1)
+          test -n "$ALLOWED_HOSTS" || (echo "Missing FOOLADB_ALLOWED_HOSTS variable" && exit 1)
+          sed -i "s/REPLACE_WITH_CLOUDFLARE_D1_DATABASE_ID/$D1_DATABASE_ID/" workers/wrangler.toml
+          sed -i "s|https://YOUR_GITHUB_PAGES_DOMAIN|$APP_ORIGIN|" workers/wrangler.toml
+          sed -i "s|example.com,prices.example.ir|$ALLOWED_HOSTS|" workers/wrangler.toml
+      - name: Apply D1 schema
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4 d1 execute fooladban --remote --file=workers/schema.sql --config workers/wrangler.toml
+      - name: Deploy API Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4 deploy --config workers/wrangler.toml
+      - name: Set API and FX secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          API_TOKEN: ${{ secrets.FOOLADB_API_TOKEN }}
+          USD_IRR: ${{ secrets.FOOLADB_USD_IRR }}
+          AED_IRR: ${{ secrets.FOOLADB_AED_IRR }}
+          EUR_IRR: ${{ secrets.FOOLADB_EUR_IRR }}
+        run: |
+          test -n "$API_TOKEN" || (echo "Missing FOOLADB_API_TOKEN secret" && exit 1)
+          printf '%s' "$API_TOKEN" | npx --yes wrangler@4 secret put API_TOKEN --config workers/wrangler.toml
+          for name in USD_IRR AED_IRR EUR_IRR; do
+            value="$(printenv "$name" || true)"
+            if [ -n "$value" ]; then printf '%s' "$value" | npx --yes wrangler@4 secret put "$name" --config workers/wrangler.toml; fi
+          done
