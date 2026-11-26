@@ -2,7 +2,7 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const host=$('layer-analysis');if(!host||$('fbFreightPanel'))return;
-const KEY='fooladban.freight.v1',BASE={rate:2045,currency:'تومان',unit:'تن‌ـ‌کیلومتر',effective:'۱۴۰۵/۰۸/۲۸',source:'شاخص اعلامی سازمان راهداری و حمل‌ونقل جاده‌ای',url:'https://www.rmto.ir/'};
+const KEY='fooladban.freight.v1',BASE={rate:2045,currency:'تومان',unit:'تن‌ـ‌کیلومتر',effective:'۱۴۰۵/۰۸/۲۸',source:'شاخص اعلامی سازمان راهداری و حمل‌ونقل جاده‌ای',url:'https://www.24onlinenews.ir/%D8%A8%D8%AE%D8%B4-%D8%A7%D9%82%D8%AA%D8%B5%D8%A7%D8%AF-4/66198-%D8%AC%D8%B2%D8%A6%DB%8C%D8%A7%D8%AA-%D8%A7%D9%81%D8%B2%D8%A7%DB%8C%D8%B4-%D9%86%D8%B1%D8%AE-%D8%AE%D8%AF%D9%85%D8%A7%D8%AA-%D8%AD%D9%85%D9%84-%D9%88%D9%86%D9%82%D9%84-%D8%AC%D8%A7%D8%AF%D9%87-%D8%A7%DB%8C-%D8%A7%D8%B9%D9%84%D8%A7%D9%85-%D8%B4%D8%AF'};
 const fmt=n=>Number(n||0).toLocaleString('fa-IR',{maximumFractionDigits:1});
 const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let saved={};try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch{}
@@ -48,7 +48,7 @@ host.append(panel);
 const val=id=>$(id)?.value?.trim()||'',num=id=>Number(val(id))||0;
 function mode(){const manual=val('frRateMode')==='manual';$('frRate').disabled=!manual;$('frRateField').style.opacity=manual?'1':'.72'}
 function rate(){return val('frRateMode')==='manual'?num('frRate'):BASE.rate}
-function sourceText(){const manual=val('frRateMode')==='manual';$('frSource').innerHTML=manual?'**مبنای نرخ:** ورود دستی کاربر؛ صحت نرخ و تاریخ آن باید با بارنامه یا استعلام شرکت حمل کنترل شود.': 'نرخ مرجع ثبت‌شده: <b>'+fmt(BASE.rate)+' تومان به‌ازای هر تن‌ـ‌کیلومتر</b> (معادل ۲۰٬۴۵۰ ریال). تاریخ اجرای نرخ: '+BASE.effective+' · مرجع اعلام: سازمان راهداری و حمل‌ونقل جاده‌ای. <a href="'+BASE.url+'" target="_blank" rel="noopener">وب‌سایت مرجع</a> · این مقدار آخرین نرخ مرجع ثبت‌شده در نسخه برنامه است و به معنی اتصال زنده به سامانه بارنامه نیست.'}
+function sourceText(){const manual=val('frRateMode')==='manual';$('frSource').innerHTML=manual?'<b>مبنای نرخ:</b> ورود دستی کاربر؛ صحت نرخ و تاریخ آن باید با بارنامه یا استعلام شرکت حمل کنترل شود.': 'نرخ مرجع ثبت‌شده: <b>'+fmt(BASE.rate)+' تومان به‌ازای هر تن‌ـ‌کیلومتر</b> (معادل ۲۰٬۴۵۰ ریال). تاریخ اجرای نرخ: '+BASE.effective+' · مرجع اعلام: سازمان راهداری و حمل‌ونقل جاده‌ای. <a href="'+BASE.url+'" target="_blank" rel="noopener">وب‌سایت مرجع</a> · این مقدار آخرین نرخ مرجع ثبت‌شده در نسخه برنامه است و به معنی اتصال زنده به سامانه بارنامه نیست.'}
 function calculate(){const o=val('frOrigin'),d=val('frDestination'),t=num('frTonnage'),km=num('frDistance'),r=rate(),extra=num('frExtras');if(!o||!d||o===d||!(t>0)||!(km>0)||!(r>0)){ $('frStatus').textContent='مبدأ و مقصد متفاوت، تناژ مثبت و مسافت معتبر را وارد کنید.';return null}
 const base=t*km*r,total=base+extra,perTon=total/t,perKg=perTon/1000;
 const values=[['کرایه پایه',base],['هزینه کل محموله',total],['هزینه حمل هر تن',perTon]];
