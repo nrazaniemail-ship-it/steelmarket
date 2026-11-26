@@ -58,7 +58,7 @@
 
 ## Important setup notes
 - In the product form, use the same product key only for the same commercial/technical item across factory, IME and free market. Do not compare unlike grades, dimensions, delivery bases or VAT bases.
-- Set the current USD/AED/EUR to IRR exchange rates in Settings before including foreign-currency quotes. Toman is converted as 10 IRR; tonne prices are converted to kg basis.
+- Set current USD/AED/EUR/CNY/INR/TRY/GBP to IRR exchange rates in Settings before including foreign-currency quotes. The central Worker accepts optional secrets FOOLADB_CNY_IRR, FOOLADB_INR_IRR, FOOLADB_TRY_IRR and FOOLADB_GBP_IRR in addition to USD/AED/EUR. Toman is converted as 10 IRR; tonne prices are converted to kg basis.
 - The D1 backend is code-complete for the first ingestion endpoints but is not live until the repository owner provisions D1, adds the Worker secrets/host allowlist and deploys it. The browser dashboard supports central D1 sync when the Cloudflare Worker is deployed; until then it runs in local mode.
 - Browser observations are stored in IndexedDB using add-only inserts; Android background observations are appended to a separate native ledger. Existing chart history is retained for backward compatibility.
 - Cloudflare source parser supports JSON path, regex, a safe subset of CSS selectors (#id, .class, [data-price], [itemprop=price]) and common automatic price markers. Unsupported site layouts require a source-specific parser.
