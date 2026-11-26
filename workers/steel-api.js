@@ -25,7 +25,6 @@ function normalize(value) {
 function attr(attrs, name) {
  const re = /([a-z-]+)\s*=\s*["']([^"']*)["']/gi; for (const m of attrs.matchAll(re)) if (m[1].toLowerCase() === name.toLowerCase()) return m[2]; return '';
 }
-}
 function selectorText(body, selector) {
  const q = String(selector || '').trim();
  const matches = body.matchAll(/<([a-z][a-z0-9:-]*)\b([^>]*)>([\s\S]*?)<\/\1\s*>/gi);
