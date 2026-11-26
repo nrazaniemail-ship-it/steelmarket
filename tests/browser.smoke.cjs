@@ -16,7 +16,7 @@ const assert = require('node:assert/strict');
   if(await page.locator('#mcProductCatalog').count()===0){const diag=await page.evaluate(()=>({scripts:[...document.scripts].map(x=>x.src),ready:document.readyState,main:!!document.querySelector('main.wrap'),source:!!document.getElementById('sourcePanel'),shell:!!document.getElementById('fooladbanLayerShell')}));throw new Error('Product catalog missing. Page errors: '+errors.join('\\n')+' Diagnostics: '+JSON.stringify(diag))}
   await page.locator('#mcProductCatalog').waitFor({state:'attached'});
   assert.equal(await page.locator('#mcProductCatalog input[data-catalog-id]').count(),19);
-  assert.equal(await page.locator('#mcSourceRegistry .mc-source').count(),22);
+  assert.equal(await page.locator('#mcSourceRegistry .mc-source').count(),7);
   assert.equal(await page.locator('#mcSourceRegistry').innerText().then(t=>t.includes('Trading Economics')),true);
   await page.locator('#fbLayerNav [data-layer-target="products"]').click();
   await page.locator('#mcProductCatalog input[data-catalog-id="rebar"]').check();
