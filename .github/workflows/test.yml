@@ -2,7 +2,7 @@ name: Fooladban tests
 on:
   push:
     branches: [main]
-    paths: ['core/**','workers/**','tests/**','package.json','.github/workflows/test.yml']
+    paths: ['core/**','workers/**','tests/**','package.json','index.html','sw.js','.github/workflows/test.yml']
   pull_request:
     paths: ['core/**','workers/**','tests/**','package.json']
   workflow_dispatch:
@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node --check workers/steel-api.js && node --check workers/price-proxy.js
+      - run: node --check workers/steel-api.js && node --check workers/price-proxy.js && node --check sw.js
       - run: npm test
       - run: python3 tests/schema_test.py
       - run: python3 tests/check_ui.py
