@@ -123,6 +123,25 @@ html[data-app-icon="blue"] .fb-about-brand img{filter:hue-rotate(185deg)}
  #fooladbanTop .fb-clock-line strong{font-size:1.55rem}
  #fooladbanTop .fb-date-line{font-size:.68rem}
 }
+
+/* Ensure the Fooladban brand mark remains clearly visible in the compact header */
+#fooladbanTop .fb-top-logo{
+  width:48px;
+  height:48px;
+  flex:0 0 48px;
+  padding:1px;
+  object-fit:contain;
+  object-position:center;
+  border-width:1px;
+}
+@media(max-width:600px){
+  #fooladbanTop .fb-top-logo{
+    width:42px;
+    height:42px;
+    flex-basis:42px;
+    padding:1px;
+  }
+}
 </style></head><body>
 <header class="top" id="fooladbanTop"><div class="fb-top-main"><button class="fb-top-lang" id="fbTopLanguage" type="button" aria-label="تغییر زبان">FA</button><button class="fb-top-theme" id="fbTopTheme" type="button" aria-label="تغییر پوسته">☀️</button><div class="fb-top-brand"><img class="fb-top-logo" src="./fooladban-logo.jpg" alt="نشان رادار فولادبان"><div class="fb-top-brand-copy"><strong>فولادبان</strong><small>1.5.0</small></div></div></div><div class="fb-top-time"><div class="fb-clock-line"><strong id="fbTehranClock" dir="ltr">--:--:--</strong><span class="fb-date-line" dir="rtl"><span id="fbPersianDate">—</span><span class="fb-date-separator">·</span><span id="fbGregorianDate" dir="ltr">—</span></span></div></div><div class="fb-top-utilities"><button class="btn" id="notifyBtn">🔔 <span class="label">فعال‌سازی هشدار</span></button><button class="btn primary" id="installBtn" hidden>نصب برنامه</button></div></header>
 <main class="wrap">
