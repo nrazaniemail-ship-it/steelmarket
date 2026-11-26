@@ -1,0 +1,7 @@
+name = "fooladban-price-proxy"
+main = "price-proxy.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+APP_ORIGIN = "https://YOUR_GITHUB_PAGES_DOMAIN"
+ALLOWED_HOSTS = "example.com,prices.example.ir"
