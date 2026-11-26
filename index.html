@@ -111,6 +111,7 @@ body[data-density="compact"] .fb-settings-body{padding:9px 12px}
 <script src="./core/price-domain.js"></script><script src="./core/source-health.js"></script><script src="./core/price-ledger.js"></script><script src="./core/extractor.js"></script>
 <script src="./core/market-config.js"></script>
 <script src="./core/app-shell.js"></script>
+<script src="./core/decision-tools.js"></script>
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id),fa=n=>Number(n||0).toLocaleString('fa-IR'),num=s=>{if(typeof s==='number')return s;let v=String(s??'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[,٬\s]/g,'').replace('٫','.').replace(/[^0-9.+-]/g,'');return Number(v)};
