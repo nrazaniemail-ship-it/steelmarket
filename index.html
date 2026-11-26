@@ -56,7 +56,7 @@ const $=id=>document.getElementById(id),fa=n=>Number(n||0).toLocaleString('fa-IR
 const KEY='fooladban.v1',defaults={products:[],events:[],settings:{interval:5,auto:true,alerts:true,proxy:''}};
 let state=load(),timer=null,deferredInstall=null;
 function load(){try{return {...defaults,...JSON.parse(localStorage.getItem(KEY)||'{}'),settings:{...defaults.settings,...(JSON.parse(localStorage.getItem(KEY)||'{}').settings||{})}}}catch{return structuredClone(defaults)}}
-function save(){localStorage.setItem(KEY,JSON.stringify(state));renderStats()}
+function save(){localStorage.setItem(KEY,JSON.stringify(state));try{if(window.FooladbanNative?.sync)window.FooladbanNative.sync(JSON.stringify(state))}catch(e){}renderStats()}
 function toast(s){$('toast').textContent=s;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),3000)}
 function stamp(t){return new Intl.DateTimeFormat('fa-IR',{dateStyle:'short',timeStyle:'short'}).format(new Date(t))}
 function safe(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
