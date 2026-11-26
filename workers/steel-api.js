@@ -61,6 +61,7 @@ function parse(body, source) {
    try { return normalize(selectorText(body, cls)); } catch {}
   }
  }
+ if(source.parser_mode==='auto' && identifyAdapter(source.url).id!=='custom') throw Error('adapter_price_not_found');
  const m = body.match(/(?:قیمت|price|آخرین نرخ)[^0-9۰-۹٠-٩]{0,30}([0-9۰-۹٠-٩][0-9۰-۹٠-٩,٬.٫]*)/i);
  if (!m) throw Error('price_not_found'); return normalize(m[1]);
 }
