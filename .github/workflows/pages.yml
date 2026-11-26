@@ -1,5 +1,14 @@
 name: Deploy Fooladban to GitHub Pages
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'manifest.webmanifest'
+      - 'icon.svg'
+      - 'sw.js'
+      - 'core/**'
+      - '.github/workflows/pages.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -14,8 +23,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .
