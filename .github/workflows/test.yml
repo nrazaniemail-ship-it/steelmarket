@@ -17,3 +17,5 @@ jobs:
         with:
           node-version: 22
       - run: npm test
+      - run: python3 tests/schema_test.py
+      - run: python3 tests/check_ui.py
