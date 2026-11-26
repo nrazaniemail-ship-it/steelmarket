@@ -161,7 +161,7 @@ html[data-app-icon="blue"] .fb-about-brand img{filter:hue-rotate(185deg)}
 <nav class="bottomnav"><button class="active" data-go="marketPanel">بازار</button><button data-go="chartPanel">نمودار</button><button data-go="mcSourceRegistry">منابع</button><button data-go="addPanel">افزودن</button><button data-go="alerts">هشدارها</button></nav><div id="toast" class="toast hidden"></div>
 <script src="./core/price-domain.js"></script><script src="./core/source-health.js"></script><script src="./core/price-ledger.js"></script><script src="./core/extractor.js"></script>
 <script src="./core/market-config.js"></script>
-<script src="./core/app-shell.js"></script>
+
 <script src="./core/decision-tools.js"></script>
 <script>
 (()=>{'use strict';
@@ -215,4 +215,5 @@ window.addEventListener('online',()=>{if(state.settings.apiUrl)refreshFromServer
 window.addEventListener('resize',()=>drawChart());
 render();if(state.settings.apiUrl){refreshFromServer(true);serverPollTimer=setInterval(()=>refreshFromServer(true),60000)}if(state.products.length&&state.settings.auto)checkAll();
 })();
-</script></body></html>
+</script>
+<script src="./core/app-shell.js"></script></body></html>
