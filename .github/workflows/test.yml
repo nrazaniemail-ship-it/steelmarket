@@ -16,6 +16,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - run: node --check workers/steel-api.js && node --check workers/price-proxy.js
       - run: npm test
       - run: python3 tests/schema_test.py
       - run: python3 tests/check_ui.py
