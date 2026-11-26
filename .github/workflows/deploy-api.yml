@@ -41,10 +41,14 @@ jobs:
           USD_IRR: ${{ secrets.FOOLADB_USD_IRR }}
           AED_IRR: ${{ secrets.FOOLADB_AED_IRR }}
           EUR_IRR: ${{ secrets.FOOLADB_EUR_IRR }}
+          CNY_IRR: ${{ secrets.FOOLADB_CNY_IRR }}
+          INR_IRR: ${{ secrets.FOOLADB_INR_IRR }}
+          TRY_IRR: ${{ secrets.FOOLADB_TRY_IRR }}
+          GBP_IRR: ${{ secrets.FOOLADB_GBP_IRR }}
         run: |
           test -n "$API_TOKEN" || (echo "Missing FOOLADB_API_TOKEN secret" && exit 1)
           printf '%s' "$API_TOKEN" | npx --yes wrangler@4 secret put API_TOKEN --config workers/wrangler.toml
-          for name in USD_IRR AED_IRR EUR_IRR; do
+          for name in USD_IRR AED_IRR EUR_IRR CNY_IRR INR_IRR TRY_IRR GBP_IRR; do
             value="$(printenv "$name" || true)"
             if [ -n "$value" ]; then printf '%s' "$value" | npx --yes wrangler@4 secret put "$name" --config workers/wrangler.toml; fi
           done
