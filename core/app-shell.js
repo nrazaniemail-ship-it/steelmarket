@@ -21,8 +21,8 @@ const sources=layer('sources','مراجع قیمت','مدیریت مراجع ر�
 const analysis=layer('analysis','تحلیل بازار','مقایسه قیمت، روندها و رویدادهای بازار');
 const settingsLayer=layer('settings','تنظیمات','شخصی‌سازی محیط، مدیریت پایش و راهنمای استفاده');
 function move(parent,...nodes){nodes.filter(Boolean).forEach(n=>parent.append(n))}
-move(dashboard,hero,stats,market);
-move(products,add,catalog,picks);
+move(dashboard,hero,stats,market,catalog,picks);
+move(products,add);
 move(sources,source,registry);
 move(analysis,insights,compare,chart,eventPanel);
 const nav=document.createElement('nav');nav.className='fb-layer-nav';nav.id='fbLayerNav';nav.setAttribute('aria-label','ناوبری لایه‌های برنامه');
