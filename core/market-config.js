@@ -48,6 +48,7 @@ const picks=makePanel('mcDashboardPicks','سبد منتخب من','هر محصو
 const productCatalogMap=new Map(products.flatMap(g=>g[1].map(([id,name])=>[id,{id,name,group:g[0]}])));
 function readWatchlist(){try{return JSON.parse(localStorage.getItem('fooladban.v1')||'{}').products||[]}catch{return[]}}
 function money(value,currency){return Number(value).toLocaleString('fa-IR',{maximumFractionDigits:2})+' '+(currency||'') }
+ function formatCheckedAt(value){const d=new Date(value);const p=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).formatToParts(d);const v=Object.fromEntries(p.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));return `${v.day}-${v.month}-${v.year}، ${v.hour}:${v.minute}`}
 function renderDashboardPicks(){
  const watchlist=readWatchlist(),selected=cfg.selected.map(id=>productCatalogMap.get(id)).filter(Boolean);
  picksList.replaceChildren();picks.querySelector('.mc-pill').textContent=selected.length.toLocaleString('fa-IR')+' محصول';
@@ -69,7 +70,7 @@ function renderDashboardPicks(){
     priceLine.append(el('strong','',last?money(last.price,p.currency):'—'));
     const status=last?((change===null?'بدون سابقه قبلی':(change>0?'▲ ':change<0?'▼ ':'')+Math.abs(change).toLocaleString('fa-IR',{maximumFractionDigits:2})+'٪')):(p.error?'دریافت ناموفق':'در انتظار اولین قیمت');
     const ch=el('span','mc-dashboard-change '+(change>0?'up':change<0?'down':'neutral'),status);priceLine.append(ch);detail.append(priceLine);
-    const foot=el('div','mc-dashboard-record-foot');foot.append(el('small','',p.checkedAt?'آخرین بررسی: '+new Date(p.checkedAt).toLocaleString('fa-IR'):'قیمت هنوز دریافت نشده'));const check=el('button','mc-dashboard-check','بررسی قیمت');check.type='button';check.dataset.refreshProduct=p.id;foot.append(check);detail.append(foot);card.append(detail);
+    const foot=el('div','mc-dashboard-record-foot');foot.append(el('small','',p.checkedAt?'آخرین بررسی: '+formatCheckedAt(p.checkedAt):'قیمت هنوز دریافت نشده'));const check=el('button','mc-dashboard-check','بررسی قیمت');check.type='button';check.dataset.refreshProduct=p.id;foot.append(check);detail.append(foot);card.append(detail);
    }
   }
   picksList.append(card);
