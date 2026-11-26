@@ -19,6 +19,7 @@ const dashboard=layer('dashboard','داشبورد فولادبان','نمای ف
 const products=layer('products','سبد محصولات','انتخاب، تعریف و مدیریت محصولات تحت پایش');
 const sources=layer('sources','مراجع قیمت','مدیریت مراجع رسمی، خصوصی و بین‌المللی');
 const analysis=layer('analysis','تحلیل بازار','مقایسه قیمت، روندها و رویدادهای بازار');
+const assistant=layer('assistant','دستیار هوشمند','با گفت‌وگو درباره نیاز و مقصد، گزینه‌های مناسب را از داده‌های ثبت‌شده بازار پیدا کنید');
 const settingsLayer=layer('settings','تنظیمات','شخصی‌سازی محیط، مدیریت پایش و راهنمای استفاده');
 function move(parent,...nodes){nodes.filter(Boolean).forEach(n=>parent.append(n))}
 move(dashboard,hero,stats,market,catalog,picks);
@@ -26,7 +27,7 @@ move(products,add);
 move(sources,source,registry);
 move(analysis,insights,compare,chart,eventPanel);
 const nav=document.createElement('nav');nav.className='fb-layer-nav';nav.id='fbLayerNav';nav.setAttribute('aria-label','ناوبری لایه‌های برنامه');
-const navItems=[['dashboard','▦','داشبورد'],['products','▤','محصولات'],['sources','◎','منابع'],['analysis','▥','تحلیل'],['settings','⚙','تنظیمات']];
+const navItems=[['dashboard','▦','داشبورد'],['products','▤','محصولات'],['sources','◎','منابع'],['analysis','▥','تحلیل'],['assistant','✦','دستیار هوشمند'],['settings','⚙','تنظیمات']];
 for(const [id,ico,label] of navItems){const b=document.createElement('button');b.type='button';b.dataset.layerTarget=id;b.innerHTML='<span class="fb-nav-icon" aria-hidden="true">'+ico+'</span><span>'+label+'</span>';b.addEventListener('click',()=>activate(id));nav.append(b)}
 const top=document.querySelector('header.top');if(top)top.after(nav);root.insertBefore(shell,layout);if(layout)layout.remove();
 const oldNav=document.querySelector('.bottomnav');if(oldNav)oldNav.remove();
