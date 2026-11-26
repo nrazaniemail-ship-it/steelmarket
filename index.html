@@ -71,6 +71,20 @@ body[data-density="compact"] .fb-settings-body{padding:9px 12px}
 .fb-date-line{display:flex;justify-content:flex-end;gap:9px;align-items:center;color:var(--muted);font-size:.86rem;margin-top:3px}.fb-date-separator{opacity:.65}
 .fb-top-utilities{display:flex;justify-content:flex-end;gap:8px;padding:0 18px 8px;max-width:1180px;margin:auto}
 @media(max-width:600px){.fb-top-main{min-height:76px;padding:10px 20px}.fb-top-lang,.fb-top-theme{width:56px;height:56px}.fb-top-brand{gap:9px}.fb-top-brand-copy strong{font-size:1rem}.fb-top-logo{width:48px;height:48px}.fb-top-time{padding:0 24px 16px}.fb-clock-line strong{font-size:2.35rem}.fb-clock-caption{font-size:.8rem}.fb-date-line{font-size:.78rem}.fb-top-utilities{padding-bottom:7px}}
+
+.fb-assistant{display:grid;gap:16px;margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:20px;background:var(--panel)}
+.fb-assistant-help{margin:0;color:var(--muted);line-height:1.9}
+.fb-assistant-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.fb-assistant-field{display:grid;gap:7px;min-width:0;color:var(--text);font-size:.9rem;font-weight:650}
+.fb-assistant-field select,.fb-assistant-field input{width:100%;min-width:0;min-height:46px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);color:var(--text);font:inherit}
+.fb-assistant-field select:focus,.fb-assistant-field input:focus{outline:2px solid var(--gold);outline-offset:1px}
+.fb-assistant-field input:disabled{opacity:.45;cursor:not-allowed}
+.fb-assistant-free{grid-column:span 1}
+.fb-assistant-actions{display:flex;gap:10px;flex-wrap:wrap}
+.fb-assistant-result{padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--panel2);line-height:1.9}
+.fb-assistant-result h3{margin:0 0 8px}.fb-assistant-result ul{margin:0;padding-inline-start:22px}
+.fb-assistant-result p{color:var(--muted);margin:12px 0}
+@media(max-width:620px){.fb-assistant{padding:13px}.fb-assistant-form{grid-template-columns:1fr}.fb-assistant-free{grid-column:auto}.fb-assistant-actions>*{flex:1 1 100%}}
 </style></head><body>
 <header class="top" id="fooladbanTop"><div class="fb-top-main"><button class="fb-top-lang" id="fbTopLanguage" type="button" aria-label="تغییر زبان">FA</button><button class="fb-top-theme" id="fbTopTheme" type="button" aria-label="تغییر پوسته">☀️</button><div class="fb-top-brand"><div class="fb-top-brand-copy"><strong>فولادبان</strong><small>STEEL MARKET</small></div><img class="fb-top-logo" src="./icon.svg" alt="نشان فولادبان"></div></div><div class="fb-top-time"><div class="fb-clock-line"><span class="fb-clock-caption">به وقت تهران</span><strong id="fbTehranClock" dir="ltr">--:--:--</strong></div><div class="fb-date-line"><span id="fbPersianDate">—</span><span class="fb-date-separator">·</span><span id="fbGregorianDate">—</span></div></div><div class="fb-top-utilities"><button class="btn" id="notifyBtn">🔔 <span class="label">فعال‌سازی هشدار</span></button><button class="btn primary" id="installBtn" hidden>نصب برنامه</button></div></header>
 <main class="wrap">
