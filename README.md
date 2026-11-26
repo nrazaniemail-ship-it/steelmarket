@@ -4,7 +4,7 @@
 
 **نسخه وب منتشرشده:** https://nrazaniemail-ship-it.github.io/steelmarket/
 
-## امکانات نسخه وب ۱.۴
+## امکانات نسخه وب ۱.۵
 - داشبورد بازار با شاخص‌های منابع فعال، میانگین قیمت هم‌مبنا و دامنه اختلاف
 - مدیریت محصول/منبع: افزودن، ویرایش، غیرفعال‌سازی و بررسی فوری قیمت
 - پنل سلامت منابع با وضعیت سالم، ناپایدار، کهنه، خطادار و غیرفعال
@@ -67,3 +67,11 @@
 - The D1 backend is code-complete for the first ingestion endpoints but is not live until the repository owner provisions D1, adds the Worker secrets/host allowlist and deploys it. The browser dashboard supports central D1 sync when the Cloudflare Worker is deployed; until then it runs in local mode.
 - Browser observations are stored in IndexedDB using add-only inserts; Android background observations are appended to a separate native ledger. Existing chart history is retained for backward compatibility.
 - Cloudflare source parser supports JSON path, regex, a safe subset of CSS selectors (#id, .class, [data-price], [itemprop=price]) and common automatic price markers. Unsupported site layouts require a source-specific parser.
+
+
+## نسخه وب ۱.۵ — مسیر سریع افزودن محصول
+- انتخاب و جست‌وجوی سریع از کاتالوگ استاندارد ۱۹ محصول؛ نمایش مشخصات فنی در همان کارت انتخاب.
+- بازار و مرجع قیمت به‌صورت وابسته به هم فیلتر می‌شوند؛ انتخاب مرجع دیگر صفحه اصلی سایت را به‌اشتباه به‌عنوان صفحه قیمت ثبت نمی‌کند.
+- گرید، سایز، تولیدکننده، محل تحویل، مبنای مالیات، ارز و واحد در کنار محصول قرار گرفته‌اند؛ تنظیمات parser و هشدار در بخش پیشرفته و تاشو هستند.
+- نتیجه آخرین دریافت قیمت در همان کارت محصول نمایش داده می‌شود و با گرید/سایز/تولیدکننده تطبیق داده می‌شود تا قیمت کالای متفاوت اشتباه نشان داده نشود.
+- برای دریافت واقعی هنوز لینک دقیق صفحه قیمت لازم است؛ انتخاب نام یک مرجع به‌تنهایی تضمین نمی‌کند که قیمت محصول قابل استخراج یا زنده باشد.
