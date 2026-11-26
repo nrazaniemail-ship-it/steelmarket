@@ -73,8 +73,8 @@ function choice(id,placeholder,options){
  for(const value of options)s.append(el('option','',value)).lastChild.value=value;
  const custom=el('input');custom.type='text';custom.placeholder='گزینه دیگر را وارد کنید';custom.className='mc-custom-choice hidden';custom.setAttribute('aria-label',placeholder+' سفارشی');
  const opt=el('option','','＋ ورود گزینه دلخواه');opt.value='__custom__';s.append(opt);
- s.addEventListener('change',()=>{custom.classList.toggle('hidden',s.value!=='__custom__');if(s.value==='__custom__'){custom.value='';custom.focus()}});
- custom.addEventListener('input',()=>{const v=custom.value.trim();let o=[...s.options].find(x=>x.dataset.custom==='1');if(!o){o=el('option');o.dataset.custom='1';s.append(o)}o.value=v;o.textContent=v||'گزینه دلخواه';if(v)s.value=v;});
+ s.addEventListener('change',()=>{const isCustom=s.value==='__custom__';custom.classList.toggle('hidden',!isCustom);custom.required=isCustom;if(isCustom){custom.value='';custom.focus()}});
+ custom.addEventListener('input',()=>{const v=custom.value.trim();let o=[...s.options].find(x=>x.dataset.custom==='1');if(!o){o=el('option');o.dataset.custom='1';s.append(o)}o.value=v;o.textContent=v||'گزینه دلخواه';if(v){s.value=v;custom.required=false}});
  s.setChoiceValue=v=>{const value=String(v??'');if(!value){s.value='';custom.classList.add('hidden');return}let o=[...s.options].find(x=>x.value===value);if(!o){o=el('option');o.value=value;o.textContent=value;o.dataset.custom='1';s.insertBefore(o,opt)}s.value=value;custom.classList.add('hidden')};
  return {select:s,custom};
 }
