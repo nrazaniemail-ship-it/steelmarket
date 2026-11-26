@@ -21,8 +21,8 @@ const sources=layer('sources','مراجع قیمت','مدیریت مراجع ر�
 const analysis=layer('analysis','تحلیل بازار','مقایسه قیمت، روندها و رویدادهای بازار');
 const settingsLayer=layer('settings','تنظیمات','شخصی‌سازی محیط، مدیریت پایش و راهنمای استفاده');
 function move(parent,...nodes){nodes.filter(Boolean).forEach(n=>parent.append(n))}
-move(dashboard,hero,stats,market,picks);
-move(products,catalog,add);
+move(dashboard,hero,stats,market,picks,add);
+move(products,catalog);
 move(sources,source,registry);
 move(analysis,insights,compare,chart,eventPanel);
 
