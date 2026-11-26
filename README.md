@@ -46,6 +46,7 @@
 - [Product blueprint](docs/PRODUCT_BLUEPRINT.md): target modules, data model, source-quality rules, forecast standards, architecture and release roadmap.
 - [R1/R2 execution report](docs/IMPLEMENTATION_REPORT_R1_R2.md): implemented files, tests, build status and external deployment steps.
 - [Web-first release plan](docs/WEB_FIRST_RELEASE_PLAN.md): web deployment, API connection, Cloudflare setup and deferred Android/iOS packaging.
+- [Web 1.2 implementation report](docs/WEB_1_2_IMPLEMENTATION_REPORT.md): dashboard, API, responsive UI, test coverage and remaining live-data setup.
 
 ## R1/R2 implementation
 - Server ingestion API and Cloudflare D1 schema: `workers/steel-api.js`, `workers/schema.sql`, `workers/wrangler.toml`.
