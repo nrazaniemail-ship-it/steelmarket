@@ -6,6 +6,8 @@ const assert = require('node:assert/strict');
   const page=await browser.newPage({viewport:{width:390,height:844}});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.route('https://example.invalid/**',route=>route.abort());
+  await page.route('https://fonts.googleapis.com/**',route=>route.abort());
+  await page.route('https://fonts.gstatic.com/**',route=>route.abort());
   await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
   assert.equal(await page.locator('h1').first().innerText(),'نبض بازار فولاد');
   assert.equal(await page.locator('.bottomnav').isVisible(),true);
