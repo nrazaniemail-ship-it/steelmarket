@@ -177,7 +177,7 @@ export default {
    for (const source of results) {
     try {
      const body = await fetchSafe(source, env), price = parse(body, source);
-     const rates = { IRR:1, IRT:10, USD:Number(env.USD_IRR), AED:Number(env.AED_IRR), EUR:Number(env.EUR_IRR) };
+     const rates = { IRR:1, IRT:10, USD:Number(env.USD_IRR), AED:Number(env.AED_IRR), EUR:Number(env.EUR_IRR), CNY:Number(env.CNY_IRR), INR:Number(env.INR_IRR), TRY:Number(env.TRY_IRR), GBP:Number(env.GBP_IRR) };
      const fx = rates[source.currency] || 0, factor = source.measure_unit === 'ton' ? 0.001 : 1;
      const normalized = fx > 0 ? price * factor * fx : null, id = crypto.randomUUID(), recorded = now();
      const previous = await env.DB.prepare('SELECT raw_price FROM observations WHERE source_id=? ORDER BY observed_at DESC LIMIT 1').bind(source.id).first();
