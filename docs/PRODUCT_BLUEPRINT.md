@@ -72,7 +72,7 @@ Every forecast must show horizon, timestamp, model, training window, uncertainty
 - Delivery history and retry state.
 
 ## Technical architecture
-- Android Kotlin shell: WorkManager for periodic minimum-15-minute checks, notification channels, deep links and battery-optimization guidance.
+- Android Kotlin shell: WorkManager for periodic minimum-15-minute checks, notification channels, deep links and battery-optimization guidance. Add a native home-screen widget (Glance) for top movers, last update and source-health summary; notifications alone appear in the status/notification shade, while the widget provides the persistent launcher surface.
 - PWA client: responsive dashboard, charts, watchlists and offline read cache.
 - Backend API: authentication, source registry, parser registry, observations, alerts, forecasts and exports.
 - Scheduler/queue: per-source cadence, concurrency limits, retries with exponential backoff and jitter.
