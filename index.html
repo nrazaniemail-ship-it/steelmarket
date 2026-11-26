@@ -85,6 +85,18 @@ body[data-density="compact"] .fb-settings-body{padding:9px 12px}
 .fb-assistant-result h3{margin:0 0 8px}.fb-assistant-result ul{margin:0;padding-inline-start:22px}
 .fb-assistant-result p{color:var(--muted);margin:12px 0}
 @media(max-width:620px){.fb-assistant{padding:13px}.fb-assistant-form{grid-template-columns:1fr}.fb-assistant-free{grid-column:auto}.fb-assistant-actions>*{flex:1 1 100%}}
+
+/* Namello settings parity controls */
+.fb-layer-nav[data-display="vertical"]{position:fixed;top:145px;bottom:14px;left:10px;right:auto;width:104px;max-width:30vw;overflow-y:auto;overflow-x:hidden;flex-direction:column;justify-content:flex-start;border:1px solid var(--line);border-radius:18px;white-space:normal}
+.fb-layer-nav[data-display="vertical"] button{width:100%;min-width:0;min-height:72px;flex-direction:column;white-space:normal}
+body:has(.fb-layer-nav[data-display="vertical"]) .wrap{padding-left:125px}
+.fb-settings-note{color:var(--muted);font-size:.78rem;line-height:1.9;margin:0}
+.fb-setting-row input[type="text"]{max-width:220px;min-width:120px}
+.fb-about a{color:var(--gold)}
+html[data-app-icon="teal"] .fb-about-brand img{filter:hue-rotate(135deg)}
+html[data-app-icon="gold"] .fb-about-brand img{filter:sepia(.65) saturate(1.4)}
+html[data-app-icon="blue"] .fb-about-brand img{filter:hue-rotate(185deg)}
+@media(max-width:680px){.fb-layer-nav[data-display="vertical"]{top:105px;left:5px;width:76px;max-width:22vw;padding:6px}.fb-layer-nav[data-display="vertical"] button{min-height:62px;padding:5px;font-size:.62rem}.fb-layer-nav[data-display="vertical"] .fb-nav-icon{font-size:1.15rem}body:has(.fb-layer-nav[data-display="vertical"]) .wrap{padding-left:88px}}
 </style></head><body>
 <header class="top" id="fooladbanTop"><div class="fb-top-main"><button class="fb-top-lang" id="fbTopLanguage" type="button" aria-label="تغییر زبان">FA</button><button class="fb-top-theme" id="fbTopTheme" type="button" aria-label="تغییر پوسته">☀️</button><div class="fb-top-brand"><div class="fb-top-brand-copy"><strong>فولادبان</strong><small>STEEL MARKET</small></div><img class="fb-top-logo" src="./icon.svg" alt="نشان فولادبان"></div></div><div class="fb-top-time"><div class="fb-clock-line"><span class="fb-clock-caption">به وقت تهران</span><strong id="fbTehranClock" dir="ltr">--:--:--</strong></div><div class="fb-date-line"><span id="fbPersianDate">—</span><span class="fb-date-separator">·</span><span id="fbGregorianDate">—</span></div></div><div class="fb-top-utilities"><button class="btn" id="notifyBtn">🔔 <span class="label">فعال‌سازی هشدار</span></button><button class="btn primary" id="installBtn" hidden>نصب برنامه</button></div></header>
 <main class="wrap">
