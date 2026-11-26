@@ -26,16 +26,18 @@
 - اعتبارسنجی نوع بازار، ارز، واحد، parser و allowlist دامنه.
 
 ## کیفیت و تست
-- تست‌های Node برای منطق قیمت، استخراج و API.
+- ۱۵ تست Node برای منطق قیمت، استخراج و API؛ همه موفق.
+- بررسی نحوی Workerها، Service Worker و اسکریپت PWA؛ موفق.
+- Wrangler Worker bundle dry-run؛ موفق.
+- تست مرورگر Chromium؛ موفق: بازشدن داشبورد موبایل، افزودن/ویرایش محصول، نمایش فیلدهای parser و نبود خطای runtime.
 - تست SQLite برای ممنوعیت UPDATE/DELETE روی دفترکل.
 - بررسی syntax فایل‌های Worker، Service Worker و اسکریپت PWA.
-- تست مرورگر Chromium برای بازشدن داشبورد موبایل، افزودن/ویرایش محصول و تغییر فیلدهای parser.
-- تست‌ها در GitHub Actions اجرا می‌شوند. نتیجه نهایی تست مرورگر در اجرای جاری workflow ثبت می‌شود.
+- نتیجه تست‌ها در [اجرای موفق GitHub Actions](https://github.com/nrazaniemail-ship-it/steelmarket/actions/runs/45891807799) ثبت شده است.
 
 ## انتشار
 - نسخه وب با GitHub Pages منتشر شده است.
 - URL انتشار: `https://nrazaniemail-ship-it.github.io/steelmarket/`
-- گردش‌کار انتشار: `.github/workflows/pages.yml`
+- گردش‌کار انتشار: `.github/workflows/pages.yml`؛ انتشار موفق در [GitHub Pages Actions](https://github.com/nrazaniemail-ship-it/steelmarket/actions/runs/45891736043).
 - گردش‌کار Deploy API: `.github/workflows/deploy-api.yml`
 
 ## موارد لازم برای داده زنده مرکزی
