@@ -1,5 +1,8 @@
 (()=>{
 'use strict';
+// Prevent duplicate catalog panels and event handlers if this script is loaded more than once.
+if(window.__fooladbanMarketConfigInitialized)return;
+window.__fooladbanMarketConfigInitialized=true;
 const KEY='fooladban.market-config.v1';
 const products=[
  ['شمش‌ها',[['slab','اسلب (تختال)'],['billet-bloom','بلوم و بیلت فولادی'],['alloy-billet-bloom','بلوم و بیلت فولاد آلیاژی']]],
