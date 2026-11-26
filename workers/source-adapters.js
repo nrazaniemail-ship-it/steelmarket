@@ -21,7 +21,7 @@ export function identifyAdapter(raw){
 }
 export function tradingEconomicsUrl(productKey){
  const slug=TE_SLUGS[String(productKey||'').toLowerCase()];
- return slug ? 'https://tradingeconomics.com/commodity/'+slug : null;
+ return slug ? 'https://fa.tradingeconomics.com/commodity/'+slug : null;
 }
 function numericPrice(value){
  const s=String(value??'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٬,\\s]/g,'').replace('٫','.').replace(/[^0-9.+-]/g,'');
