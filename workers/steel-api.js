@@ -23,12 +23,12 @@ function normalize(value) {
  const n = Number(s); if (!(n > 0 && Number.isFinite(n))) throw Error('invalid_price'); return n;
 }
 function attr(attrs, name) {
- const re = new RegExp('\\\\b' + name + '\\\\s*=\\\\s*([\\\\\"\\\'])(.*?)\\\\1', 'i');
+ const re = /([a-z-]+)\s*=\s*["']([^"']*)["']/gi; for (const m of attrs.matchAll(re)) if (m[1].toLowerCase() === name.toLowerCase()) return m[2]; return '';
  return attrs.match(re)?.[2] || '';
 }
 function selectorText(body, selector) {
  const q = String(selector || '').trim();
- const matches = body.matchAll(/<([a-z][a-z0-9:-]*)\\b([^>]*)>([\\s\\S]*?)<\\/\\1\\s*>/gi);
+ const matches = body.matchAll(/<([a-z][a-z0-9:-]*)\b([^>]*)>([\s\S]*?)<\/\1\s*>/gi);
  for (const m of matches) {
   const attrs = m[2] || '';
   let ok = false;
@@ -76,7 +76,7 @@ async function fetchSafe(source, env) {
   break;
  }
  if (!response?.ok) throw Error('upstream_http_' + (response?.status || 0));
- if (!/text\\/html|application\\/json|text\\/plain/i.test(response.headers.get('content-type') || '')) throw Error('unsupported_content_type');
+ if (!/text\/html|application\/json|text\/plain/i.test(response.headers.get('content-type') || '')) throw Error('unsupported_content_type');
  const body = await response.text(); if (body.length > 1500000) throw Error('response_too_large'); return body;
 }
 export default {
