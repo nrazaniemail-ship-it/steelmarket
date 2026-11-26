@@ -12,7 +12,7 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('#layer-dashboard').isVisible(),true);
   assert.equal(await page.locator('#fbLayerNav').isVisible(),true);
   assert.equal(await page.locator('#fbLayerNav button').count(),5);
-  await page.locator('#mcProductCatalog').waitFor();
+  await page.locator('#mcProductCatalog').waitFor({state:'attached'});
   assert.equal(await page.locator('#mcProductCatalog input[data-catalog-id]').count(),19);
   assert.equal(await page.locator('#mcSourceRegistry .mc-source').count(),22);
   assert.equal(await page.locator('#mcSourceRegistry').innerText().then(t=>t.includes('Trading Economics')),true);
