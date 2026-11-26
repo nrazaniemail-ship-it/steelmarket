@@ -1,0 +1,10 @@
+const test=require('node:test'),assert=require('node:assert/strict');require('../core/price-domain.js');require('../core/source-health.js');require('../core/extractor.js');const D=global.FooladbanDomain,H=global.FooladbanSourceHealth,E=global.FooladbanExtractor;
+test('Persian digits normalize',()=>assert.equal(D.number('۱۲۳٬۴۵۶٫۷'),123456.7));
+test('toman/kg converts to rial/kg',()=>assert.equal(D.normalizePrice({price:1000,unit:'تومان/کیلوگرم'},{}).irrPerKg,10000));
+test('USD/ton converts to IRR/kg',()=>assert.equal(D.normalizePrice({price:500,currency:'USD',measureUnit:'ton'},{USD_IRR:600000}).irrPerKg,300000));
+test('unknown FX fails closed',()=>assert.equal(D.normalizePrice({price:100,currency:'EUR',measureUnit:'kg'},{}).ok,false));
+test('factory, IME and free market comparable',()=>{const g=D.compareQuotes([{name:'Factory',productKey:'rebar16',sourceKind:'factory',price:30000,unit:'تومان/کیلوگرم'},{name:'IME',productKey:'rebar16',sourceKind:'ime',price:290000000,unit:'تومان/تن'},{name:'Free',productKey:'rebar16',sourceKind:'free_market',price:31000,unit:'تومان/کیلوگرم'}],{});assert.equal(g.length,1);assert.equal(g[0].items.length,3);assert.ok(g[0].spread>0)});
+test('stale and failed health states',()=>{assert.equal(H.evaluate({lastSuccessAt:1000,intervalMinutes:15},4000000).code,'stale');assert.equal(H.evaluate({lastError:'timeout'}).code,'error')});
+test('regex extraction supports Persian numerals',()=>assert.equal(E.extract({body:'قیمت روز: ۲۸۵٬۰۰۰ تومان',mode:'regex',regex:'قیمت روز: ([۰-۹٬]+)'}),285000));
+test('JSON path extraction',()=>assert.equal(E.extract({body:'{"data":{"last":125.5}}',mode:'json',jsonPath:'data.last'}),125.5));
+test('invalid parser values rejected',()=>assert.throws(()=>E.extract({body:'no price',mode:'regex',regex:'(\\d+)'})));
