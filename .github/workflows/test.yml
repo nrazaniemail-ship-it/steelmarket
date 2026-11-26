@@ -17,6 +17,12 @@ jobs:
         with:
           node-version: 22
       - run: node --check workers/steel-api.js && node --check workers/price-proxy.js && node --check sw.js
+      - name: Validate Cloudflare Worker bundle
+        run: |
+          sed -i 's/REPLACE_WITH_CLOUDFLARE_D1_DATABASE_ID/00000000-0000-4000-8000-000000000001/' workers/wrangler.toml
+          sed -i 's|https://YOUR_GITHUB_PAGES_DOMAIN|https://example.github.io|' workers/wrangler.toml
+          sed -i 's|example.com,prices.example.ir|prices.example.com|' workers/wrangler.toml
+          npx --yes wrangler@4 deploy --dry-run --config workers/wrangler.toml
       - run: npm test
       - run: python3 tests/schema_test.py
       - run: python3 tests/check_ui.py
