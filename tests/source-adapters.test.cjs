@@ -8,8 +8,8 @@ const assert=require('node:assert/strict');
   assert.equal(identifyAdapter('https://unknown.example/prices').id,'custom');
  });
  test('maps standard catalogue products to Trading Economics benchmark pages',()=>{
-  assert.equal(tradingEconomicsUrl('hot-rolled'),'https://tradingeconomics.com/commodity/hrc-steel');
-  assert.equal(tradingEconomicsUrl('iron-ore-fines'),'https://tradingeconomics.com/commodity/iron-ore');
+  assert.equal(tradingEconomicsUrl('hot-rolled'),'https://fa.tradingeconomics.com/commodity/hrc-steel');
+  assert.equal(tradingEconomicsUrl('iron-ore-fines'),'https://fa.tradingeconomics.com/commodity/iron-ore');
   assert.equal(tradingEconomicsUrl('not-mapped'),null);
  });
  test('extracts Product Offer price from JSON-LD',()=>{
