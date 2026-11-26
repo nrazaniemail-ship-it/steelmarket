@@ -34,7 +34,7 @@ function card(title,content,open=false){const d=document.createElement('details'
 function row(label,control,help){const w=document.createElement('div');w.className='fb-setting-row';const left=document.createElement('div');left.className='fb-setting-copy';const b=document.createElement('b');b.textContent=label;left.append(b);if(help){const p=document.createElement('small');p.textContent=help;left.append(p)}w.append(left,control);return w}
 function button(text,fn,cls=''){const b=document.createElement('button');b.type='button';b.className='btn '+cls;b.textContent=text;b.addEventListener('click',fn);return b}
 function select(options,value,onchange){const s=document.createElement('select');for(const [v,l] of options){const o=document.createElement('option');o.value=v;o.textContent=l;s.append(o)}s.value=value;s.addEventListener('change',()=>onchange(s.value));return s}
-let ui={theme:'dark',accent:'violet',density:'comfortable',pageBg:'#091522',iconColor:'',...(JSON.parse(localStorage.getItem('fooladban.ui.v1')||'{}'))};
+let savedUI={};try{savedUI=JSON.parse(localStorage.getItem('fooladban.ui.v1')||'{}')||{}}catch{}let ui={theme:'dark',accent:'violet',density:'comfortable',pageBg:'#091522',iconColor:'',...savedUI};
 function applyUI(){const mode=ui.theme==='system'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):ui.theme;document.documentElement.dataset.theme=mode;document.document.documentElement.style.setProperty('--gold',ui.accent==='violet'?'#9b8cff':ui.accent==='teal'?'#54c7bd':ui.accent==='blue'?'#73b9e8':ui.accent==='emerald'?'#58c69a':'#d9b66c');document.documentElement.style.setProperty('--bg',ui.pageBg||'#091522');document.documentElement.style.setProperty('--icon-color',ui.iconColor||'var(--gold)');document.body.dataset.density=ui.density;document.documentElement.style.colorScheme=mode;}
 function saveUI(){localStorage.setItem('fooladban.ui.v1',JSON.stringify(ui));applyUI();if(window.toast)window.toast('تنظیمات ظاهری ذخیره شد')}
 applyUI();
@@ -47,7 +47,8 @@ appearance.append(row('پوسته برنامه',theme,'حالت روشن، تی�
 const monitor=document.createElement('div');monitor.append(settings);
 const navOrder=['dashboard','products','sources','analysis','settings'];
 const navNames={dashboard:'داشبورد',products:'محصولات',sources:'مراجع قیمت',analysis:'تحلیل بازار',settings:'تنظیمات'};
-ui.navOrder=Array.isArray(ui.navOrder)?ui.navOrder:navOrder.slice();
+ui.navOrder=Array.isArray(ui.navOrder)&&ui.navOrder.length===navOrder.length&&navOrder.every(x=>ui.navOrder.includes(x))?ui.navOrder:navOrder.slice();
+ui.navOrder.forEach(k=>{const b=nav.querySelector('[data-layer-target="'+k+'"]');if(b)nav.append(b)});
 function renderLayerOrder(host){host.replaceChildren();ui.navOrder.forEach((id,i)=>{const item=document.createElement('div');item.className='fb-setting-row fb-layer-order';const title=document.createElement('b');title.textContent=(i+1).toLocaleString('fa-IR')+' · '+navNames[id];const actions=document.createElement('div');actions.className='fb-order-actions';const up=button('↑',()=>shift(id,-1));const down=button('↓',()=>shift(id,1));up.disabled=i===0;down.disabled=i===ui.navOrder.length-1;actions.append(up,down);item.append(title,actions);host.append(item)})}
 function shift(id,delta){const i=ui.navOrder.indexOf(id),j=Math.max(0,Math.min(ui.navOrder.length-1,i+delta));if(i===j)return;[ui.navOrder[i],ui.navOrder[j]]=[ui.navOrder[j],ui.navOrder[i]];const bs=[...nav.querySelectorAll('button')];ui.navOrder.forEach((k,index)=>{const b=bs.find(x=>x.dataset.layerTarget===k);if(b)nav.append(b)});saveUI();renderLayerOrder(orderHost)}
 const orderHost=document.createElement('div');renderLayerOrder(orderHost);
