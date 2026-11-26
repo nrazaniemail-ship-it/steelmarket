@@ -1,12 +1,17 @@
-import re, subprocess, tempfile
+import subprocess, tempfile
 from pathlib import Path
 html = Path("index.html").read_text(encoding="utf-8")
-scripts = re.findall(r"<script(?:\s[^>]*)?>([\s\S]*?)</script>", html, re.I)
-inline = [x for x in scripts if x.strip()]
-if not inline:
+start = html.find("<script>")
+if start < 0:
     raise SystemExit("No inline application script found")
-for source in inline:
-    with tempfile.NamedTemporaryFile("w", suffix=".js", encoding="utf-8") as f:
-        f.write(source); f.flush()
-        subprocess.run(["node", "--check", f.name], check=True)
+start += len("<script>")
+end = html.find("</script>", start)
+if end < 0:
+    raise SystemExit("Inline application script is not closed")
+source = html[start:end]
+if not source.strip():
+    raise SystemExit("Inline application script is empty")
+with tempfile.NamedTemporaryFile("w", suffix=".js", encoding="utf-8") as f:
+    f.write(source); f.flush()
+    subprocess.run(["node", "--check", f.name], check=True)
 print("PWA inline JavaScript syntax check passed")
