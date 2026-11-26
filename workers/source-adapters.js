@@ -14,17 +14,17 @@ const ADAPTERS = Object.freeze([
   { id:'ahanprice', hosts:['ahanprice.com','www.ahanprice.com'], method:'product-page-jsonld', confidence:'conditional', note:'جدول قیمت؛ تاریخ و واحد قیمت باید همراه مقدار استخراج شود.' },
   { id:'tradingeconomics', hosts:['tradingeconomics.com','www.tradingeconomics.com','fa.tradingeconomics.com'], method:'commodity-page', confidence:'conditional', note:'شاخص/CFD مرجع است؛ الزاماً قیمت فیزیکی قابل معامله یا قیمت تحویل‌شده نیست.' }
 ]);
-function hostOf(raw){try{return new URL(raw).hostname.toLowerCase().replace(/^www\\./,'')}catch{return ''}}
+function hostOf(raw){try{return new URL(raw).hostname.toLowerCase().replace(/^www\./,'')}catch{return ''}}
 export function identifyAdapter(raw){
  const host=hostOf(raw);
- return ADAPTERS.find(a=>a.hosts.some(h=>h.replace(/^www\\./,'')===host))||{id:'custom',method:'generic-structured-data',confidence:'unknown',note:'منبع سفارشی؛ فقط داده ساختاریافته یا الگوی تأییدشده پذیرفته می‌شود.'};
+ return ADAPTERS.find(a=>a.hosts.some(h=>h.replace(/^www\./,'')===host))||{id:'custom',method:'generic-structured-data',confidence:'unknown',note:'منبع سفارشی؛ فقط داده ساختاریافته یا الگوی تأییدشده پذیرفته می‌شود.'};
 }
 export function tradingEconomicsUrl(productKey){
  const slug=TE_SLUGS[String(productKey||'').toLowerCase()];
  return slug ? 'https://fa.tradingeconomics.com/commodity/'+slug : null;
 }
 function numericPrice(value){
- const s=String(value??'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٬,\\s]/g,'').replace('٫','.').replace(/[^0-9.+-]/g,'');
+ const s=String(value??'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٬,\s]/g,'').replace('٫','.').replace(/[^0-9.+-]/g,'');
  const n=Number(s);return Number.isFinite(n)&&n>0?n:null;
 }
 function walkOffers(value,out){
@@ -40,15 +40,15 @@ function walkOffers(value,out){
 }
 export function extractStructuredPrice(body, adapterId='custom'){
  const out=[];
- for(const m of String(body).matchAll(/<script[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)){
+ for(const m of String(body).matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)){
   try{walkOffers(JSON.parse(m[1].trim()),out)}catch{}
  }
  if(out.length)return out[0];
  const patterns=[
   /<meta[^>]*(?:itemprop=["']price["'][^>]*content=["']([^"']+)|content=["']([^"']+)["'][^>]*itemprop=["']price["'])/i,
   /<meta[^>]*(?:property=["']product:price:amount["']|property=["']og:price:amount["'])[^>]*content=["']([^"']+)["']/i,
-  /<[^>]+(?:data-test=["']instrument-price-last["']|id=["']last["'])[^>]*>([\\s\\S]*?)<\\//i,
-  /<[^>]+(?:class=["'][^"']*(?:price-value|last-price|instrument-price)[^"']*["'])[^>]*>([\\s\\S]*?)<\\//i
+  /<[^>]+(?:data-test=["']instrument-price-last["']|id=["']last["'])[^>]*>([\s\S]*?)<\//i,
+  /<[^>]+(?:class=["'][^"']*(?:price-value|last-price|instrument-price)[^"']*["'])[^>]*>([\s\S]*?)<\//i
  ];
  for(const re of patterns){const m=String(body).match(re);if(m){const n=numericPrice(m[1]||m[2]||'');if(n)return n}}
  if(adapterId==='tradingeconomics'){
