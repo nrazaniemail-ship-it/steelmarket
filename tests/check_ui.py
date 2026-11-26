@@ -1,7 +1,7 @@
 import re, subprocess, tempfile
 from pathlib import Path
 html = Path("index.html").read_text(encoding="utf-8")
-scripts = re.findall(r"<script(?:\\s[^>]*)?>([\\s\\S]*?)</script>", html, re.I)
+scripts = re.findall(r"<script(?:\s[^>]*)?>([\s\S]*?)</script>", html, re.I)
 inline = [x for x in scripts if x.strip()]
 if not inline:
     raise SystemExit("No inline application script found")
