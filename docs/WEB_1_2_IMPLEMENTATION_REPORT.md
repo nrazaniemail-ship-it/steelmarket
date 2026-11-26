@@ -27,11 +27,10 @@
 
 ## کیفیت و تست
 - ۱۵ تست Node برای منطق قیمت، استخراج و API؛ همه موفق.
+- تست SQLite برای ممنوعیت UPDATE/DELETE روی دفترکل؛ موفق.
 - بررسی نحوی Workerها، Service Worker و اسکریپت PWA؛ موفق.
 - Wrangler Worker bundle dry-run؛ موفق.
 - تست مرورگر Chromium؛ موفق: بازشدن داشبورد موبایل، افزودن/ویرایش محصول، نمایش فیلدهای parser و نبود خطای runtime.
-- تست SQLite برای ممنوعیت UPDATE/DELETE روی دفترکل.
-- بررسی syntax فایل‌های Worker، Service Worker و اسکریپت PWA.
 - نتیجه تست‌ها در [اجرای موفق GitHub Actions](https://github.com/nrazaniemail-ship-it/steelmarket/actions/runs/45891807799) ثبت شده است.
 
 ## انتشار
