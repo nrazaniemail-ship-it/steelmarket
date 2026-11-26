@@ -18,7 +18,7 @@
 1. Create a Cloudflare D1 database and run: wrangler d1 execute fooladban --file workers/schema.sql
 2. Set DB binding and database_id in workers/wrangler.toml.
 3. Set secrets API_TOKEN, USD_IRR, AED_IRR, EUR_IRR; set APP_ORIGIN and ALLOWED_HOSTS to exact trusted origins/hosts.
-4. Deploy from workers with Wrangler.
+4. Deploy the D1 API using workers/wrangler.toml. Deploy the optional PWA CORS proxy separately with workers/wrangler.proxy.toml; it has its own exact host allowlist and APP_ORIGIN.
 5. Register source URLs that the operator is authorized to access. The Worker does not bypass login, paywalls, CAPTCHA, or robots restrictions.
 
 ## Known boundaries
