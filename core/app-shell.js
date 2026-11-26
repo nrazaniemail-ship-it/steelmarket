@@ -10,7 +10,7 @@ const eventPanel=[...root.querySelectorAll('.panel')].find(x=>x.querySelector('#
 if(eventPanel)eventPanel.id='eventsPanel';
 const hero=root.querySelector('.hero'),stats=root.querySelector('.stats');
 const layout=root.querySelector('.layout');
-const market=$('marketPanel'),source=$('sourcePanel'),insights=$('marketInsights'),compare=$('comparisonPanel'),chart=$('chartPanel');
+const market=$('marketPanel'),source=$('sourcePanel'),addSourcePanel=$('mcAddSourcePanel'),insights=$('marketInsights'),compare=$('comparisonPanel'),chart=$('chartPanel');
 const add=$('addPanel'),catalog=$('mcProductCatalog'),picks=$('mcDashboardPicks'),registry=$('mcSourceRegistry'),settings=$('settingsMonitorPanel');
 const shell=document.createElement('div');shell.id='fooladbanLayerShell';
 const layers={};
@@ -24,7 +24,7 @@ const settingsLayer=layer('settings','تنظیمات','شخصی‌سازی مح�
 function move(parent,...nodes){nodes.filter(Boolean).forEach(n=>parent.append(n))}
 move(dashboard,hero,stats,market,picks,add);
 move(products,catalog);
-move(sources,source,registry);
+move(sources,source,registry,addSourcePanel);
 move(analysis,insights,compare,chart,eventPanel);
 
 const nav=document.createElement('nav');nav.className='fb-layer-nav';nav.id='fbLayerNav';nav.setAttribute('aria-label','ناوبری لایه‌های برنامه');
