@@ -10,4 +10,4 @@ database_id = "REPLACE_WITH_CLOUDFLARE_D1_DATABASE_ID"
 [vars]
 APP_ORIGIN = "https://YOUR_GITHUB_PAGES_DOMAIN"
 ALLOWED_HOSTS = "example.com,prices.example.ir"
-# Configure API_TOKEN, USD_IRR, AED_IRR and EUR_IRR as secrets/vars
+# Configure API_TOKEN and USD_IRR, AED_IRR, EUR_IRR, CNY_IRR, INR_IRR, TRY_IRR and GBP_IRR as secrets/vars
