@@ -54,7 +54,7 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id),fa=n=>Number(n||0).toLocaleString('fa-IR'),num=s=>{if(typeof s==='number')return s;let v=String(s??'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[,٬\s]/g,'').replace('٫','.').replace(/[^0-9.+-]/g,'');return Number(v)};
 const KEY='fooladban.v1',defaults={products:[],events:[],settings:{interval:5,auto:true,alerts:true,proxy:''}};
-let state=load(),timer=null,deferredInstall=null;
+let state=load(),timer=null,deferredInstall=null;\nwindow.__loadNativeState=()=>{try{const raw=window.FooladbanNative?.latest?.();if(raw){const nativeState=JSON.parse(raw);if(nativeState&&Array.isArray(nativeState.products)){state=nativeState;localStorage.setItem(KEY,JSON.stringify(state));render()}}}catch(e){}};
 function load(){try{return {...defaults,...JSON.parse(localStorage.getItem(KEY)||'{}'),settings:{...defaults.settings,...(JSON.parse(localStorage.getItem(KEY)||'{}').settings||{})}}}catch{return structuredClone(defaults)}}
 function save(){localStorage.setItem(KEY,JSON.stringify(state));try{if(window.FooladbanNative?.sync)window.FooladbanNative.sync(JSON.stringify(state))}catch(e){}renderStats()}
 function toast(s){$('toast').textContent=s;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),3000)}
