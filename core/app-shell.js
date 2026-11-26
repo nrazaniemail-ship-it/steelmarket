@@ -19,6 +19,7 @@ const dashboard=layer('dashboard','داشبورد فولادبان','نمای ف
 const products=layer('products','سبد محصولات','انتخاب، تعریف و مدیریت محصولات تحت پایش');
 const sources=layer('sources','مراجع قیمت','مدیریت مراجع رسمی، خصوصی و بین‌المللی');
 const analysis=layer('analysis','تحلیل بازار','مقایسه قیمت، روندها و رویدادهای بازار');
+const assistant=layer('assistant','دستیار معامله','مقایسه گزینه‌های خرید بر پایه قیمت تمام‌شده، حمل و سناریوهای فروش');
 const settingsLayer=layer('settings','تنظیمات','شخصی‌سازی محیط، مدیریت پایش و راهنمای استفاده');
 function move(parent,...nodes){nodes.filter(Boolean).forEach(n=>parent.append(n))}
 move(dashboard,hero,stats,market,picks,add);
@@ -27,7 +28,7 @@ move(sources,source,registry);
 move(analysis,insights,compare,chart,eventPanel);
 
 const nav=document.createElement('nav');nav.className='fb-layer-nav';nav.id='fbLayerNav';nav.setAttribute('aria-label','ناوبری لایه‌های برنامه');
-const navItems=[['dashboard','📊','داشبورد'],['products','🏗️','محصولات'],['sources','🌐','مراجع قیمت'],['analysis','📈','تحلیل'],['settings','⚙️','تنظیمات']];
+const navItems=[['dashboard','📊','داشبورد'],['products','🏗️','محصولات'],['sources','🌐','مراجع قیمت'],['analysis','📈','تحلیل'],['assistant','🧮','دستیار'],['settings','⚙️','تنظیمات']];
 for(const [id,ico,label] of navItems){const b=document.createElement('button');b.type='button';b.dataset.layerTarget=id;b.innerHTML='<span class="fb-nav-icon" aria-hidden="true">'+ico+'</span><span>'+label+'</span>';b.addEventListener('click',()=>activate(id));nav.append(b)}
 const top=document.querySelector('header.top');if(top)top.after(nav);root.insertBefore(shell,layout);if(layout)layout.remove();
 const oldNav=document.querySelector('.bottomnav');if(oldNav)oldNav.remove();
@@ -63,8 +64,8 @@ const bg=document.createElement('input');bg.type='color';bg.value=ui.pageBg||'#0
 const icons=select([['','هم‌رنگ پوسته'],['#28c6e8','فیروزه‌ای'],['#258fca','آبی'],['#ef476f','قرمز'],['#d9b66c','طلایی']],ui.iconColor,v=>{ui.iconColor=v;saveUI()});
 appearance.append(row('پوسته برنامه',theme,'حالت روشن، تیره یا هماهنگ با دستگاه'),row('رنگ پوسته',accent,'رنگ تأکیدی کارت‌ها و کنترل‌ها'),row('رنگ زمینه صفحه',bg,'رنگ پس‌زمینه اصلی برنامه'),row('رنگ آیکون‌ها',icons,'رنگ آیکون‌های ناوبری و ابزارها'),button('ذخیره تنظیمات ظاهری',saveUI,'primary'));
 const monitor=document.createElement('div');if(settings){settings.classList.remove('panel');settings.querySelector('.panel-head')?.remove()}monitor.append(settings);
-const navOrder=['dashboard','products','sources','analysis','settings'];
-const navNames={dashboard:'داشبورد',products:'محصولات',sources:'مراجع قیمت',analysis:'تحلیل بازار',settings:'تنظیمات'};
+const navOrder=['dashboard','products','sources','analysis','assistant','settings'];
+const navNames={dashboard:'داشبورد',products:'محصولات',sources:'مراجع قیمت',analysis:'تحلیل بازار',assistant:'دستیار معامله',settings:'تنظیمات'};
 ui.navOrder=Array.isArray(ui.navOrder)&&ui.navOrder.length===navOrder.length&&navOrder.every(x=>ui.navOrder.includes(x))?ui.navOrder:navOrder.slice();
 ui.navOrder.forEach(k=>{const b=nav.querySelector('[data-layer-target="'+k+'"]');if(b)nav.append(b)});
 function renderLayerOrder(host){host.replaceChildren();ui.navOrder.forEach((id,i)=>{const item=document.createElement('div');item.className='fb-setting-row fb-layer-order';const title=document.createElement('b');title.textContent=(i+1).toLocaleString('fa-IR')+' · '+navNames[id];const actions=document.createElement('div');actions.className='fb-order-actions';const up=button('↑',()=>shift(id,-1));const down=button('↓',()=>shift(id,1));up.disabled=i===0;down.disabled=i===ui.navOrder.length-1;actions.append(up,down);item.append(title,actions);host.append(item)})}
@@ -75,7 +76,7 @@ const template=document.createElement('div');template.className='fb-settings-sta
 const density=select([['comfortable','راحت و خوانا'],['compact','فشرده']],ui.density,v=>{ui.density=v;saveUI()});
 template.append(row('قالب نمایش',density,'فاصله‌گذاری کارت‌ها و تراکم اطلاعات'),button('ذخیره قالب فعلی',saveUI,'primary'));
 const guide=document.createElement('div');guide.className='fb-guide-list';
-const guideItems=[['داشبورد','نمای خلاصه شاخص‌ها و محصولات منتخب'],['محصولات','تعریف کالاها و انتخاب اقلام قابل پایش'],['مراجع قیمت','فعال‌سازی، حذف و اولویت‌بندی منابع در هر بازار'],['تحلیل بازار','مقایسه قیمت‌های هم‌مشخصات و مشاهده روند'],['تنظیمات','مدیریت ظاهر، اتصال داده و تنظیمات پایش']];
+const guideItems=[['داشبورد','نمای خلاصه شاخص‌ها و محصولات منتخب'],['محصولات','تعریف کالاها و انتخاب اقلام قابل پایش'],['مراجع قیمت','فعال‌سازی، حذف و اولویت‌بندی منابع در هر بازار'],['تحلیل بازار','مقایسه قیمت‌های هم‌مشخصات و مشاهده روند'],['دستیار معامله','مقایسه قیمت تمام‌شده، حمل و سناریوهای سودآوری'],['تنظیمات','مدیریت ظاهر، اتصال داده و تنظیمات پایش']];
 for(const [t,d] of guideItems){const x=document.createElement('div');x.className='fb-guide-item';const b=document.createElement('b');b.textContent=t;const p=document.createElement('p');p.textContent=d;x.append(b,p);guide.append(x)}
 const data=document.createElement('div');data.className='fb-settings-stack';data.append(button('دریافت خروجی قیمت‌ها (CSV)',()=>$('exportBtn')?.click()),button('بررسی همه قیمت‌ها',()=>$('checkNow')?.click()));
 const language=document.createElement('div');language.className='fb-settings-stack';language.append(row('زبان برنامه',select([['fa','فارسی'],['en','English']],ui.language||'fa',v=>{ui.language=v;saveUI();toastSetting('زبان انتخاب شد؛ ترجمه کامل رابط هنوز فعال نشده است.')}),'زبان پیش‌فرض محیط'));
