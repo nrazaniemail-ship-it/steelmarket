@@ -37,7 +37,6 @@ const assert = require('node:assert/strict');
   await page.locator('#layer-settings summary').filter({hasText:'قالب نمایش'}).click();
   await page.locator('#layer-settings summary').filter({hasText:'ترتیب لایه‌ها'}).click();
   assert.equal(await page.locator('.fb-layer-order').count(),5);
-  await page.locator('#layer-settings summary').filter({hasText:'ظاهر برنامه'}).click();
   await page.locator('#layer-settings .fb-setting-row select').first().selectOption('light');
   assert.equal(await page.locator('html').getAttribute('data-theme'),'light');
   assert.deepEqual(errors,[]);
