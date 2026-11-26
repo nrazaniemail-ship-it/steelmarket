@@ -19,7 +19,15 @@ const defaults=[
  {id:'north-america',name:'بازار آمریکای شمالی',market:'north-america',url:'',enabled:false,priority:1,type:'بازار منطقه‌ای'},
  {id:'turkey',name:'بازار ترکیه',market:'turkey',url:'',enabled:false,priority:1,type:'بازار منطقه‌ای'},
  {id:'india',name:'بازار هند',market:'india',url:'',enabled:false,priority:1,type:'بازار منطقه‌ای'},
- {id:'middle-east',name:'بازار خاورمیانه',market:'middle-east',url:'',enabled:false,priority:1,type:'بازار منطقه‌ای'}
+ {id:'middle-east',name:'بازار خاورمیانه',market:'middle-east',url:'',enabled:false,priority:1,type:'بازار منطقه‌ای'},
+ {id:'argus-global',name:'Argus Global Steel',market:'global',url:'https://www.argusmedia.com/en/solutions/products/argus-global-steel',enabled:false,priority:2,type:'شاخص تخصصی بین‌المللی · نیازمند دسترسی'},
+ {id:'mysteel',name:'Mysteel',market:'china',url:'https://www.mysteel.net/',enabled:false,priority:1,type:'شاخص تخصصی چین · نیازمند دسترسی'},
+ {id:'shfe',name:'بورس آتی شانگهای (SHFE)',market:'china',url:'https://www.shfe.com.cn/eng/reports/StatisticalData/',enabled:false,priority:2,type:'بورس رسمی چین'},
+ {id:'meps',name:'MEPS Europe Steel Index',market:'europe',url:'https://mepsinternational.com/gb/en/products/europe-steel-index',enabled:false,priority:1,type:'شاخص تخصصی اروپا · اشتراکی'},
+ {id:'cru',name:'CRU US Midwest HRC Index',market:'north-america',url:'https://www.crugroup.com/en/data/prices-and-indices/steel-prices/the-cru/',enabled:false,priority:1,type:'شاخص مرجع آمریکا · اشتراکی'},
+ {id:'cme-hrc',name:'CME HRC Steel Futures',market:'north-america',url:'https://www.cmegroup.com/markets/metals/ferrous/hrc-steel.html',enabled:false,priority:2,type:'بورس آتی آمریکا'},
+ {id:'steelorbis',name:'SteelOrbis Turkey',market:'turkey',url:'https://www.steelorbis.com/steel-market/turkey.htm',enabled:false,priority:1,type:'شاخص و قیمت‌های ترکیه'},
+ {id:'bigmint',name:'BigMint Steel Prices',market:'india',url:'https://www.bigmint.co/industries/foundry/price/steel',enabled:false,priority:1,type:'قیمت‌های هند'}
 ];
 const labels={iran:'ایران',global:'جهانی / شاخص‌های بین‌المللی',china:'چین',europe:'اروپا', 'north-america':'آمریکای شمالی',turkey:'ترکیه',india:'هند','middle-east':'خاورمیانه'};
 let cfg;
