@@ -151,6 +151,7 @@ libraryBox.append(libraryInfo,libraryStatus,button('بررسی فضای ذخیر
 const announcementBox=document.createElement('div');announcementBox.className='fb-settings-stack';
 const announcementToggle=select([['on','فعال'],['off','غیرفعال']],ui.announcements||'on',v=>{ui.announcements=v;saveUI()});
 announcementBox.append(row('نمایش اعلان‌های سامانه',announcementToggle,'اطلاعیه‌ها و پیام‌های نسخه‌های جدید'));
+const permissionButton=$('notifyBtn');if(permissionButton){permissionButton.classList.add('fb-notification-setting');announcementBox.append(row('مجوز اعلان دستگاه',permissionButton,'فعال‌سازی یا مدیریت اجازه ارسال اعلان در این مرورگر'))}
 const marketDataBox=document.createElement('div');marketDataBox.className='fb-settings-stack';
 const refreshInterval=select([['5','هر ۵ دقیقه'],['15','هر ۱۵ دقیقه'],['30','هر ۳۰ دقیقه'],['60','هر ساعت']],String(ui.refreshInterval||15),v=>{ui.refreshInterval=Number(v);saveUI()});
 const calcBasis=select([['latest','آخرین قیمت معتبر'],['median','میانه مراجع معتبر']],ui.calcBasis||'latest',v=>{ui.calcBasis=v;saveUI()});
