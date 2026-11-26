@@ -38,6 +38,22 @@ function select(options,value,onchange){const s=document.createElement('select')
 let savedUI={};try{savedUI=JSON.parse(localStorage.getItem('fooladban.ui.v1')||'{}')||{}}catch{}let ui={theme:'dark',accent:'teal',density:'comfortable',pageBg:'#071a2b',iconColor:'#28c6e8',...savedUI};
 function applyUI(){const mode=ui.theme==='system'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):ui.theme;document.documentElement.dataset.theme=mode;document.documentElement.style.setProperty('--gold',ui.accent==='teal'?'#28c6e8':ui.accent==='red'?'#ef476f':ui.accent==='blue'?'#258fca':ui.accent==='emerald'?'#58c69a':'#d9b66c');document.documentElement.style.setProperty('--bg',ui.pageBg||'#091522');document.documentElement.style.setProperty('--icon-color',ui.iconColor||'var(--gold)');document.body.dataset.density=ui.density;document.documentElement.style.colorScheme=mode;}
 function saveUI(){localStorage.setItem('fooladban.ui.v1',JSON.stringify(ui));applyUI()}
+
+function syncTopControls(){
+ const lang=$('fbTopLanguage'),theme=$('fbTopTheme');
+ if(lang){lang.textContent=(ui.language||'fa').toUpperCase();lang.setAttribute('aria-label','زبان انتخاب‌شده: '+(ui.language==='en'?'English':'فارسی'))}
+ if(theme){const light=document.documentElement.dataset.theme==='light';theme.textContent=light?'🌙':'☀️';theme.setAttribute('aria-label',light?'فعال‌سازی پوسته تیره':'فعال‌سازی پوسته روشن')}
+}
+$('fbTopTheme')?.addEventListener('click',()=>{ui.theme=document.documentElement.dataset.theme==='light'?'dark':'light';saveUI();syncTopControls()});
+$('fbTopLanguage')?.addEventListener('click',()=>{ui.language=ui.language==='en'?'fa':'en';saveUI();syncTopControls();toastSetting(ui.language==='en'?'English selected; full interface translation is not enabled yet.':'زبان فارسی انتخاب شد')});
+function updateTehranClock(){
+ const now=new Date(),zone='Asia/Tehran';
+ const clock=$('fbTehranClock'),persian=$('fbPersianDate'),gregorian=$('fbGregorianDate');
+ if(clock)clock.textContent=new Intl.DateTimeFormat('en-GB',{timeZone:zone,hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(now);
+ if(persian)persian.textContent=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{timeZone:zone,weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(now);
+ if(gregorian)gregorian.textContent=new Intl.DateTimeFormat('en-GB',{timeZone:zone,day:'numeric',month:'short',year:'numeric'}).format(now);
+}
+syncTopControls();updateTehranClock();setInterval(updateTehranClock,1000);
 applyUI();if(ui.theme==='system'&&window.matchMedia){matchMedia('(prefers-color-scheme: light)').addEventListener?.('change',applyUI)}
 const appearance=document.createElement('div');appearance.className='fb-settings-stack';
 const theme=select([['dark','تیره'],['light','روشن'],['system','پیروی از دستگاه']],ui.theme,v=>{ui.theme=v;saveUI()});
