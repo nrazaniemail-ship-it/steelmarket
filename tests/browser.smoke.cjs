@@ -11,8 +11,9 @@ const assert = require('node:assert/strict');
   await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
   assert.equal(await page.locator('#layer-dashboard').isVisible(),true);
   assert.equal(await page.locator('#fbLayerNav').isVisible(),true);
-  assert.equal(await page.locator('#fbLayerNav button').count(),5);
-  assert.equal(await page.locator('#layer-assistant').count(),0);
+  assert.equal(await page.locator('#fbLayerNav button').count(),6);
+  assert.equal(await page.locator('#fbDashboardRefresh').count(),1);
+  assert.equal(await page.locator('#layer-assistant').count(),1);
   if(await page.locator('#mcProductCatalog').count()===0){const diag=await page.evaluate(()=>({scripts:[...document.scripts].map(x=>x.src),ready:document.readyState,main:!!document.querySelector('main.wrap'),source:!!document.getElementById('sourcePanel'),shell:!!document.getElementById('fooladbanLayerShell')}));throw new Error('Product catalog missing. Page errors: '+errors.join('\\n')+' Diagnostics: '+JSON.stringify(diag))}
   await page.locator('#mcProductCatalog').waitFor({state:'attached'});
   assert.equal(await page.locator('#mcProductCatalog input[data-catalog-id]').count(),19);
@@ -71,10 +72,10 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('#layer-settings .fb-about-brand img').getAttribute('src'),'./icon.svg');
   await page.locator('#layer-settings summary').filter({hasText:'قالب نمایش'}).click();
   await page.locator('#layer-settings summary').filter({hasText:'ترتیب لایه‌ها'}).click();
-  assert.equal(await page.locator('.fb-layer-order').count(),5);
+  assert.equal(await page.locator('.fb-layer-order').count(),6);
   await page.locator('#layer-settings .fb-setting-row select').first().selectOption('light');
   assert.equal(await page.locator('html').getAttribute('data-theme'),'light');
   assert.deepEqual(errors,[]);
-  console.log('Browser smoke test passed: five-layer navigation, catalogs, settings, theme, layer order, product management and no runtime exceptions');
+  console.log('Browser smoke test passed: six-layer navigation, catalogs, settings, theme, layer order, product management and no runtime exceptions');
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exit(1)});
