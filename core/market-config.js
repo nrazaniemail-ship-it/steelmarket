@@ -91,7 +91,7 @@ function enableHoldReorder(container,selector,{items,persist,scope=()=>true}){
  };
  container.addEventListener('pointerdown',e=>{
   if(e.button!==0||e.target.closest('button,input,select,textarea,a,label,summary,[contenteditable="true"],#addPanel'))return;
-  const item=e.target.closest(selector);if(!item||!container.contains(item)||!scope(item))return;
+  const item=e.target.closest(selector);if(!item||!container.contains(item)||!scope(item,item))return;
   clearPending();const p={item,pointerId:e.pointerId,x:e.clientX,y:e.clientY};pending=p;
   p.timer=setTimeout(()=>{
    if(pending!==p)return;pending=null;
