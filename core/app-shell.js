@@ -19,7 +19,7 @@ const dashboard=layer('dashboard','داشبورد فولادبان','نمای ف
 const dashboardRefreshStyle=document.createElement('style');dashboardRefreshStyle.textContent='.fb-dashboard-refresh{display:block;width:100%;min-height:49px;margin:0 0 15px;padding:11px 16px;border:1px solid #d94b4b;border-radius:12px;background:#c93434;color:#fff;font-weight:800;font-size:1rem;letter-spacing:.01em;box-shadow:0 5px 16px #b92b2b30;transition:background .25s,border-color .25s,box-shadow .25s}.fb-dashboard-refresh:active{transform:scale(.995)}.fb-dashboard-refresh:disabled{cursor:wait;opacity:1}.fb-dashboard-refresh.is-loading{color:#142235;background:linear-gradient(110deg,#ff4d4d,#ffb84d,#fff04d,#42d879,#35c9ed,#6d78ff,#d45cff,#ff4d4d);background-size:300% 100%;border-color:transparent;animation:fb-dashboard-rainbow 1.3s linear infinite;box-shadow:0 5px 20px #8b5cff55}.fb-dashboard-refresh.is-done{background:#218b52;border-color:#35b96f;color:#fff;box-shadow:0 5px 16px #218b5240}@keyframes fb-dashboard-rainbow{to{background-position:300% 0}}';document.head.append(dashboardRefreshStyle);
 const products=layer('products','سبد محصولات','انتخاب، تعریف و مدیریت محصولات تحت پایش');
 const sources=layer('sources','مراجع قیمت','مدیریت مراجع رسمی، خصوصی و بین‌المللی');
-const analysis=layer('analysis','تحلیل بازار','مقایسه قیمت، روندها و رویدادهای بازار');
+const analysis=layer('analysis','تحلیل بازار','رتبه‌بندی سناریوهای خرید و فروش با روش TOPSIS');
 const assistant=layer('assistant','دستیار معامله','مقایسه گزینه‌های خرید بر پایه قیمت تمام‌شده، حمل و سناریوهای فروش');
 const settingsLayer=layer('settings','تنظیمات','شخصی‌سازی محیط، مدیریت پایش و راهنمای استفاده');
 function move(parent,...nodes){nodes.filter(Boolean).forEach(n=>parent.append(n))}
