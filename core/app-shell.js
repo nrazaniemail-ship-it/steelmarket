@@ -20,7 +20,7 @@ const dashboardRefreshStyle=document.createElement('style');dashboardRefreshStyl
 const products=layer('products','سبد محصولات','انتخاب، تعریف و مدیریت محصولات تحت پایش');
 const sources=layer('sources','مراجع قیمت','مدیریت مراجع رسمی، خصوصی و بین‌المللی');
 const analysis=layer('analysis','تحلیل بازار','رتبه‌بندی سناریوهای خرید و فروش با روش TOPSIS');
-const assistant=layer('assistant','دستیار معامله','مقایسه گزینه‌های خرید بر پایه قیمت تمام‌شده، حمل و سناریوهای فروش');
+const assistant=layer('assistant','دستیار معامله','برآورد رقم معامله، شرایط خرید و فروش و هزینه‌های حمل');
 const settingsLayer=layer('settings','تنظیمات','شخصی‌سازی محیط، مدیریت پایش و راهنمای استفاده');
 function move(parent,...nodes){nodes.filter(Boolean).forEach(n=>parent.append(n))}
 hero?.remove();stats?.remove();move(dashboard,picks,add);
