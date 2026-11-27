@@ -50,7 +50,7 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('#pSourceRegistry option').count(),2);
   assert.equal(await page.locator('#pSourceRegistry').inputValue(),'tradingeconomics');
   await page.locator('#pMarket').selectOption('ایران');
-  assert.equal(await page.locator('#pSourceRegistry').inputValue(),'ime');
+  assert.equal(await page.locator('#pSourceRegistry').inputValue(),'ahanonline');
   assert.equal(await page.locator('#mcQuickPrice').isVisible(),true);
   await page.locator('#pGrade').selectOption('A3');
   await page.locator('#pSize').selectOption('۱۶');
