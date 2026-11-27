@@ -5,7 +5,7 @@ const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'
 const host=$('layer-assistant');if(!host||$('fbTradeAssistant'))return;
 const read=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return {products:[],settings:{}}}};
 let data=read(),all=Array.isArray(data.products)?data.products:[],rates=data.settings?.fxRates||{};
-let freightRate={rate:2045,currency:'تومان',unit:'تن‌ـ‌کیلومتر',effective:'۱۴۰۵/۰۸/۲۸',source:'شاخص اعلامی سازمان راهداری و حمل‌ونقل جاده‌ای',url:'https://iranwire.com/fa/news-1/160449-%D8%A7%D9%81%D8%B2%D8%A7%DB%8C%D8%B4-%DA%A9%D8%B1%D8%A7%DB%8C%D9%87-%D8%AD%D9%85%D9%84-%D8%AC%D8%A7%D8%AF%D9%87%D8%A7%DB%8C-%D9%87%D9%85%D8%B2%D9%85%D8%A7%D9%86-%D8%A8%D8%A7-%D9%85%D8%AD%D8%A7%D8%B5%D8%B1%D9%87-%D8%AF%D8%B1%DB%8C%D8%A7%DB%8C%DB%8C-%D9%88-%D8%B2%D9%85%DB%8C%D9%86%DB%8C/'};try{freightRate={...freightRate,...(JSON.parse(localStorage.getItem(RATE_KEY)||'{}')||{})}}catch{}
+let freightRate={rate:2045,currency:'تومان',unit:'تن‌ـ‌کیلومتر',effective:'۱۴۰۵/۰۸/۲۸',source:'شاخص اعلامی سازمان راهداری و حمل‌ونقل جاده‌ای',url:'https://www.24onlinenews.ir/%D8%A8%D8%AE%D8%B4-%D8%A7%D9%82%D8%AA%D8%B5%D8%A7%D8%AF-4/66198-%D8%AC%D8%B2%D8%A6%DB%8C%D8%A7%D8%AA-%D8%A7%D9%81%D8%B2%D8%A7%DB%8C%D8%B4-%D9%86%D8%B1%D8%AE-%D8%AE%D8%AF%D9%85%D8%A7%D8%AA-%D8%AD%D9%85%D9%84-%D9%88%D9%86%D9%82%D9%84-%D8%AC%D8%A7%D8%AF%D9%87-%D8%A7%DB%8C-%D8%A7%D8%B9%D9%84%D8%A7%D9%85-%D8%B4%D8%AF'};try{freightRate={...freightRate,...(JSON.parse(localStorage.getItem(RATE_KEY)||'{}')||{})}}catch{}
 let freightHistory=[];try{freightHistory=JSON.parse(localStorage.getItem(FREIGHT_KEY)||'{}').history||[]}catch{}
 const style=document.createElement('style');
 style.textContent='\
