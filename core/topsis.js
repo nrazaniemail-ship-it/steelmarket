@@ -1,6 +1,5 @@
 (()=>{'use strict';
 const panel=document.getElementById('fbTradeComparison');if(!panel)return;
-const assistantPanel=document.getElementById('fbTradeAssistant');const productSelection=panel.querySelector('#taProducts')?.closest('.ta-section');if(assistantPanel&&productSelection){const heading=productSelection.querySelector('h3');if(heading)heading.textContent='انتخاب محصولات برای برآورد معامله';assistantPanel.insertBefore(productSelection,assistantPanel.children[2]||null)}
 const STORE='fooladban.topsis.scenarios.v1';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const number=v=>{const raw=String(v??'').trim();if(!raw)return null;const x=Number(raw.replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٬,\s]/g,'').replace('٫','.'));return Number.isFinite(x)?x:null};
