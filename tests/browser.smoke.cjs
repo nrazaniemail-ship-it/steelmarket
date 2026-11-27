@@ -63,7 +63,6 @@ const assert = require('node:assert/strict');
   await page.locator('#mcDashboardPicks [data-toggle-watch]').first().click();
   await page.locator('#mcDashboardPicks .mc-dashboard-record').first().waitFor();
   assert.equal(await page.locator('#mcQuickPrice').innerText().then(t=>t.includes('آخرین قیمت ثبت‌شده')),true);
-  await page.locator('#mcDashboardPicks .mc-dashboard-card-head').first().click();
   await page.locator('#mcDashboardPicks [data-watch-action="edit"]').first().click();
   await page.locator('#pGrade').selectOption('A4');
   await page.locator('#productForm button[type=submit]').click();
