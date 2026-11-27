@@ -246,5 +246,6 @@ if(sourcePanel){sourcePanel.after(catalog,picks,registry)}else if(main)main.prep
 const detailBack=el('button','mc-tools','بازگشت به کارت محصول');detailBack.type='button';detailBack.addEventListener('click',()=>{const panel=document.getElementById('addPanel');if(panel)panel.style.display='none';});detailBox.prepend(detailBack);
 const detailPanel=document.getElementById('addPanel');if(detailPanel)detailPanel.style.display='none';
 renderProducts();renderDashboardPicks();renderSources();renderSourceSelect();syncProductSelection();
-window.FooladbanMarketConfig={get selectedProducts(){return [...cfg.selected]},get sources(){return cfg.sources.map(x=>({...x}))},refresh:()=>{renderProducts();renderDashboardPicks();renderSources();renderSourceSelect()},updateQuickPrice:renderQuickPrice};
+function collapseCatalogForm(cardId){const panel=document.getElementById('addPanel'),form=document.getElementById('productForm'),card=[...picksList.querySelectorAll('.mc-dashboard-card')].find(x=>x.dataset.catalogId===String(cardId));if(panel)panel.style.display='none';if(card){card.classList.remove('is-watch-open');const watch=card.querySelector('.mc-dashboard-watch');if(watch)watch.hidden=true}if(form)delete form.dataset.catalogFlow;return !!card}
+window.FooladbanMarketConfig={collapseCatalogForm,get selectedProducts(){return [...cfg.selected]},get sources(){return cfg.sources.map(x=>({...x}))},refresh:()=>{renderProducts();renderDashboardPicks();renderSources();renderSourceSelect()},updateQuickPrice:renderQuickPrice};
 })();
