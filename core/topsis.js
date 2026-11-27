@@ -16,12 +16,12 @@ const $=id=>document.getElementById(id);
 const criteria=[
 {key:'price',name:'قیمت معامله هر تن (تومان)',weight:5,type:'cost',unit:'تومان/تن'},
 {key:'freight',name:'هزینه حمل هر تن (تومان)',weight:4,type:'cost',unit:'تومان/تن'},
-{key:'risk',name:'ریسک معامله (۱ تا ۵)',weight:5,type:'cost',unit:'امتیاز'},
+{key:'risk',name:'ریسک معامله (۱=کم، ۵=زیاد)',weight:5,type:'cost',unit:'امتیاز'},
 {key:'paymentCost',name:'هزینه مالی و پرداخت هر تن (تومان)',weight:4,type:'cost',unit:'تومان/تن'},
-{key:'paymentScore',name:'مطلوبیت سازوکار پرداخت (۱ تا ۵)',weight:3,type:'benefit',unit:'امتیاز'},
+{key:'paymentScore',name:'مطلوبیت سازوکار پرداخت (۱=نامطلوب، ۵=مطلوب)',weight:3,type:'benefit',unit:'امتیاز'},
 {key:'other',name:'سایر هزینه‌ها هر تن (تومان)',weight:2,type:'cost',unit:'تومان/تن'},
 {key:'delivery',name:'زمان تحویل (روز)',weight:2,type:'cost',unit:'روز'},
-{key:'quality',name:'انطباق فنی و کیفیت (۱ تا ۵)',weight:3,type:'benefit',unit:'امتیاز'}
+{key:'quality',name:'انطباق فنی و کیفیت (۱=ضعیف، ۵=عالی)',weight:3,type:'benefit',unit:'امتیاز'}
 ];
 let alternatives=[],altCounter=0,customCounter=0;
 const defaults=()=>({price:'',freight:'',risk:'3',paymentCost:'',paymentScore:'3',other:'0',delivery:'',quality:'3'});
