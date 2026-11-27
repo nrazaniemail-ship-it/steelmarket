@@ -87,7 +87,7 @@ function enableHoldReorder(container,selector,{items,persist,scope=()=>true}){
  const finish=(e)=>{
   if(!drag||e&&e.pointerId!==undefined&&drag.pointerId!==e.pointerId)return;
   const d=drag;drag=null;d.item.classList.remove('is-floating');d.item.style.cssText=d.originalStyle;
-  d.placeholder.replaceWith(d.item);suppressClick=true;setTimeout(()=>suppressClick=false,350);persist();
+  d.placeholder.replaceWith(d.item);suppressClick=true;setTimeout(()=>suppressClick=false,350);persist(d.item);
  };
  container.addEventListener('pointerdown',e=>{
   if(e.button!==0||e.target.closest('button,input,select,textarea,a,label,summary,[contenteditable="true"],#addPanel'))return;
@@ -109,7 +109,7 @@ function enableHoldReorder(container,selector,{items,persist,scope=()=>true}){
   if(pending&&pending.pointerId===e.pointerId&&Math.hypot(e.clientX-pending.x,e.clientY-pending.y)>9)clearPending();
   if(!drag||drag.pointerId!==e.pointerId)return;
   e.preventDefault();drag.item.style.left=(e.clientX-drag.offsetX)+'px';drag.item.style.top=(e.clientY-drag.offsetY)+'px';
-  const candidates=items().filter(x=>x!==drag.item&&scope(x));
+  const candidates=items().filter(x=>x!==drag.item&&scope(x,drag.item));
   let nearest=null,best=Infinity;
   for(const candidate of candidates){const r=candidate.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,d=Math.hypot(e.clientX-cx,e.clientY-cy);if(d<best){best=d;nearest={candidate,r,cx,cy}}}
   if(!nearest){container.insertBefore(drag.placeholder,container.querySelector(selector));return}
@@ -131,7 +131,7 @@ const sourceList=el('div','');registry.append(sourceList);
 const form=el('div','mc-form');const name=el('input');name.placeholder='نام مرجع جدید';const market=el('select');for(const [v,t] of Object.entries(labels)){const o=el('option','',t);o.value=v;market.append(o)}const url=el('input');url.type='url';url.placeholder='https://example.com';url.className='wide';const add=el('button','primary wide','＋ افزودن مرجع');add.type='button';add.onclick=()=>{const n=name.value.trim(),u=url.value.trim();if(!n){name.focus();return}if(u&&!/^https:\/\//i.test(u)){url.setCustomValidity('نشانی باید HTTPS باشد');url.reportValidity();return}url.setCustomValidity('');const m=market.value;const rank=cfg.sources.filter(x=>x.market===m).length+1;cfg.sources.push({id:'custom-'+(crypto.randomUUID?crypto.randomUUID():Date.now()),name:n,market:m,url:u,enabled:true,priority:rank,type:'مرجع سفارشی'});save();name.value='';url.value='';renderSources();renderSourceSelect()};
 form.append(name,market,url,add);const addSourcePanel=el('section','market-config-panel');addSourcePanel.id='mcAddSourcePanel';const addSourceHead=el('div','panel-head');addSourceHead.append(el('h2','','افزودن مرجع قیمت'));addSourcePanel.append(addSourceHead,el('p','mc-muted','مرجع جدید را با نام، بازار و نشانی وب ثبت کنید.'),form);registry.after(addSourcePanel);
 function renderSources(){sourceList.replaceChildren();const markets=[...new Set(cfg.sources.map(x=>x.market))];for(const m of markets){const title=el('h3','',labels[m]||m);title.style.cssText='font-size:.8rem;color:var(--gold);margin:12px 0 5px';sourceList.append(title);const group=cfg.sources.filter(x=>x.market===m).sort((a,b)=>a.priority-b.priority);for(const item of group){const row=el('div','mc-source');row.dataset.market=item.market;row.dataset.sourceId=item.id;const active=el('input');active.type='checkbox';active.checked=item.enabled;active.title='فعال‌سازی مرجع';active.addEventListener('change',()=>{item.enabled=active.checked;save();renderSourceSelect()});const info=el('div','mc-source-info');const title=el('div','mc-source-title');title.append(el('b','',item.name));info.append(title,el('small','',(item.type||'مرجع')+' · اولویت '+item.priority+(item.url?' · '+item.url:' · آدرس هنوز ثبت نشده')));const actions=el('div','mc-source-actions');const edit=el('button','','✎');edit.type='button';edit.title='ویرایش مشخصات مرجع';edit.setAttribute('aria-label','ویرایش '+item.name);edit.onclick=()=>editSource(item);const del=el('button','','🗑️');del.type='button';del.title='حذف مرجع';del.setAttribute('aria-label','حذف مرجع '+item.name);del.onclick=()=>{if(!window.confirm('مرجع «'+item.name+'» حذف شود؟'))return;cfg.sources=cfg.sources.filter(x=>x.id!==item.id);normalize(m);save();renderSources();renderSourceSelect()};actions.append(edit,del);row.append(active,info,actions);sourceList.append(row)}}}
-enableHoldReorder(sourceList,'.mc-source',{items:()=>[...sourceList.querySelectorAll('.mc-source')],scope:item=>item.dataset.market===dragMarket,persist:()=>{if(dragMarket)saveSourceOrder(dragMarket)}});
+enableHoldReorder(sourceList,'.mc-source',{items:()=>[...sourceList.querySelectorAll('.mc-source')],scope:(item,dragged)=>item.dataset.market===dragged.dataset.market,persist:item=>saveSourceOrder(item.dataset.market)});
 function editSource(item){
  const nextName=window.prompt('نام مرجع قیمت:',item.name);if(nextName===null)return;
  const cleanName=nextName.trim();if(!cleanName){window.alert('نام مرجع نمی‌تواند خالی باشد.');return}
@@ -141,10 +141,6 @@ function editSource(item){
  item.name=cleanName;item.url=cleanUrl;item.type=nextType.trim()||'مرجع قیمت';save();renderSources();renderSourceSelect();
 }
 function normalize(m){cfg.sources.filter(x=>x.market===m).sort((a,b)=>a.priority-b.priority).forEach((x,i)=>x.priority=i+1)}
-let dragMarket=null;
-sourceList.addEventListener('pointerdown',e=>{const row=e.target.closest('.mc-source');if(row)dragMarket=row.dataset.market},true);
-sourceList.addEventListener('pointerup',()=>{setTimeout(()=>{dragMarket=null},0)},true);
-sourceList.addEventListener('pointercancel',()=>{dragMarket=null},true);
 function saveSourceOrder(m){const ids=[...sourceList.querySelectorAll('.mc-source')].filter(x=>x.dataset.market===m).map(x=>x.dataset.sourceId);ids.forEach((id,i)=>{const source=cfg.sources.find(x=>x.id===id);if(source)source.priority=i+1});normalize(m);save();renderSources();renderSourceSelect()}
 const select=el('select');select.id='pSourceRegistry';select.required=true;select.innerHTML='<option value="">انتخاب مرجع قیمت</option>';
 const productMap=new Map(products.flatMap(([g,items])=>items.map(([id,n])=>[id,{id,name:n,group:g}])));
