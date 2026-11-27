@@ -2,7 +2,7 @@
 const panel=document.getElementById('fbTradeComparison');if(!panel)return;
 const STORE='fooladban.topsis.scenarios.v1';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const number=v=>{const x=Number(String(v??'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٬,\s]/g,'').replace('٫','.'));return Number.isFinite(x)?x:null};
+const number=v=>{const raw=String(v??'').trim();if(!raw)return null;const x=Number(raw.replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٬,\s]/g,'').replace('٫','.'));return Number.isFinite(x)?x:null};
 const fmt=x=>Number(x||0).toLocaleString('fa-IR',{maximumFractionDigits:2});
 panel.innerHTML=`
 <h2>رتبه‌بندی و تصمیم‌گیری</h2>
