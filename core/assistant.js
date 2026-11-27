@@ -1,4 +1,4 @@
-(()=>{'use strict';
+(()=>{'use strict';try{
 const $=id=>document.getElementById(id),KEY='fooladban.v1',RATE_KEY='fooladban.freight.reference-rate.v1',FREIGHT_KEY='fooladban.freight.v1',HISTORY_KEY='fooladban.assistant.history.v1';
 const fmt=n=>Number(n||0).toLocaleString('fa-IR',{maximumFractionDigits:0}),num=v=>{if(typeof v==='number')return v;return Number(String(v??'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٬,\s]/g,'').replace('٫','.').replace(/[^0-9.+-]/g,''))};
 const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -63,4 +63,4 @@ $('taRoute').addEventListener('click',route);$('taSaveFreight').addEventListener
 $('taSave').addEventListener('click',()=>{const snap=calculate();if(!snap)return;let h=[];try{h=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]')}catch{}h.unshift(snap);localStorage.setItem(HISTORY_KEY,JSON.stringify(h.slice(0,30)));$('taStatus').textContent='سناریو در همین دستگاه ذخیره شد.'});
 $('taReset').addEventListener('click',()=>{$('taResults').innerHTML='<div class="ta-empty">نتایج پاک شد. اطلاعات ورودی حفظ شده‌اند.</div>';window.__fooladbanLastAssistantScenario=null;$('taStatus').textContent='برای محاسبه دوباره، دکمه تحلیل را بزنید.'});
 renderProducts();renderRateMode();renderPurchaseSource();renderFreightHistory();refreshCostSummary();$('taFreightStatus').textContent='آخرین نرخ مرجع ذخیره‌شده: '+fmt(freightRate.rate)+' تومان به‌ازای تن‌ـ‌کیلومتر · تاریخ مرجع: '+(freightRate.effective||'نامشخص')+'؛ دریافت زنده از سامانه بارنامه فعال نیست.';window.addEventListener('fooladban:product-updated',()=>{const old=selectedIds();data=read();all=Array.isArray(data.products)?data.products:[];rates=data.settings?.fxRates||{};renderProducts();old.forEach(id=>{const cb=[...$('taProducts').querySelectorAll('input')].find(x=>x.value===id);if(cb)cb.checked=true});renderPurchaseSource();refreshCostSummary()});
-})();
+}catch(error){console.error('Fooladban assistant initialization failed',error);const host=document.getElementById('layer-assistant');if(host){const box=document.createElement('div');box.id='fbTradeAssistantError';box.className='ta-empty';box.textContent='خطا در بارگذاری فرم دستیار: '+(error?.message||String(error));host.append(box)}}})();
