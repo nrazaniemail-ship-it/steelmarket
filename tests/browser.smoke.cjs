@@ -7,7 +7,7 @@ const assert = require('node:assert/strict');
   const errors=[];page.on('pageerror',e=>errors.push(e.stack||e.message));
   async function longPressMove(source,target){
    const a=await source.boundingBox(),b=await target.boundingBox();assert.ok(a&&b,'drag cards must be visible');
-   const sx=a.x+a.width/2,sy=a.y+a.height/2,tx=b.x+b.width/2,ty=b.y+2;
+   const sx=a.x+a.width-3,sy=a.y+a.height/2,tx=b.x+b.width/2,ty=b.y+b.height/2;
    await page.mouse.move(sx,sy);await page.mouse.down();await page.waitForTimeout(550);await page.mouse.move(tx,ty,{steps:5});await page.mouse.up();await page.waitForTimeout(100);
   }
   await page.route('https://example.invalid/**',route=>route.abort());
