@@ -155,37 +155,43 @@ export function extractPivanSheetPrice(body,source={}){
  const maker=sourceMaker(source),delivery=sourceText(source.delivery||''),spec=sourceText(source.specification||'');
  const matches=[];
  for(const row of tableRows(html)){
-  const cells=row.cells, title=cells[0]||'', joined=cells.join(' | ');
+  const td=[...String(row.html||'').matchAll(/<td\\b([^>]*)>([\\s\\S]*?)<\\/td>/gi)].map(m=>{
+   const cls=(m[1].match(/class=["']([^"']*)["']/i)||[])[1]||'';
+   return {text:sourceText(m[2]),classes:cls.split(/\\s+/)};
+  });
+  if(td.length<6)continue;
+  const title=td[0].text;
   if(!title.includes('ورق سیاه')&&!title.includes('ورق گرم'))continue;
-  const titleParts=title.split(/\s*[-–—]\s*/);
+  const titleParts=title.split(/\\s*[-–—]\\s*/);
   const t=titleParts.length>1?Number(titleParts[1].replace(',','.').replace('٫','.')):null;
   if(!(Number.isFinite(t)&&Math.abs(t-thickness)<0.001))continue;
-  const size=title.match(/(\d+(?:[.,]\d+)?)\s*[x×*]\s*(\d+(?:[.,]\d+)?)/);
+  const size=title.match(/(\\d+(?:[.,]\\d+)?)\\s*[x×*]\\s*(\\d+(?:[.,]\\d+)?)/);
   if(width){
    if(!size)continue;
    const dims=[Number(size[1].replace(',','.')),Number(size[2].replace(',','.'))];
-   const rowWidth=Math.round(Math.min(...dims)*10);
-   if(rowWidth!==Number(width))continue;
+   if(Math.round(Math.min(...dims)*10)!==Number(width))continue;
   }
-  const brand=cells[1]||'';
+  const brand=td.find(x=>x.classes.includes('meta-brand-name'))?.text||td[2]?.text||'';
   if(maker&&!(brand.includes(maker)||title.includes(maker)||(maker.includes('فولاد مبارکه')&&brand.includes('مبارکه'))))continue;
-  const mode=cells[2]||'';
+  const mode=td.find(x=>x.classes.includes('meta-form-name'))?.text||td[3]?.text||'';
   if(spec.includes('برش')&&!mode.includes('برش'))continue;
   if(spec.includes('رول')&&!mode.includes('رول'))continue;
   if(spec.includes('فابریک')&&!mode.includes('فابریک'))continue;
-  const place=cells[3]||'';
+  const place=td.find(x=>x.classes.includes('meta-delivery'))?.text||td[4]?.text||'';
   if(delivery.includes('تهران')&&!place.includes('تهران'))continue;
   if(delivery.includes('اصفهان')&&!place.includes('اصفهان'))continue;
   if(delivery.includes('کارخانه')&&!place.includes('کارخانه'))continue;
   if((delivery.includes('انبار')||delivery.includes('بنگاه'))&&!/(انبار|بنگاه)/.test(place))continue;
-  if(!/کیلوگرم|کیلو\b/.test(cells[4]||''))continue;
-  const priceCell=cells.at(-1)||'';
+  const unit=td.find(x=>/کیلوگرم|کیلو\\b/.test(x.text))?.text||'';
+  if(!unit)continue;
+  const priceCell=td.find(x=>x.classes.includes('meta-price'))?.text||td.at(-2)?.text||'';
   if(/تماس|ناموجود|استعلام/.test(priceCell))continue;
   const prices=[...priceCell.matchAll(/[0-9][0-9,٬.٫]*/g)].map(m=>numericPrice(m[0])).filter(n=>n>=10000&&n<=10000000);
   const price=prices.at(-1);
   if(!price)continue;
-  const before=sourceText(html.slice(Math.max(0,row.index-5000),row.index));
-  const date=sourceDateNear(before.slice(-1800))||sourceDateNear(html.slice(row.index,row.index+1200));
+  const before=html.slice(Math.max(0,row.index-8000),row.index);
+  const dateTime=[...before.matchAll(/<time[^>]*datetime=["'](\\d{4}-\\d{2}-\\d{2})/gi)].at(-1)?.[1]||null;
+  const date=dateTime||sourceDateNear(sourceText(before.slice(-3000)))||sourceDateNear(html.slice(row.index,row.index+1200));
   matches.push({price,sourceDate:date});
  }
  if(!matches.length)return null;
