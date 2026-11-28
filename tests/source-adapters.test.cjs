@@ -14,6 +14,10 @@ test('source-specific steel price adapters',async t=>{
   assert.equal(tradingEconomicsUrl('iron-ore-fines'),'https://fa.tradingeconomics.com/commodity/iron-ore');
   assert.equal(tradingEconomicsUrl('not-mapped'),null);
  });
+ await t.test('extracts Trading Economics visible Actual benchmark price',()=>{
+  const html='<html><body><h1>HRC Steel</h1><div>Actual</div><div>1,429.00</div></body></html>';
+  assert.equal(extractStructuredPrice(html,'tradingeconomics'),1429);
+ });
  await t.test('extracts Product Offer price from JSON-LD',()=>{
   const html='<script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"Rebar","offers":{"@type":"Offer","price":"115450","priceCurrency":"IRR"}}</script>';
   assert.equal(extractStructuredPrice(html,'ahanonline'),115450);
