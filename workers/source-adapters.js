@@ -204,7 +204,7 @@ export function extractPivanSheetPrice(body,source={}){
 export function extractIromartTelegramPrice(body,source={}){
  const html=String(body||'');
  const messages=[...html.matchAll(/<div[^>]*class=["'][^"']*tgme_widget_message_text[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi)].map(m=>markazText(m[1]));
- if(!messages.length||String(source.product_key||'')!=='hot-rolled')return null;
+ if(!messages.length||!['hot-rolled','black-sheet'].includes(String(source.product_key||'')))return null;
  const spec=markazText([source.product_name,source.specification].filter(Boolean).join(' '));
  const thickness=spec.match(/(\d+(?:[.,٫]\d+)?)\s*(?:میلی?متر|میل)/);
  if(!thickness)return null;
@@ -248,12 +248,12 @@ export function extractImeTradePrice(payload, source={}){
  if(rows&&typeof rows==='object'&&!Array.isArray(rows)&&typeof rows.d==='string'){try{rows=JSON.parse(rows.d)}catch{return null}}
  if(!Array.isArray(rows))return null;
  const key=String(source.product_key||'').toLowerCase();
- const wanted=key==='hot-rolled'?'ورق گرم':key==='cold-rolled'?'ورق سرد':String(source.product_name||'').split(/[|–—-]/)[0].trim();
+ const wanted=['hot-rolled','black-sheet'].includes(key)?'ورق گرم':key==='cold-rolled'?'ورق سرد':String(source.product_name||'').split(/[|–—-]/)[0].trim();
  if(!wanted)return null;
  const needle=imeText(wanted);
  let matched=rows.filter(row=>imeText(row.GoodsName).includes(needle)&&Number(row.Price)>0&&Number(row.Quantity)>0);
  const productLabel=imeText(source.product_name||'');
- const producerHint=productLabel.replace(needle,'').replace(/[|–—-]/g,' ').trim();
+ const producerHint=key==='black-sheet'&&productLabel==='ورق سیاه'?'':productLabel.replace(needle,'').replace(/[|–—-]/g,' ').trim();
  if(producerHint.length>2){const byProducer=matched.filter(row=>imeText(row.ProducerName).includes(producerHint));if(byProducer.length)matched=byProducer}
  if(!matched.length)return null;
  const latest=matched.map(row=>String(row.date||'')).sort().at(-1);
@@ -279,7 +279,7 @@ export function extractMarkazAhanTelegramPrice(body,source={}){
  const html=String(body||'');
  const messages=[...html.matchAll(/<div[^>]*class=["'][^"']*tgme_widget_message_text[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi)].map(m=>markazText(m[1]));
  if(!messages.length)return null;
- if(String(source.product_key||'')!=='hot-rolled')return null;
+ if(!['hot-rolled','black-sheet'].includes(String(source.product_key||'')))return null;
  const spec=markazText([source.product_name,source.specification].filter(Boolean).join(' '));
  const thickness=spec.match(/(\d+(?:[.,٫]\d+)?)\s*(?:میلی?متر|میل)/);
  if(!thickness)return null;
