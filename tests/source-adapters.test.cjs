@@ -41,6 +41,24 @@ test('source-specific steel price adapters',async t=>{
   assert.equal(extractImeTradePrice({d:'[]'},{product_key:'hot-rolled',product_name:'ورق گرم'}),null);
  });
 
+ await t.test('extracts exact Ahanonline hot-rolled sheet table row and update date',async()=>{
+  const {extractIranianSheetTablePrice}=await import('../workers/source-adapters.js');
+  const html='<h3>ورق سیاه 2 میل</h3><table><tr><td>2500*1250</td><td>فولاد مبارکه</td><td>برش خورده</td><td>بنگاه تهران</td><td>176,290</td></tr></table><p>آخرین بروز رسانی : 1405/9/7</p>';
+  const result=extractIranianSheetTablePrice(html,{product_key:'hot-rolled',product_name:'ورق گرم',specification:'2 میلیمتر عرض 1.25 فولاد مبارکه برش خورده',delivery:'بنگاه تهران'},'ahanonline');
+  assert.deepEqual(result,{price:176290,sourceDate:'1405/9/7'});
+ });
+ await t.test('extracts Ahanprice sheet row only when dimensions and form are exact',async()=>{
+  const {extractIranianSheetTablePrice}=await import('../workers/source-adapters.js');
+  const html='<table><tr><td>2</td><td>قیمت ورق سیاه 2 میل 2500*1250 مبارکه</td><td>50</td><td>۱۶۹٬۰۹۰</td><td>۱٬۰۰۰</td><td>1405/09/04</td></tr><tr><td>2</td><td>قیمت ورق سیاه 2 میل عرض 1250 رول مبارکه</td><td>18000</td><td>۱۶۶٬۳۶۳</td><td>۱٬۰۰۰</td><td>1405/09/04</td></tr></table>';
+  const result=extractIranianSheetTablePrice(html,{product_key:'hot-rolled',product_name:'ورق گرم',specification:'2 میلیمتر عرض 1.25 فولاد مبارکه شیت 2500*1250'},'ahanprice');
+  assert.deepEqual(result,{price:169090,sourceDate:'1405/09/04'});
+ });
+ await t.test('rejects source tables that omit requested width or have multiple matching prices',async()=>{
+  const {extractIranianSheetTablePrice}=await import('../workers/source-adapters.js');
+  const html='<h3>ورق سیاه ضخامت 2</h3><table><tr><td>فولاد مبارکه</td><td>برش خورده</td><td>انبار تهران</td><td>کیلوگرم</td><td>185,000 168,200</td></tr><tr><td>فولاد مبارکه</td><td>برش خورده</td><td>انبار تهران</td><td>کیلوگرم</td><td>183,000 166,400</td></tr></table>';
+  const result=extractIranianSheetTablePrice(html,{product_key:'hot-rolled',product_name:'ورق گرم',specification:'2 میلیمتر عرض 1.25 فولاد مبارکه',delivery:'انبار تهران'},'pivan');
+  assert.equal(result,null);
+ });
  await t.test('matches a specific Markaz Ahan hot-rolled sheet variant from its public sheet channel',async()=>{
   const {extractMarkazAhanTelegramPrice}=await import('../workers/source-adapters.js');
   const html='<div class="tgme_widget_message_text js-message_text" dir="auto">#ورق_سیاه<br>ورق سیاه ضخامت 2 میلیمتر فولاد سبا عرض 1.25 انبار اصفهان ⬅ 163,636 تومان<br>ورق سیاه ضخامت 2 میلیمتر فولاد سبا عرض 1 انبار اصفهان ⬅ 165,454 تومان</div>';
