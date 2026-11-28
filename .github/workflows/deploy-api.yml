@@ -76,6 +76,37 @@ jobs:
           grep -qi "access-control-allow-origin: $ORIGIN" /tmp/fooladban-cors-headers
           echo "Browser CORS preflight: OK"
 
+      - name: Verify isolated hot-rolled sheet and coil D1 observations
+        run: |
+          python3 - <<'PY'
+          import json, urllib.parse, urllib.request
+          base = "https://fooladban-steel-api.n-razaniemail.workers.dev"
+          expected = {
+            "pivan-hot-rolled-sheet-2mm-mobarakeh-1250x2500-tehran": "hot-rolled-sheet",
+            "ahanonline-hot-rolled-coil-2mm-mobarakeh-1250-factory": "hot-rolled-coil",
+          }
+          def get(path):
+            req = urllib.request.Request(base + path, headers={"Accept":"application/json","Cache-Control":"no-cache"})
+            with urllib.request.urlopen(req, timeout=30) as response:
+              return json.loads(response.read().decode())
+          sources = get("/public/sources")
+          for source_id, product_key in expected.items():
+            matches = [s for s in sources if s.get("id") == source_id]
+            assert len(matches) == 1, (source_id, matches)
+            source = matches[0]
+            assert source.get("product_key") == product_key, (source_id, source.get("product_key"))
+            assert source.get("enabled") is True, (source_id, source.get("enabled"))
+            query = urllib.parse.urlencode({"product_key": product_key})
+            rows = get("/public/observations?" + query)
+            own = [r for r in rows if r.get("source_id") == source_id and float(r.get("raw_price") or 0) > 0]
+            foreign = [r for r in rows if r.get("source_id") in set(expected) - {source_id}]
+            assert own, (source_id, "no own D1 price observation", rows[:5])
+            assert not foreign, (source_id, "cross-product observation leaked into product key", foreign)
+            latest = max(own, key=lambda r: float(r.get("observed_at") or 0))
+            print("ISOLATED_D1_SOURCE_PASS", product_key, "source_id="+source_id, "price="+str(latest.get("raw_price")), "observed_at="+str(latest.get("observed_at")))
+          print("HOT_ROLLED_SHEET_AND_COIL_D1_ISOLATION: PASS")
+          PY
+
       - name: Probe all seven live price sources
         continue-on-error: true
         run: |
