@@ -95,6 +95,28 @@ jobs:
           if updated != 2:
               raise SystemExit("Expected to configure both existing steel sources; updated " + str(updated))
           PY
+
+      - name: Configure official IME hot-rolled source
+        env:
+          API_TOKEN: ${{ secrets.FOOLADB_API_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          base = "https://fooladban-steel-api.n-razaniemail.workers.dev"
+          headers = {"Accept":"application/json","Authorization":"Bearer "+os.environ["API_TOKEN"],"Content-Type":"application/json"}
+          def call(path, payload=None):
+              req=urllib.request.Request(base+path,data=json.dumps(payload,ensure_ascii=False).encode() if payload is not None else None,headers=headers,method="POST" if payload is not None else "GET")
+              with urllib.request.urlopen(req,timeout=30) as response: return json.loads(response.read().decode())
+          source_id="75ab74c2-5ba9-4dbc-b83b-7d20bb7fe3f8"
+          sources=call("/sources")
+          source=next((x for x in sources if x.get("id")==source_id),None)
+          if not source: raise SystemExit("Registered IME hot-rolled source not found")
+          payload={key:source.get(key) for key in ("id","product_key","product_name","specification","market","delivery","tax_basis")}
+          payload.update({"source_kind":"ime","url":"https://www.ime.co.ir/offer-stat.html","parser_mode":"auto","selector":"","regex":"","json_path":"price","currency":"IRT","measure_unit":"kg","interval_minutes":15})
+          result=call("/sources",payload)
+          assert result.get("ok") is True,result
+          print("Official IME source configured:",source.get("product_name"),source.get("product_key"))
+          PY
       - name: Verify deployed API health, CORS, and D1 read endpoints
         run: |
           API="https://fooladban-steel-api.n-razaniemail.workers.dev"
@@ -112,48 +134,51 @@ jobs:
           curl -sS --max-time 20 -D /tmp/fooladban-cors-headers -o /dev/null -X OPTIONS "$API/health" -H "Origin: $ORIGIN" -H "Access-Control-Request-Method: GET" -H "Access-Control-Request-Headers: authorization,content-type"
           grep -qi "access-control-allow-origin: $ORIGIN" /tmp/fooladban-cors-headers
           echo "Browser CORS preflight: OK"
-      - name: Verify live price fetch and persisted D1 observation
+      - name: Verify official IME hot-rolled live price and persisted D1 observation
         env:
           API_TOKEN: ${{ secrets.FOOLADB_API_TOKEN }}
         run: |
           python3 - <<'PY'
           import json, os, time, urllib.request, urllib.parse, urllib.error
-          base = "https://fooladban-steel-api.n-razaniemail.workers.dev"
-          def request(path, method="GET", admin=False):
-              headers = {"Accept": "application/json", "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36 FooladbanDeployCheck/1.0"}
-              if admin:
-                  headers["Authorization"] = "Bearer " + os.environ["API_TOKEN"]
-              if method == "POST":
-                  headers["Content-Type"] = "application/json"
-              req = urllib.request.Request(base + path, data=b"{}" if method == "POST" else None, headers=headers, method=method)
+          base="https://fooladban-steel-api.n-razaniemail.workers.dev"
+          sid="75ab74c2-5ba9-4dbc-b83b-7d20bb7fe3f8"
+          def request(path,method="GET",admin=False):
+              headers={"Accept":"application/json","User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/131.0.0.0 FooladbanIMECheck/1.0"}
+              if admin: headers["Authorization"]="Bearer "+os.environ["API_TOKEN"]
+              if method=="POST": headers["Content-Type"]="application/json"
+              req=urllib.request.Request(base+path,data=b"{}" if method=="POST" else None,headers=headers,method=method)
               try:
-                  with urllib.request.urlopen(req, timeout=45) as response:
-                      return json.loads(response.read().decode("utf-8"))
+                  with urllib.request.urlopen(req,timeout=45) as response: return json.loads(response.read().decode())
               except urllib.error.HTTPError as error:
-                  detail = error.read().decode("utf-8", "replace")
-                  raise RuntimeError(path + " -> HTTP " + str(error.code) + ": " + detail[:300])
-          public_sources = request("/public/sources")
-          sources = request("/sources", admin=True)
-          enabled = [s for s in sources if s.get("enabled")]
-          print("Enabled D1 price sources:", len(enabled))
-          for source in enabled:
-              parts = urllib.parse.urlsplit(source.get("url", ""))
-              print("SOURCE CONFIG:", source.get("id"), source.get("product_name"), parts.netloc + parts.path, "parser=", source.get("parser_mode"), "currency=", source.get("currency"), "unit=", source.get("measure_unit"), "selector=", source.get("selector"), "regex=", source.get("regex"))
-          # Let any scheduled 15-minute worker tick or previous manual check clear its 60-second source lock.
-          time.sleep(65)
-          verified = 0
-          for source in enabled:
-              sid = source["id"]
+                  detail=error.read().decode("utf-8","replace")
+                  raise RuntimeError("HTTP "+str(error.code)+": "+detail[:400])
+          sources=request("/sources",admin=True)
+          source=next((x for x in sources if x.get("id")==sid and x.get("enabled")),None)
+          if not source: raise SystemExit("Enabled IME source missing from D1")
+          if source.get("source_kind")!="ime" or "ime.co.ir" not in source.get("url",""):
+              raise SystemExit("IME source configuration was not persisted")
+          print("IME source confirmed:",source.get("product_name"),"currency=",source.get("currency"),"unit=",source.get("measure_unit"))
+          last=float(source.get("last_attempt_at") or 0)
+          wait=max(0,61-(time.time()*1000-last)/1000)
+          if wait: print("Waiting for per-source cooldown:",round(wait),"seconds"); time.sleep(wait+1)
+          result=None
+          for attempt in range(3):
               try:
-                  result = request("/public/sources/" + urllib.parse.quote(sid, safe="") + "/check", "POST")
-                  assert result.get("stored") is True, result
-                  rows = request("/public/observations?product_key=" + urllib.parse.quote(source["product_key"], safe=""))
-                  assert any(row.get("source_id") == sid and row.get("observed_at") == result.get("observed_at") for row in rows), "new observation not found in D1"
-                  verified += 1
-                  print("D1 WRITE VERIFIED:", source.get("product_name", sid), "price=", result.get("price"), result.get("currency"), "/", result.get("measure_unit"))
-              except Exception as error:
-                  print("LIVE SOURCE CHECK FAILED:", source.get("product_name", sid), str(error))
-          if enabled and not verified:
-              raise SystemExit("No live price source could be fetched and verified in D1")
-          print("Live price-to-D1 verification passed:", verified, "/", len(enabled))
+                  result=request("/public/sources/"+urllib.parse.quote(sid,safe="")+"/check","POST")
+                  break
+              except RuntimeError as error:
+                  message=str(error)
+                  if "source_cooldown" not in message or attempt==2: raise
+                  import re
+                  match=re.search(r"retry_after_seconds\\D+(\\d+)",message)
+                  delay=int(match.group(1))+2 if match else 62
+                  print("Cooldown still active; retrying after",delay,"seconds")
+                  time.sleep(delay)
+          if not result or result.get("stored") is not True or not (float(result.get("price") or 0)>0):
+              raise SystemExit("IME did not return a storable traded price: "+str(result))
+          rows=request("/public/observations?product_key="+urllib.parse.quote(source["product_key"],safe=""))
+          if not any(row.get("source_id")==sid and row.get("observed_at")==result.get("observed_at") for row in rows):
+              raise SystemExit("IME price was returned but no matching D1 observation was found")
+          print("OFFICIAL IME PRICE VERIFIED:",result["price"],result.get("currency"),"/",result.get("measure_unit"),"trade date:",result.get("source_date"))
+          print("IME D1 WRITE VERIFIED:",result.get("observed_at"))
           PY
