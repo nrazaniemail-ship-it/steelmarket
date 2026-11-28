@@ -51,17 +51,19 @@ test('source-specific steel price adapters',async t=>{
   const result=extractIranianSheetTablePrice(html,{product_key:'hot-rolled',product_name:'ورق گرم',specification:'2 میلیمتر عرض 1.25 فولاد مبارکه برش خورده',delivery:'بنگاه تهران'},'ahanonline');
   assert.deepEqual(result,{price:176290,sourceDate:'1405/9/7'});
  });
- await t.test('extracts exact Pivan home-page black-sheet row and current discounted price',async()=>{
+ await t.test('extracts exact Pivan home-page black-sheet row by semantic columns',async()=>{
   const {extractPivanSheetPrice}=await import('../workers/source-adapters.js');
-  const html='<h2>قیمت ورق سیاه</h2><p>آخرین بروزرسانی: 1405/09/07 ساعت 12:02</p><table><tr><td>ورق سیاه - 2 - فولاد مبارکه - 250x125</td><td>فولاد مبارکه اصفهان</td><td>برش خورده</td><td>انبار تهران</td><td>کیلوگرم</td><td>183,000 166,400</td></tr></table>';
+  const html='<div><time datetime="2026-11-28T10:36:37+00:00">امروز</time><table><tr><td>ورق سیاه - 2 - فولاد مبارکه - 250x125</td><td class="meta-width*length">۱۲۵ x ۲۵۰</td><td class="meta-brand-name">فولاد مبارکه اصفهان</td><td class="meta-form-name">برش خورده</td><td class="meta-delivery">انبار تهران</td><td class="meta-unit">کیلوگرم</td><td class="meta-price">۱۸۳,۰۰۰ ۱۶۶,۴۰۰</td><td class="meta-priceDifference">۰.۰ %</td></tr></table></div>';
   const result=extractPivanSheetPrice(html,{product_key:'hot-rolled',product_name:'ورق گرم',specification:'2 میلیمتر عرض 1.25 فولاد مبارکه برش خورده',delivery:'انبار تهران'});
-  assert.deepEqual(result,{price:166400,sourceDate:'1405/09/07'});
+  assert.deepEqual(result,{price:166400,sourceDate:'2026-11-28'});
  });
- await t.test('does not match Pivan wrong width, location, or ambiguous price rows',async()=>{
+ await t.test('rejects Pivan wrong width, location, and ambiguous exact rows',async()=>{
   const {extractPivanSheetPrice}=await import('../workers/source-adapters.js');
-  const html='<p>آخرین بروزرسانی: 1405/09/07</p><table><tr><td>ورق سیاه - 2 - فولاد مبارکه - 200x100</td><td>فولاد مبارکه</td><td>برش خورده</td><td>انبار تهران</td><td>کیلوگرم</td><td>185,000 168,200</td></tr><tr><td>ورق سیاه - 2 - فولاد مبارکه - 250x125</td><td>فولاد مبارکه</td><td>برش خورده</td><td>انبار تهران</td><td>کیلوگرم</td><td>183,000 166,400</td></tr><tr><td>ورق سیاه - 2 - فولاد مبارکه - 250x125</td><td>فولاد مبارکه</td><td>برش خورده</td><td>انبار تهران</td><td>کیلوگرم</td><td>182,000 165,000</td></tr></table>';
+  const row=(size,place,price)=>'<tr><td>ورق سیاه - 2 - فولاد مبارکه - '+size+'</td><td class="meta-width*length">۱۲۵ x ۲۵۰</td><td class="meta-brand-name">فولاد مبارکه</td><td class="meta-form-name">برش خورده</td><td class="meta-delivery">'+place+'</td><td>کیلوگرم</td><td class="meta-price">'+price+'</td><td class="meta-priceDifference">۰.۰ %</td></tr>';
   const source={product_key:'hot-rolled',product_name:'ورق گرم',specification:'2 میلیمتر عرض 1.25 فولاد مبارکه برش خورده',delivery:'انبار تهران'};
-  assert.equal(extractPivanSheetPrice(html,source),null);
+  assert.equal(extractPivanSheetPrice('<table>'+row('200x100','انبار تهران','168,200')+'</table>',source),null);
+  assert.equal(extractPivanSheetPrice('<table>'+row('250x125','انبار اصفهان','166,400')+'</table>',source),null);
+  assert.equal(extractPivanSheetPrice('<table>'+row('250x125','انبار تهران','166,400')+row('250x125','انبار تهران','165,000')+'</table>',source),null);
  });
  await t.test('Iromart accepts only exact Telegram prices with explicit currency and per-kg unit',async()=>{
   const {extractIromartTelegramPrice}=await import('../workers/source-adapters.js');
