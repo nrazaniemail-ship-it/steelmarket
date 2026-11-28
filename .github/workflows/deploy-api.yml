@@ -283,9 +283,9 @@ jobs:
           try:
             raw=call("/public/fetch?"+urllib.parse.urlencode({"url":"https://pivan.co/"}))
             import re
-            for tr in re.findall(r"<tr\\b[^>]*>([\\s\\S]*?)</tr>",raw.get("body",""),re.I):
-              cells=[re.sub(r"<[^>]+>"," ",x).replace("&nbsp;"," ").strip() for x in re.findall(r"<td\\b[^>]*>([\\s\\S]*?)</td>",tr,re.I)]
-              if cells and "ورق سیاه" in cells[0] and re.search(r"-\\s*2\\s*-",cells[0]):
+            for tr in re.findall(r"<tr\b[^>]*>([\s\S]*?)</tr>",raw.get("body",""),re.I):
+              cells=[re.sub(r"<[^>]+>"," ",x).replace("&nbsp;"," ").strip() for x in re.findall(r"<td\b[^>]*>([\s\S]*?)</td>",tr,re.I)]
+              if cells and "ورق سیاه" in cells[0] and re.search(r"-\s*2\s*-",cells[0]):
                 print("PIVAN_2MM_ROW",json.dumps(cells,ensure_ascii=False))
           except Exception as exc:
             print("PIVAN_2MM_DIAGNOSTIC_ERROR",repr(exc))
