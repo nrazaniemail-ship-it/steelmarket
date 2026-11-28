@@ -167,7 +167,7 @@ const assert = require('node:assert/strict');
   const variant20=page.locator('#mcDashboardPicks .mc-dashboard-card[data-catalog-id="rebar"]').filter({hasText:'۲۰'});
   await variant20.locator('[data-remove-catalog]').click();
   assert.equal(await page.locator('#mcDashboardPicks .mc-dashboard-card[data-catalog-id="rebar"]').count(),1,'Removing one specification variant must keep sibling variants visible');
-  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('fooladban.v1')||'{}').products.some(x=>x.id==='rebar-size-20-variant')),true,'Hiding a dashboard variant must preserve its stored source records');
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('fooladban.v1')||'{}').products.some(x=>x.catalogId==='rebar'&&x.productSize==='۲۰')),true,'Hiding a dashboard variant must preserve its stored source records');
   await page.locator('#fbLayerNav [data-layer-target="sources"]').click();
   assert.equal(await page.locator('#mcSourceRegistry .mc-source-rank').count(),0);
   await page.locator('#fbLayerNav [data-layer-target="analysis"]').click();
