@@ -104,8 +104,8 @@ function sourceDate(value){
   const initial=await page.evaluate(()=>[...document.querySelectorAll('#mcDashboardPicks .mc-dashboard-card')].map(card=>({id:card.dataset.catalogId,text:card.querySelector('.mc-dashboard-record')?.innerText||''})));
   const sheetText=initial.find(x=>x.id==='hot-rolled-sheet')?.text||'';
   const coilText=initial.find(x=>x.id==='hot-rolled-coil')?.text||'';
-  assert.ok(sheetText.includes(fa(latestSheet.raw_price)),'Sheet card must display the live D1 sheet price');
-  assert.ok(coilText.includes(fa(latestCoil.raw_price)),'Coil card must display the live D1 coil price');
+  assert.ok(sheetText.includes(fa(latestSheet.raw_price)),'Sheet card must display the live D1 sheet price; actual='+JSON.stringify(sheetText)+' expected='+fa(latestSheet.raw_price)+' raw='+latestSheet.raw_price);
+  assert.ok(coilText.includes(fa(latestCoil.raw_price)),'Coil card must display the live D1 coil price; actual='+JSON.stringify(coilText)+' expected='+fa(latestCoil.raw_price)+' raw='+latestCoil.raw_price);
   assert.ok(sheetText.includes(sourceDate(latestSheet.observed_at)),'Sheet card must display its own D1 observation date');
   assert.ok(coilText.includes(sourceDate(latestCoil.observed_at)),'Coil card must display its own D1 observation date');
   assert.ok(sheetText.includes('پیوان'),'Sheet card must identify its own provider');
