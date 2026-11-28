@@ -1,4 +1,4 @@
-import { identifyAdapter, extractStructuredPrice, extractImeTradePrice } from './source-adapters.js';
+import { identifyAdapter, extractStructuredPrice, extractImeTradePrice, extractMarkazAhanTelegramPrice } from './source-adapters.js';
 const now = () => Date.now();
 function json(data, status = 200, cors = {}) {
  return new Response(JSON.stringify(data), { status, headers: { 'content-type':'application/json; charset=utf-8', 'cache-control':'no-store', ...cors } });
@@ -145,6 +145,12 @@ async function fetchSourcePrice(source,env) {
   const result=await fetchImePrice(source,env);
   return {price:result.price,sourceDate:result.sourceDate};
  }
+ if(adapter.id==='markazeahan' && String(source.product_key)==='hot-rolled') {
+  const body=await fetchSafe({...source,url:'https://t.me/s/markazeahan4'},env);
+  const price=extractMarkazAhanTelegramPrice(body,source);
+  if(!price)throw Error('markazeahan_variant_not_found_or_ambiguous');
+  return {price,sourceDate:null};
+ }
  const body=await fetchSafe(source,env);
  return {price:parse(body,source),sourceDate:null};
 }
@@ -206,7 +212,32 @@ export default {
     const r=await env.DB.prepare('SELECT id,product_key,source_id,old_price,new_price,change_pct,created_at FROM market_events ORDER BY created_at DESC LIMIT 100').all();
     return json(r.results,200,cors);
    }
-   // Public read-only fetch for locally configured sources. Host restrictions are identical to admin fetches.
+   // Public price lookup parses an allowlisted source without requiring an admin key or writing to D1.
+    if (u.pathname === '/public/price' && request.method === 'GET') {
+     const source={
+      url:u.searchParams.get('url')||'',
+      product_key:u.searchParams.get('product_key')||'',
+      product_name:u.searchParams.get('product_name')||'',
+      specification:u.searchParams.get('specification')||'',
+      source_kind:u.searchParams.get('source_kind')||'other',
+      parser_mode:u.searchParams.get('parser_mode')||'auto',
+      selector:u.searchParams.get('selector')||'',
+      regex:u.searchParams.get('regex')||'',
+      json_path:u.searchParams.get('json_path')||'price',
+      currency:u.searchParams.get('currency')||'IRT',
+      measure_unit:u.searchParams.get('measure_unit')||'kg',
+      delivery:u.searchParams.get('delivery')||'',
+      tax_basis:u.searchParams.get('tax_basis')||''
+     };
+     if(!source.url||!source.product_key||!source.product_name)return json({error:'source_details_required'},400,cors);
+     try {
+      const result=await fetchSourcePrice(source,env);
+      return json({ok:true,price:result.price,source_date:result.sourceDate||null,currency:source.currency,measure_unit:source.measure_unit},200,cors);
+     } catch(error) {
+      return json({error:error?.message||'source_fetch_failed'},502,cors);
+     }
+    }
+    // Public read-only fetch for locally configured sources. Host restrictions are identical to admin fetches.
     if (u.pathname === '/public/fetch' && request.method === 'GET') {
      const raw=u.searchParams.get('url');
      if(!raw)return json({error:'url_required'},400,cors);
