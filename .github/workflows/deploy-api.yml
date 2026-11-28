@@ -20,7 +20,7 @@ jobs:
         env:
           D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
           APP_ORIGIN: ${{ vars.FOOLADB_APP_ORIGIN }}
-          ALLOWED_HOSTS: ${{ vars.FOOLADB_ALLOWED_HOSTS }},qeymato.com
+          ALLOWED_HOSTS: ${{ vars.FOOLADB_ALLOWED_HOSTS }},qeymato.com,ime.co.ir
         run: |
           test -n "$D1_DATABASE_ID" || (echo "Missing D1_DATABASE_ID secret" && exit 1)
           test -n "$APP_ORIGIN" || (echo "Missing FOOLADB_APP_ORIGIN variable" && exit 1)
