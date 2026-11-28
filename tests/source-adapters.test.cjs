@@ -23,4 +23,21 @@ test('source-specific steel price adapters',async t=>{
  await t.test('does not guess when no structured price exists',()=>{
   assert.equal(extractStructuredPrice('<html><body>Steel market is stable</body></html>','custom'),null);
  });
+ await t.test('parses weighted latest-day IME physical trades and converts Rial to Toman',async()=>{
+  const {extractImeTradePrice}=await import('../workers/source-adapters.js');
+  const payload={d:JSON.stringify([
+   {GoodsName:'ورق گرم',ProducerName:'فولاد الف',Price:100000,Quantity:100,date:'1405/09/05'},
+   {GoodsName:'ورق گرم',ProducerName:'فولاد ب',Price:120000,Quantity:300,date:'1405/09/05'},
+   {GoodsName:'ورق گرم',ProducerName:'فولاد ج',Price:90000,Quantity:500,date:'1405/09/04'}
+  ])};
+  const result=extractImeTradePrice(payload,{product_key:'hot-rolled',product_name:'ورق گرم',currency:'IRT',measure_unit:'kg'});
+  assert.equal(result.sourceDate,'1405/09/05');
+  assert.equal(result.rows,2);
+  assert.equal(result.price,11500);
+ });
+ await t.test('does not invent an IME price when no matching trade exists',async()=>{
+  const {extractImeTradePrice}=await import('../workers/source-adapters.js');
+  assert.equal(extractImeTradePrice({d:'[]'},{product_key:'hot-rolled',product_name:'ورق گرم'}),null);
+ });
+
 });
