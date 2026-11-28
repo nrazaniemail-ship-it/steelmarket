@@ -356,7 +356,7 @@ const assert = require('node:assert/strict');
   const initialCards=await splitPage.evaluate(()=>[...document.querySelectorAll('#mcDashboardPicks .mc-dashboard-card')].map(c=>({id:c.dataset.catalogId,text:c.querySelector('.mc-dashboard-record')?.innerText||''})));
   assert.ok(initialCards.find(x=>x.id==='hot-rolled-sheet').text.includes('۱۷۰٬۹۰۰'),'Sheet card must show only the sheet source price: '+JSON.stringify(initialCards));
   assert.ok(initialCards.find(x=>x.id==='hot-rolled-coil').text.includes('۱۶۸٬۱۸۰'),'Coil card must show only the coil source price: '+JSON.stringify(initialCards));
-  assert.ok(initialCards.every(x=>x.text.includes('تاریخ قیمت منبع:')),'Each dashboard source record must display its observation date');
+  assert.ok(initialCards.every(x=>x.text.includes('تاریخ قیمت:')),'Each dashboard source record must display its observation date');
   await sheetCard.locator('[data-watch-action="refresh"]').click();
   await splitPage.waitForFunction(()=>document.querySelector('#mcDashboardPicks .mc-dashboard-card[data-catalog-id="hot-rolled-sheet"] .mc-dashboard-record')?.innerText.includes('۱۷۱٬۲۵۰'));
   const afterSheet=await splitPage.evaluate(()=>[...document.querySelectorAll('#mcDashboardPicks .mc-dashboard-card')].map(c=>({id:c.dataset.catalogId,text:c.querySelector('.mc-dashboard-record')?.innerText||''})));
