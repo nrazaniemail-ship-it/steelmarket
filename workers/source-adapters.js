@@ -211,7 +211,7 @@ export function extractIromartTelegramPrice(body,source={}){
   if(!/قیمت_ورق_سیاه|ورق\\s*(?:سیاه|گرم)/.test(message))continue;
   const lines=message.split(/[\\n؛;]/).map(x=>x.trim()).filter(Boolean);
   for(const line of lines){
-   if(!/تومان|ریال/.test(line))continue;
+   if(!/تومان|ریال/.test(line)||!/(?:\\/|\\s)کیلو|هر\\s*کیلو|\\bkg\\b/i.test(line))continue;
    const t=line.match(/(?:ضخامت\\s*)?(\\d+(?:[.,٫]\\d+)?)\\s*(?:میلی?متر|میل)/);
    if(!t||Math.abs(Number(t[1].replace(',','.').replace('٫','.'))-Number(thickness[1].replace(',','.').replace('٫','.')))>0.001)continue;
    if(width){const w=line.match(/عرض\\s*(\\d+(?:[.,٫]\\d+)?)/);if(!w||Math.abs(Number(w[1].replace(',','.').replace('٫','.'))-Number(width[1].replace(',','.').replace('٫','.')))>0.001)continue}
