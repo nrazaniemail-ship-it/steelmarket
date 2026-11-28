@@ -271,7 +271,32 @@ function syncProductSelection(){const p=productMap.get(catalogSelect.value);deta
 catalogSelect.addEventListener('change',syncProductSelection);
 [grade,size,maker].forEach(x=>x.addEventListener('change',()=>{document.getElementById('pSpecification').value=[grade.value,size.value,maker.value].filter(Boolean).join(' · ')}));
 marketSelect?.addEventListener('change',()=>{renderDeliveryOptions();renderSourceSelect();document.getElementById('pCurrency').value=marketSelect.value==='ایران'?'IRT':'USD';document.getElementById('pMeasureUnit').value=marketSelect.value==='ایران'?'kg':'ton';document.getElementById('pUrl').value='';renderQuickPrice()});
-function applySourceProfile(){const x=cfg.sources.find(v=>v.id===select.value);const input=document.getElementById('pUrl');if(!x||!input)return;const key=catalogSelect.value;const teMap={'hot-rolled':'hrc-steel','cold-rolled':'hrc-steel','iron-ore-lump':'iron-ore','iron-ore-fines':'iron-ore','iron-concentrate':'iron-ore','pellet':'iron-ore','scrap-steel':'scrap-steel','rebar':'steel','alloy-rebar':'steel','billet-bloom':'steel','alloy-billet-bloom':'steel','slab':'steel','sponge-iron':'steel','hbi':'steel','wire-rod':'steel','long-sections':'steel'};let target=x.url||'';if(x.id==='tradingeconomics'&&teMap[key]){target='https://fa.tradingeconomics.com/commodity/'+teMap[key];const ccy=teMap[key]==='steel'?'CNY':'USD';document.getElementById('pCurrency').value=ccy;document.getElementById('pMeasureUnit').value='ton';sourceInfo.textContent=teMap[key]==='steel'?'شاخص عمومی فولاد با واحد CNY/تن به‌صورت خودکار درج شد؛ این شاخص قیمت دقیق میلگرد/شمش/مقاطع نیست.':'صفحه شاخص متناسب با کالا با واحد '+ccy+'/تن به‌صورت خودکار درج شد؛ شاخص الزاماً قیمت فیزیکی تحویل‌شده نیست.'}else{sourceInfo.textContent=x.name+' · نشانی مرجع به‌صورت خودکار درج شد. اگر صفحه اختصاصی کالا را دارید، می‌توانید آن را جایگزین کنید؛ صفحه اصلی به‌تنهایی قیمت کالا را تأیید نمی‌کند.'}if(target)input.value=target;input.required=!!target;const k=document.getElementById('pSourceKind');if(k)k.value=x.id==='ime'?'ime':x.market==='iran'?'free_market':'other';}
+function applySourceProfile(){
+ const x=cfg.sources.find(v=>v.id===select.value),input=document.getElementById('pUrl');
+ if(!x||!input)return;
+ const key=catalogSelect.value;
+ const teMap={'hot-rolled':'hrc-steel','cold-rolled':'hrc-steel','iron-ore-lump':'iron-ore','iron-ore-fines':'iron-ore','iron-concentrate':'iron-ore','pellet':'iron-ore','scrap-steel':'scrap-steel','rebar':'steel','alloy-rebar':'steel','billet-bloom':'steel','alloy-billet-bloom':'steel','slab':'steel','sponge-iron':'steel','hbi':'steel','wire-rod':'steel','long-sections':'steel'};
+ let target='';
+ if(x.id==='tradingeconomics'&&teMap[key]){
+  target='https://fa.tradingeconomics.com/commodity/'+teMap[key];
+  const ccy=teMap[key]==='steel'?'CNY':'USD';
+  document.getElementById('pCurrency').value=ccy;
+  document.getElementById('pMeasureUnit').value='ton';
+  sourceInfo.textContent=teMap[key]==='steel'?'شاخص عمومی فولاد با واحد CNY/تن درج شد؛ این شاخص قیمت دقیق محصول فیزیکی نیست.':'صفحه شاخص متناسب با کالا با واحد '+ccy+'/تن درج شد؛ شاخص الزاماً قیمت فیزیکی تحویل‌شده نیست.';
+ }else if(x.id==='ime'){
+  target=x.url||'';
+  sourceInfo.textContent='اتصال اختصاصی داده معاملات بورس کالا؛ قیمت معامله با قیمت پایه عرضه یکسان نیست.';
+ }else if(x.id==='markazeahan'&&key==='hot-rolled'){
+  target=x.url||'';
+  sourceInfo.textContent='اتصال اختصاصی کانال قیمت ورق گرم مرکز آهن؛ تطبیق ضخامت و در صورت نیاز عرض، کارخانه و محل تحویل الزامی است.';
+ }else{
+  sourceInfo.textContent=x.name+' · برای دریافت قیمت باید لینک دقیق صفحه همان کالا را وارد کنید؛ صفحه اصلی سایت قابل استعلام قیمت نیست.';
+ }
+ input.value=target;
+ input.required=true;
+ const k=document.getElementById('pSourceKind');
+ if(k)k.value=x.id==='ime'?'ime':x.market==='iran'?'free_market':'other';
+}
 select.addEventListener('change',applySourceProfile);
 document.getElementById('pUrl')?.addEventListener('input',renderQuickPrice);
 document.getElementById('products')?.addEventListener('click',e=>{const b=e.target.closest('[data-edit]');if(!b)return;setTimeout(()=>{try{const p=(JSON.parse(localStorage.getItem('fooladban.v1')||'{}').products||[]).find(x=>x.id===b.dataset.edit);if(!p)return;catalogSelect.value=p.catalogId||'';key.value=p.catalogId||'';if(catalogSelect.value)syncProductSelection();titleChoice.select.setChoiceValue(p.name||'');setProductChoices(p.catalogId||'');document.getElementById('pGroup').value=p.group||'سایر';marketSelect.value=p.market||'ایران';select.value=p.sourceRef||'';gradeChoice.select.setChoiceValue(p.productGrade||'');sizeChoice.select.setChoiceValue(p.productSize||'');makerChoice.select.setChoiceValue(p.productManufacturer||'');document.getElementById('pSpecification').value=p.specification||'';deliveryChoice.select.setChoiceValue(p.delivery||'');document.getElementById('pTaxBasis').value=p.taxBasis||'unknown';document.getElementById('pCurrency').value=p.currency||'IRT';document.getElementById('pMeasureUnit').value=p.measureUnit||'kg';document.getElementById('pUrl').value=p.url||'';document.getElementById('pMode').value=p.mode||'auto';document.getElementById('pSelector').value=p.selector||'';document.getElementById('pRegex').value=p.regex||'';document.getElementById('pJsonPath').value=p.jsonPath||'price';document.getElementById('pThreshold').value=p.threshold||0;document.getElementById('pNote').value=p.note||'';document.getElementById('pMode').dispatchEvent(new Event('change'));detailBox.classList.remove('is-empty');detailBadge.textContent=productMap.get(p.catalogId)?.group||p.group||'مشخصات کالا';const detailPanel=document.getElementById('addPanel');if(detailPanel)detailPanel.style.display='';renderSourceSelect();renderQuickPrice()}catch{}} ,0)});
