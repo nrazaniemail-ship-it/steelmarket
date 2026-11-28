@@ -31,15 +31,16 @@ test('Android launcher resources exist for every density',()=>{
   assert.ok(fs.existsSync(path.join(__dirname,`../app/src/main/res/mipmap-${d}/${n}.png`)),d+'/'+n);
 });
 
-test('hot-rolled flat sheet and coil are listed directly after parent hot-rolled product',()=>{
+test('black sheet, hot-rolled sheet and coil are listed directly after parent hot-rolled product',()=>{
  const source=fs.readFileSync(path.join(__dirname,'../core/market-config.js'),'utf8');
  const match=source.match(/\['مقاطع تخت',\[(.*?)\]\]/s);
  assert.ok(match,'flat products group exists');
  const ids=[...match[1].matchAll(/\['([^']+)'\s*,\s*'([^']+)'\]/g)].map(x=>({id:x[1],name:x[2]}));
  const parent=ids.findIndex(x=>x.id==='hot-rolled');
  assert.ok(parent>=0,'parent hot-rolled product exists');
- assert.deepEqual(ids.slice(parent,parent+3),[
+ assert.deepEqual(ids.slice(parent,parent+4),[
   {id:'hot-rolled',name:'ورق گرم'},
+  {id:'black-sheet',name:'ورق سیاه'},
   {id:'hot-rolled-sheet',name:'ورق گرم (سیاه)-تخت'},
   {id:'hot-rolled-coil',name:'ورق گرم (سیاه)-کلاف'}
  ]);
