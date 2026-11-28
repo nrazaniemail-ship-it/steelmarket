@@ -61,27 +61,27 @@ export { ADAPTERS };
 
 
 function sourceText(value){
- return String(value??'').replace(/<script[\\s\\S]*?<\\/script>|<style[\\s\\S]*?<\\/style>/gi,' ')
-  .replace(/<br\\s*\\/?\\s*>|<\\/(?:p|div|li|h[1-6]|tr)\\s*>/gi,' ')
+ return String(value??'').replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi,' ')
+  .replace(/<br\s*\/?\s*>|<\/(?:p|div|li|h[1-6]|tr)\s*>/gi,' ')
   .replace(/<[^>]+>/g,' ').replace(/&nbsp;|&#160;/gi,' ').replace(/&amp;/gi,'&')
-  .replace(/&#(\\d+);/g,(_,n)=>String.fromCodePoint(Number(n)))
+  .replace(/&#(\d+);/g,(_,n)=>String.fromCodePoint(Number(n)))
   .replace(/[ي]/g,'ی').replace(/[ك]/g,'ک').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
-  .replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\\s+/g,' ').trim().toLowerCase();
+  .replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\s+/g,' ').trim().toLowerCase();
 }
 function sourceDimension(value){
- const m=String(value||'').match(/(?:عرض\\s*)?(\\d+(?:[.,٫]\\d+)?)/);
+ const m=String(value||'').match(/(?:عرض\s*)?(\d+(?:[.,٫]\d+)?)/);
  if(!m)return '';
  const n=Number(m[1].replace(',','.').replace('٫','.'));
  return n>0&&n<10?String(Math.round(n*1000)):String(Math.round(n));
 }
 function sourceThickness(source){
  const spec=sourceText([source.product_name,source.specification].filter(Boolean).join(' '));
- const m=spec.match(/(\\d+(?:[.,٫]\\d+)?)\\s*(?:میلی?متر|میل)/);
+ const m=spec.match(/(\d+(?:[.,٫]\d+)?)\s*(?:میلی?متر|میل)/);
  return m?Number(m[1].replace(',','.').replace('٫','.')):null;
 }
 function sourceWidth(source){
  const spec=sourceText(source.specification||'');
- const m=spec.match(/عرض\\s*(\\d+(?:[.,٫]\\d+)?)/);
+ const m=spec.match(/عرض\s*(\d+(?:[.,٫]\d+)?)/);
  return m?sourceDimension(m[1]):'';
 }
 function sourceMaker(source){
@@ -90,13 +90,13 @@ function sourceMaker(source){
   .find(x=>spec.includes(x))||'';
 }
 function sourceDateNear(text){
- const m=String(text||'').match(/(14\\d{2}[\\/.-]\\d{1,2}[\\/.-]\\d{1,2})/);
+ const m=String(text||'').match(/(14\d{2}[\/.-]\d{1,2}[\/.-]\d{1,2})/);
  return m?m[1].replace(/[.-]/g,'/'):null;
 }
 function tableRows(html){
  const out=[];
- for(const m of String(html||'').matchAll(/<tr\\b[^>]*>([\\s\\S]*?)<\\/tr>/gi)){
-  const cells=[...m[1].matchAll(/<t[dh]\\b[^>]*>([\\s\\S]*?)<\\/t[dh]>/gi)].map(x=>sourceText(x[1]));
+ for(const m of String(html||'').matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)){
+  const cells=[...m[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(x=>sourceText(x[1]));
   if(cells.length)out.push({cells,index:m.index,html:m[1]});
  }
  return out;
@@ -111,8 +111,8 @@ export function extractIranianSheetTablePrice(body,source={},adapterId=''){
   const joined=row.cells.join(' | '),near=sourceText(html.slice(Math.max(0,row.index-12000),row.index));
   const rowText=sourceText(row.html);
   if(!/(ورق سیاه|ورق گرم|ورق ضخامت|hot rolled)/i.test(near+' '+joined))continue;
-  const rowThickness=joined.match(/(?:ضخامت\\s*)?(\\d+(?:[.,٫]\\d+)?)\\s*(?:میل|میلی?متر)/);
-  const heading=[...near.matchAll(/ورق\\s*(?:سیاه|گرم)(?:\\s*ضخامت)?\\s*(\\d+(?:[.,٫]\\d+)?)/g)].at(-1);
+  const rowThickness=joined.match(/(?:ضخامت\s*)?(\d+(?:[.,٫]\d+)?)\s*(?:میل|میلی?متر)/);
+  const heading=[...near.matchAll(/ورق\s*(?:سیاه|گرم)(?:\s*ضخامت)?\s*(\d+(?:[.,٫]\d+)?)/g)].at(-1);
   const t=rowThickness?Number(rowThickness[1].replace(',','.').replace('٫','.')):heading?Number(heading[1].replace(',','.').replace('٫','.')):null;
   if(t!==null&&Math.abs(t-thickness)>0.001)continue;
   if(maker&&!(joined.includes(maker)||near.includes(maker)||(maker.includes('فولاد مبارکه')&&joined.includes('مبارکه'))))continue;
