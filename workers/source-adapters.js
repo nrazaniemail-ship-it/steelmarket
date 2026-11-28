@@ -122,7 +122,8 @@ export function extractIranianSheetTablePrice(body,source={},adapterId=''){
  const delivery=sourceText(source.delivery||'');
  const state=sourceText(source.specification||'');
  const matches=[];
- for(const row of tableRows(html)){
+ const rows=tableRows(html);
+ for(const row of rows){
   const joined=row.cells.join(' | '),near=sourceText(html.slice(Math.max(0,row.index-12000),row.index));
   const rowText=sourceText(row.html);
   if(!/(ورق سیاه|ورق گرم|ورق ضخامت|hot rolled)/i.test(near+' '+joined))continue;
@@ -142,15 +143,19 @@ export function extractIranianSheetTablePrice(body,source={},adapterId=''){
   if(state.includes('برش')&&!joined.includes('برش')&&!(/2500.{0,8}1250|1250.{0,8}2500/.test(joined)))continue;
   if(state.includes('شیت')&&!/2500.{0,8}1250|1250.{0,8}2500/.test(joined))continue;
   if(state.includes('فابریک')&&!joined.includes('فابریک'))continue;
+  const header=[...rows].filter(x=>x.index<row.index&&x.cells.some(c=>/قیمت/.test(c))).at(-1);
+  const priceIndex=header?header.cells.findIndex(c=>/قیمت/.test(c)):-1;
+  const dateIndex=header?header.cells.findIndex(c=>/تاریخ/.test(c)):-1;
   let priceText='';
   if(adapterId==='ahanprice')priceText=row.cells[3]||'';
+  else if(priceIndex>=0)priceText=row.cells[priceIndex]||'';
   else priceText=row.cells.at(-1)||'';
   if(/تماس|ناموجود|استعلام/i.test(priceText))continue;
   const nums=[...priceText.matchAll(/[0-9][0-9,٬.٫]*/g)].map(x=>numericPrice(x[0])).filter(x=>x&&x>=10000&&x<=10000000);
   const price=nums.at(-1);
   if(!price)continue;
   const after=html.slice(row.index,row.index+900);
-  const date=sourceDateNear(row.cells.at(5)||'')||sourceDateNear(after)||sourceDateNear(near.slice(-2500));
+  const date=sourceDateNear(dateIndex>=0?row.cells[dateIndex]:'')||sourceDateNear(row.cells.at(5)||'')||sourceDateNear(after)||sourceDateNear(near.slice(-2500));
   matches.push({price,sourceDate:date});
  }
  if(!matches.length)return null;
