@@ -75,6 +75,56 @@ jobs:
           grep -qi "access-control-allow-origin: $ORIGIN" /tmp/fooladban-cors-headers
           echo "Browser CORS preflight: OK"
 
+      - name: Probe all seven live price sources
+        continue-on-error: true
+        run: |
+          python3 - <<'PY'
+          import json, urllib.parse, urllib.request
+          api = "https://fooladban-steel-api.n-razaniemail.workers.dev/public/price?"
+          common = {
+            "product_key":"hot-rolled",
+            "product_name":"ورق گرم",
+            "specification":"2 میلیمتر عرض 1.25 فولاد مبارکه",
+            "source_kind":"free_market",
+            "parser_mode":"auto",
+            "currency":"IRT",
+            "measure_unit":"kg",
+            "delivery":"کارخانه"
+          }
+          probes = [
+            ("IME","https://www.ime.co.ir/offer-stat.html","IRR","kg"),
+            ("Ahanonline","https://ahanonline.com/product-category/انواع-ورق/ورق-سیاه/","IRT","kg"),
+            ("Markaz Ahan","https://markazeahan.com/","IRT","kg"),
+            ("Pivan","https://pivan.co/product-category/sheet/st37-sheet/","IRT","kg"),
+            ("Iromart","https://iromart.com/","IRT","kg"),
+            ("Ahanprice","https://ahanprice.com/","IRT","kg"),
+            ("Trading Economics","https://fa.tradingeconomics.com/commodity/hrc-steel","USD","ton")
+          ]
+          for name,url,currency,unit in probes:
+            params={**common,"url":url,"currency":currency,"measure_unit":unit}
+            if name=="Markaz Ahan":
+              params["specification"]="2 میلیمتر عرض 1.25 فولاد سبا"
+              params["delivery"]="انبار اصفهان"
+            if name=="Trading Economics":
+              params["product_name"]="Hot Rolled Coil Steel"
+              params["specification"]="HRC"
+            req=urllib.request.Request(api+urllib.parse.urlencode(params),headers={"Accept":"application/json","User-Agent":"FooladbanSevenSourceProbe/1.0"})
+            try:
+              with urllib.request.urlopen(req,timeout=45) as response:
+                status=response.status
+                data=json.loads(response.read().decode("utf-8"))
+              if data.get("ok") and float(data.get("price") or 0)>0:
+                print(f"SOURCE_RESULT {name}: PASS price={data['price']} {currency}/{unit} source_date={data.get('source_date')}")
+              else:
+                print(f"SOURCE_RESULT {name}: FAIL HTTP={status} error={data.get('error','no_price')}")
+            except urllib.error.HTTPError as exc:
+              try: detail=exc.read().decode("utf-8")[:400]
+              except: detail=""
+              print(f"SOURCE_RESULT {name}: FAIL HTTP={exc.code} detail={detail}")
+            except Exception as exc:
+              print(f"SOURCE_RESULT {name}: FAIL {type(exc).__name__}: {exc}")
+          PY
+
       - name: Probe live Markaz Ahan hot-rolled sheet feed
         continue-on-error: true
         run: |
