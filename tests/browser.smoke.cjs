@@ -123,7 +123,7 @@ const assert = require('node:assert/strict');
   assert.equal(await page.evaluate(()=>window.__aggregateCheckIds.length),2,'Check-all action must send every registered source for the selected catalog item');
   assert.ok(dialogMessages.some(x=>/[۲2] موفق/.test(x)),'Check-all action must report the completed source checks: '+JSON.stringify(dialogMessages));
   await page.evaluate(()=>{const key='fooladban.v1',s=JSON.parse(localStorage.getItem(key)||'{}'),base=s.products.find(x=>x.catalogId==='rebar');s.products.push({...base,id:'rebar-size-20-variant',productSize:'۲۰',name:base.name,history:[...(base.history||[])],checkedAt:Date.now()});localStorage.setItem(key,JSON.stringify(s));});
-  await page.reload();
+  await page.reload({waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.querySelectorAll('#mcDashboardPicks .mc-dashboard-card[data-catalog-id="rebar"]').length===2);
   const variantTitles=await page.locator('#mcDashboardPicks .mc-dashboard-card[data-catalog-id="rebar"] .mc-dashboard-card-head b').allInnerTexts();
   assert.ok(variantTitles.some(x=>x.includes('۱۶'))&&variantTitles.some(x=>x.includes('۲۰')),'Same catalog product with different sizes must render distinct dashboard card titles: '+JSON.stringify(variantTitles));
