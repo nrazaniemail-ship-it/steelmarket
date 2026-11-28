@@ -149,12 +149,15 @@ jobs:
             with urllib.request.urlopen(req,timeout=40) as response: data=json.loads(response.read().decode("utf-8"))
             html=data.get("body","")
             print("PIVAN_HTML_LENGTH",len(html))
-            for term in ["ورق سیاه","آخرین بروزرسانی","قیمت روز آهن"]:
-              pos=html.find(term)
-              print("PIVAN_TERM",term,"FOUND",pos)
-              if pos>=0: print("PIVAN_CONTEXT",re.sub(r"\\s+"," ",html[max(0,pos-500):pos+1800])[:2300])
+            for term in ["ورق سیاه","آخرین بروزرسانی","قیمت روز آهن","166,400","168,200","قیمت"]:
+              positions=[m.start() for m in re.finditer(re.escape(term),html,re.I)]
+              print("PIVAN_TERM",term,"COUNT",len(positions),"LAST",positions[-8:])
+              for pos in positions[-5:]:
+                snippet=re.sub(r"\\s+"," ",html[max(0,pos-350):pos+900])
+                print("PIVAN_CONTEXT",term,pos,snippet[:1300])
             print("PIVAN_TR_COUNT",len(re.findall(r"<tr\\b",html,re.I)))
             print("PIVAN_TD_COUNT",len(re.findall(r"<td\\b",html,re.I)))
+            print("PIVAN_API_HINTS",re.findall(r'https?[^"\\']{0,200}(?:api|price|ajax)[^"\\']{0,200}',html,re.I)[:15])
           except Exception as exc: print("PIVAN_DIAGNOSTIC_FAILED",repr(exc))
           PY
 
