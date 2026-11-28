@@ -60,6 +60,91 @@ export function extractStructuredPrice(body, adapterId='custom'){
 export { ADAPTERS };
 
 
+function sourceText(value){
+ return String(value??'').replace(/<script[\\s\\S]*?<\\/script>|<style[\\s\\S]*?<\\/style>/gi,' ')
+  .replace(/<br\\s*\\/?\\s*>|<\\/(?:p|div|li|h[1-6]|tr)\\s*>/gi,' ')
+  .replace(/<[^>]+>/g,' ').replace(/&nbsp;|&#160;/gi,' ').replace(/&amp;/gi,'&')
+  .replace(/&#(\\d+);/g,(_,n)=>String.fromCodePoint(Number(n)))
+  .replace(/[ي]/g,'ی').replace(/[ك]/g,'ک').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+  .replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\\s+/g,' ').trim().toLowerCase();
+}
+function sourceDimension(value){
+ const m=String(value||'').match(/(?:عرض\\s*)?(\\d+(?:[.,٫]\\d+)?)/);
+ if(!m)return '';
+ const n=Number(m[1].replace(',','.').replace('٫','.'));
+ return n>0&&n<10?String(Math.round(n*1000)):String(Math.round(n));
+}
+function sourceThickness(source){
+ const spec=sourceText([source.product_name,source.specification].filter(Boolean).join(' '));
+ const m=spec.match(/(\\d+(?:[.,٫]\\d+)?)\\s*(?:میلی?متر|میل)/);
+ return m?Number(m[1].replace(',','.').replace('٫','.')):null;
+}
+function sourceWidth(source){
+ const spec=sourceText(source.specification||'');
+ const m=spec.match(/عرض\\s*(\\d+(?:[.,٫]\\d+)?)/);
+ return m?sourceDimension(m[1]):'';
+}
+function sourceMaker(source){
+ const spec=sourceText([source.product_name,source.specification].join(' '));
+ return ['فولاد مبارکه','مبارکه','فولاد سبا','سبا','اکسین','کاویان','گیلان','خرم آباد','نورد قطعات','قطعات']
+  .find(x=>spec.includes(x))||'';
+}
+function sourceDateNear(text){
+ const m=String(text||'').match(/(14\\d{2}[\\/.-]\\d{1,2}[\\/.-]\\d{1,2})/);
+ return m?m[1].replace(/[.-]/g,'/'):null;
+}
+function tableRows(html){
+ const out=[];
+ for(const m of String(html||'').matchAll(/<tr\\b[^>]*>([\\s\\S]*?)<\\/tr>/gi)){
+  const cells=[...m[1].matchAll(/<t[dh]\\b[^>]*>([\\s\\S]*?)<\\/t[dh]>/gi)].map(x=>sourceText(x[1]));
+  if(cells.length)out.push({cells,index:m.index,html:m[1]});
+ }
+ return out;
+}
+export function extractIranianSheetTablePrice(body,source={},adapterId=''){
+ const html=String(body||''),thickness=sourceThickness(source),width=sourceWidth(source),maker=sourceMaker(source);
+ if(thickness===null||!/(hot-rolled|ورق)/i.test(String(source.product_key||'')+' '+String(source.product_name||'')))return null;
+ const delivery=sourceText(source.delivery||'');
+ const state=sourceText(source.specification||'');
+ const matches=[];
+ for(const row of tableRows(html)){
+  const joined=row.cells.join(' | '),near=sourceText(html.slice(Math.max(0,row.index-12000),row.index));
+  const rowText=sourceText(row.html);
+  if(!/(ورق سیاه|ورق گرم|ورق ضخامت|hot rolled)/i.test(near+' '+joined))continue;
+  const rowThickness=joined.match(/(?:ضخامت\\s*)?(\\d+(?:[.,٫]\\d+)?)\\s*(?:میل|میلی?متر)/);
+  const heading=[...near.matchAll(/ورق\\s*(?:سیاه|گرم)(?:\\s*ضخامت)?\\s*(\\d+(?:[.,٫]\\d+)?)/g)].at(-1);
+  const t=rowThickness?Number(rowThickness[1].replace(',','.').replace('٫','.')):heading?Number(heading[1].replace(',','.').replace('٫','.')):null;
+  if(t!==null&&Math.abs(t-thickness)>0.001)continue;
+  if(maker&&!joined.includes(maker))continue;
+  if(width&&!row.cells.some(c=>sourceDimension(c)===width||c.replace(/[^0-9]/g,'').includes(width)))continue;
+  if(delivery){
+   const city=delivery.includes('اصفهان')?'اصفهان':delivery.includes('تهران')?'تهران':'';
+   if(city&&!joined.includes(city))continue;
+   if(delivery.includes('کارخانه')&&!joined.includes('کارخانه'))continue;
+   if((delivery.includes('بنگاه')||delivery.includes('انبار'))&&!/(بنگاه|انبار)/.test(joined))continue;
+  }
+  if(state.includes('رول')&&!joined.includes('رول'))continue;
+  if(state.includes('برش')&&!joined.includes('برش'))continue;
+  if(state.includes('فابریک')&&!joined.includes('فابریک'))continue;
+  let priceText='';
+  if(adapterId==='ahanprice')priceText=row.cells[3]||'';
+  else priceText=row.cells.at(-1)||'';
+  if(/تماس|ناموجود|استعلام/i.test(priceText))continue;
+  const nums=[...priceText.matchAll(/[0-9][0-9,٬.٫]*/g)].map(x=>numericPrice(x[0])).filter(x=>x&&x>=10000&&x<=10000000);
+  const price=nums.at(-1);
+  if(!price)continue;
+  const after=html.slice(row.index,row.index+900);
+  const date=sourceDateNear(row.cells.at(5)||'')||sourceDateNear(after)||sourceDateNear(near.slice(-2500));
+  matches.push({price,sourceDate:date});
+ }
+ if(!matches.length)return null;
+ const unique=[...new Set(matches.map(x=>x.price))];
+ if(unique.length!==1)return null;
+ const dated=matches.filter(x=>x.price===unique[0]&&x.sourceDate).map(x=>x.sourceDate).sort();
+ return {price:unique[0],sourceDate:dated.at(-1)||null};
+}
+
+
 // Parse the public IME physical-market ASMX response. Prices are Rial/kg for tonne-based goods.
 function imeText(value){return String(value??'').replace(/[ي]/g,'ی').replace(/[ك]/g,'ک').replace(/\s+/g,' ').trim().toLowerCase()}
 export function extractImeTradePrice(payload, source={}){
