@@ -141,24 +141,32 @@ jobs:
         continue-on-error: true
         run: |
           python3 - <<'PY'
-          import json, urllib.parse, urllib.request, re
+          import json, urllib.parse, urllib.request, re, html as html_module
           api="https://fooladban-steel-api.n-razaniemail.workers.dev/public/fetch?"
-          url="https://pivan.co/"
-          req=urllib.request.Request(api+urllib.parse.urlencode({"url":url}),headers={"Accept":"application/json","User-Agent":"FooladbanSourceDiagnostics/1.0"})
+          def get_page(url):
+            req=urllib.request.Request(api+urllib.parse.urlencode({"url":url}),headers={"Accept":"application/json","User-Agent":"FooladbanSourceDiagnostics/1.0"})
+            with urllib.request.urlopen(req,timeout=40) as response: return json.loads(response.read().decode("utf-8")).get("body","")
           try:
-            with urllib.request.urlopen(req,timeout=40) as response: data=json.loads(response.read().decode("utf-8"))
-            html=data.get("body","")
+            html=get_page("https://pivan.co/")
             print("PIVAN_HTML_LENGTH",len(html))
             for term in ["ورق سیاه","آخرین بروزرسانی","قیمت روز آهن","166,400","168,200","قیمت"]:
               positions=[m.start() for m in re.finditer(re.escape(term),html,re.I)]
               print("PIVAN_TERM",term,"COUNT",len(positions),"LAST",positions[-8:])
               for pos in positions[-5:]:
-                snippet=re.sub(r"\\s+"," ",html[max(0,pos-350):pos+900])
+                snippet=re.sub(r"\s+"," ",html[max(0,pos-350):pos+900])
                 print("PIVAN_CONTEXT",term,pos,snippet[:1300])
-            print("PIVAN_TR_COUNT",len(re.findall(r"<tr\\b",html,re.I)))
-            print("PIVAN_TD_COUNT",len(re.findall(r"<td\\b",html,re.I)))
-            print("PIVAN_API_HINTS",re.findall(r'https?[^"\\']{0,200}(?:api|price|ajax)[^"\\']{0,200}',html,re.I)[:15])
+            print("PIVAN_TR_COUNT",len(re.findall(r"<tr\b",html,re.I)))
+            print("PIVAN_TD_COUNT",len(re.findall(r"<td\b",html,re.I)))
+            print("PIVAN_SCRIPT_COUNT",len(re.findall(r"<script\b",html,re.I)))
           except Exception as exc: print("PIVAN_DIAGNOSTIC_FAILED",repr(exc))
+          try:
+            html=get_page("https://t.me/s/iromart")
+            messages=re.findall(r"<div[^>]*class=[\"'][^\"']*tgme_widget_message_text[^\"']*[\"'][^>]*>([\s\S]*?)</div>",html,re.I)
+            print("IROMART_MESSAGE_COUNT",len(messages))
+            for msg in messages[:8]:
+              clean=html_module.unescape(re.sub(r"<[^>]+>"," ",msg))
+              print("IROMART_POST",re.sub(r"\s+"," ",clean)[:500])
+          except Exception as exc: print("IROMART_DIAGNOSTIC_FAILED",repr(exc))
           PY
 
       - name: Probe live Markaz Ahan hot-rolled sheet feed
