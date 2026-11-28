@@ -28,12 +28,12 @@ panel.innerHTML=`
 @media(max-width:560px){#fbFreightPanel .freight-grid{grid-template-columns:1fr}#fbFreightPanel .freight-result{grid-template-columns:1fr}#fbFreightPanel .wide{grid-column:auto}}
 </style>
 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h2>🚚 برآورد هزینه حمل</h2><span class="tag">حمل جاده‌ای داخلی</span></div>
-<p class="freight-sub">مبدأ، مقصد، نوع محصول و تناژ را وارد کنید. فاصله مسیر را می‌توانید خودکار محاسبه یا دستی اصلاح کنید؛ کرایه بر پایه شاخص تن‌ـ‌کیلومتر برآورد می‌شود.</p>
+<p class="freight-sub">مبدأ، مقصد، نوع کالا و تناژ را وارد کنید. فاصله مسیر را می‌توانید خودکار محاسبه یا دستی اصلاح کنید؛ کرایه بر پایه شاخص تن‌ـ‌کیلومتر برآورد می‌شود.</p>
 <div class="freight-grid">
 <label>مبدأ<input id="frOrigin" list="frCities" placeholder="مثلاً اصفهان"></label>
 <label>مقصد<input id="frDestination" list="frCities" placeholder="مثلاً تهران"></label>
 <datalist id="frCities"><option>تهران</option><option>اصفهان</option><option>اهواز</option><option>بندرعباس</option><option>تبریز</option><option>مشهد</option><option>یزد</option><option>کرمان</option><option>اراک</option><option>قزوین</option><option>قم</option><option>بندر امام خمینی</option><option>سیرجان</option><option>شاهرود</option><option>زنجان</option></datalist>
-<label>نوع محصول<select id="frProduct"><option value="steel">محصولات فولادی (شمش، ورق و مقاطع)</option><option value="mineral">مواد معدنی و مواد اولیه فولاد</option><option value="other">سایر کالاها</option></select></label>
+<label>نوع کالا<select id="frProduct"><option value="steel">کالاهای فولادی (شمش، ورق و مقاطع)</option><option value="mineral">مواد معدنی و مواد اولیه فولاد</option><option value="other">سایر کالاها</option></select></label>
 <label>تناژ محموله (تن)<input id="frTonnage" type="number" min=".1" step=".1" placeholder="مثلاً ۲۵"></label>
 <label>مسافت جاده‌ای (کیلومتر)<input id="frDistance" type="number" min="1" step="1" placeholder="پس از تعیین مسیر"></label>
 <label>مبنای ورود نرخ حمل<select id="frRateMode"><option value="auto">نرخ مرجع ثبت‌شده (خودکار)</option><option value="manual">ورود دستی نرخ</option></select></label>
