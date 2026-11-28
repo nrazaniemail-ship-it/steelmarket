@@ -43,6 +43,7 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('#mcDashboardPicks').innerText().then(t=>t.includes('میلگرد')),true);
   await page.locator('#fbLayerNav [data-layer-target="dashboard"]').click();
   await page.locator('#mcDashboardPicks [data-toggle-watch]').first().click();
+  await page.locator('#mcDashboardPicks .mc-dashboard-watch-title').first().waitFor({state:'visible',timeout:5000});
   assert.equal(await page.locator('#mcDashboardPicks .mc-dashboard-watch-title').first().isVisible(),true);
   await page.locator('#mcDashboardPicks [data-open-products]').first().click();
   await page.locator('#pCatalogSearch').fill('میلگرد');
