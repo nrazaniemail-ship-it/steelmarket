@@ -66,6 +66,7 @@ test('public manual check fetches an enabled registered source and appends an ob
   assert.equal(body.stored,true);
   assert.ok(calls.some(x=>x.sql.includes('UPDATE sources SET last_attempt_at')));
   assert.ok(calls.some(x=>x.sql.includes('INSERT INTO observations')));
+  assert.ok(!calls.some(x=>x.sql.includes('INSERT INTO market_events')));
  }finally{global.fetch=oldFetch}
 });
 
