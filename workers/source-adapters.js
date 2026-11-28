@@ -8,7 +8,7 @@ const TE_SLUGS = Object.freeze({
 const ADAPTERS = Object.freeze([
   { id:'ime', hosts:['ime.co.ir','www.ime.co.ir'], method:'official-market-data', confidence:'conditional', note:'اطلاعیه عرضه و گزارش معاملات؛ قیمت پایه با قیمت معامله یکسان نیست.' },
   { id:'ahanonline', hosts:['ahanonline.com','www.ahanonline.com'], method:'product-page-jsonld', confidence:'conditional', note:'صفحه اختصاصی کالا؛ قیمت و تاریخ به‌روزرسانی باید از همان صفحه خوانده شود.' },
-  { id:'markazeahan', hosts:['markazeahan.com','www.markazeahan.com'], method:'product-page-jsonld', confidence:'conditional', note:'صفحه اختصاصی کالا؛ نیازمند تطبیق گرید، سایز و کارخانه.' },
+  { id:'markazeahan', hosts:['markazeahan.com','www.markazeahan.com','t.me','www.t.me'], method:'product-page-jsonld', confidence:'conditional', note:'صفحه اختصاصی کالا؛ نیازمند تطبیق گرید، سایز و کارخانه.' },
   { id:'iromart', hosts:['iromart.com','www.iromart.com'], method:'product-page-jsonld', confidence:'conditional', note:'صفحه اختصاصی کالا؛ ممکن است قیمت به‌صورت پویا بارگذاری شود.' },
   { id:'pivan', hosts:['pivan.co','www.pivan.co'], method:'product-page-jsonld', confidence:'conditional', note:'صفحه اختصاصی کالا؛ قیمت و شرایط تحویل باید تطبیق داده شود.' },
   { id:'ahanprice', hosts:['ahanprice.com','www.ahanprice.com'], method:'product-page-jsonld', confidence:'conditional', note:'جدول قیمت؛ تاریخ و واحد قیمت باید همراه مقدار استخراج شود.' },
@@ -86,4 +86,46 @@ export function extractImeTradePrice(payload, source={}){
  if(String(source.currency||'IRR').toUpperCase()==='IRT')price/=10;
  if(String(source.measure_unit||'kg').toLowerCase()==='ton')price*=1000;
  return {price,sourceDate:latest,rows:current.length,quantity,currency:String(source.currency||'IRR').toUpperCase(),measure_unit:String(source.measure_unit||'kg').toLowerCase()};
+}
+
+
+function markazText(html){
+ return String(html||'').replace(/<br\\s*\\/?\s*>/gi,'\\n').replace(/<\\/(?:p|li|div|h[1-6])\\s*>/gi,'\\n')
+  .replace(/<[^>]+>/g,' ').replace(/&nbsp;|&#160;/gi,' ').replace(/&amp;/gi,'&')
+  .replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&#(\\d+);/g,(_,n)=>String.fromCodePoint(Number(n)))
+  .replace(/[ي]/g,'ی').replace(/[ك]/g,'ک').replace(/\\s+/g,' ').trim();
+}
+export function extractMarkazAhanTelegramPrice(body,source={}){
+ const html=String(body||'');
+ const messages=[...html.matchAll(/<div[^>]*class=["'][^"']*tgme_widget_message_text[^"']*["'][^>]*>([\\s\\S]*?)<\\/div>/gi)].map(m=>markazText(m[1]));
+ if(!messages.length)return null;
+ const key=String(source.product_key||'');
+ if(key!=='hot-rolled')return null;
+ const spec=markazText([source.product_name,source.specification].filter(Boolean).join(' '));
+ const thickness=spec.match(/(\\d+(?:[.,٫]\\d+)?)\\s*(?:میلی?متر|میل)/);
+ if(!thickness)return null;
+ const width=spec.match(/(?:عرض\\s*)(\\d+(?:[.,٫]\\d+)?)/);
+ const makers=['فولاد مبارکه','فولاد سبا','اکسین','کاویان','فولاد غرب','قطعات'];
+ const maker=makers.find(x=>spec.includes(x));
+ const delivery=markazText(source.delivery||'');
+ const isHot=line=>/ورق\\s*(?:سیاه|گرم)|ورق_(?:سیاه|گرم)/.test(line);
+ const num=v=>Number(String(v).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٫,٬]/g,'.'));
+ for(const message of messages){
+  const rows=message.split(/(?=ورق\\s*(?:سیاه|گرم)|ورق_(?:سیاه|گرم))/).filter(isHot);
+  const matched=[];
+  for(const line of rows){
+   if(!line.includes('تومان'))continue;
+   const t=line.match(/ضخامت\\s*(\\d+(?:[.,٫]\\d+)?)\\s*(?:میلی?متر|میل)/);
+   if(!t||Math.abs(num(t[1])-num(thickness[1]))>0.001)continue;
+   if(width){const w=line.match(/عرض\\s*(\\d+(?:[.,٫]\\d+)?)/);if(!w||Math.abs(num(w[1])-num(width[1]))>0.001)continue}
+   if(maker&&!line.includes(maker))continue;
+   if(delivery.includes('اصفهان')&&!line.includes('اصفهان'))continue;
+   if(delivery.includes('تهران')&&!line.includes('تهران'))continue;
+   if(delivery.includes('کارخانه')&&!line.includes('کارخانه'))continue;
+   const p=line.match(/([0-9۰-۹٠-٩][0-9۰-۹٠-٩,٬٫.]*)\\s*تومان/);
+   if(p){const price=numericPrice(p[1]);if(price)matched.push(price)}
+  }
+  if(matched.length){const unique=[...new Set(matched)];return unique.length===1?unique[0]:null}
+ }
+ return null;
 }
