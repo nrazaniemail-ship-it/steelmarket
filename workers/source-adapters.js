@@ -54,6 +54,9 @@ export function extractStructuredPrice(body, adapterId='custom'){
  if(adapterId==='tradingeconomics'){
   const m=String(body).match(/(?:instrument-price-last|last-price|price-last)[^>]{0,180}>([0-9][0-9,.]*)</i);
   if(m){const n=numericPrice(m[1]);if(n)return n}
+  const visible=String(body).replace(/<script[\\s\\S]*?<\\/script>|<style[\\s\\S]*?<\\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;/gi,' ').replace(/\\s+/g,' ');
+  const actual=visible.match(/\\bActual\\s+([0-9][0-9,.]*)/i);
+  if(actual){const n=numericPrice(actual[1]);if(n)return n}
  }
  return null;
 }
