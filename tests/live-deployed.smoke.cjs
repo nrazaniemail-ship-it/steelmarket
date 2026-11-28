@@ -1,5 +1,5 @@
-import assert from 'node:assert/strict';
-import { chromium } from 'playwright';
+const assert = require('node:assert/strict');
+const { chromium } = require('playwright');
 
 const PAGE='https://nrazaniemail-ship-it.github.io/fooladban/';
 const API='https://fooladban-steel-api.n-razaniemail.workers.dev';
