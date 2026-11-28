@@ -74,3 +74,30 @@ jobs:
           curl -sS --max-time 20 -D /tmp/fooladban-cors-headers -o /dev/null -X OPTIONS "$API/health" -H "Origin: $ORIGIN" -H "Access-Control-Request-Method: GET" -H "Access-Control-Request-Headers: authorization,content-type"
           grep -qi "access-control-allow-origin: $ORIGIN" /tmp/fooladban-cors-headers
           echo "Browser CORS preflight: OK"
+
+      - name: Probe live Markaz Ahan hot-rolled sheet feed
+        continue-on-error: true
+        run: |
+          python3 - <<'PY'
+          import json, urllib.parse, urllib.request
+          base = "https://fooladban-steel-api.n-razaniemail.workers.dev/public/price?"
+          params = {
+            "url":"https://markazeahan.com/",
+            "product_key":"hot-rolled",
+            "product_name":"ورق گرم",
+            "specification":"2 میلیمتر عرض 1.25 فولاد سبا",
+            "source_kind":"free_market",
+            "parser_mode":"auto",
+            "currency":"IRT",
+            "measure_unit":"kg",
+            "delivery":"انبار اصفهان"
+          }
+          req=urllib.request.Request(base+urllib.parse.urlencode(params),headers={"Accept":"application/json","User-Agent":"FooladbanLiveSourceProbe/1.0"})
+          try:
+            with urllib.request.urlopen(req,timeout=45) as response:
+              result=json.loads(response.read().decode("utf-8"))
+            if float(result.get("price") or 0)<=0: raise RuntimeError(str(result))
+            print("MARKAZ AHAN LIVE PRICE:",result["price"],result.get("currency"),"/",result.get("measure_unit"))
+          except Exception as exc:
+            print("MARKAZ AHAN LIVE PRICE PROBE FAILED:",repr(exc))
+          PY
