@@ -157,7 +157,7 @@ export default {
    }
    // Public manual refresh is restricted to an already-registered source, an allowlisted HTTPS host,
    // and a per-source cooldown. Admin credentials are not exposed to the browser for price checks.
-   const publicCheck = u.pathname.match(/^\\/public\\/sources\\/([^/]+)\\/check$/);
+   const publicCheck = u.pathname.match(/^\/public\/sources\/([^/]+)\/check$/);
    if (publicCheck && request.method === 'POST') {
     const id=decodeURIComponent(publicCheck[1]);
     const source=await env.DB.prepare('SELECT * FROM sources WHERE id=? AND enabled=1').bind(id).first();
