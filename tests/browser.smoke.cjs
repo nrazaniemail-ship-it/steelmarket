@@ -74,6 +74,8 @@ const assert = require('node:assert/strict');
   await page.locator('#productForm button[type=submit]').click();
   await page.waitForFunction(()=>JSON.parse(localStorage.getItem('fooladban.v1')||'{"products":[]}').products.some(p=>p.catalogId==='rebar'&&p.productGrade==='A3'));
   await page.waitForFunction(()=>[...document.querySelectorAll('#mcDashboardPicks .mc-dashboard-watch-title')].some(x=>x.textContent.includes('۱ مرجع')||x.textContent.includes('1 مرجع')));
+  await page.waitForFunction(()=>{const p=document.querySelector('#addPanel'),card=document.querySelector('#mcDashboardPicks .mc-dashboard-card');return !!p&&!p.closest('.mc-dashboard-card')&&p.style.display==='none'&&card?.querySelector('[data-toggle-watch]')?.getAttribute('aria-expanded')==='false'});
+  assert.equal(await page.locator('#productForm').count(),1,'Product form must remain mounted after save');
   await page.locator('#fbLayerNav [data-layer-target="dashboard"]').click();
   await page.locator('#mcDashboardPicks [data-toggle-watch]').first().click();
   await page.locator('#mcDashboardPicks .mc-dashboard-record').first().waitFor();
