@@ -224,6 +224,7 @@ export function extractIromartTelegramPrice(body,source={}){
    if(maker&&!line.includes(maker))continue;
    if(delivery.includes('تهران')&&!line.includes('تهران'))continue;
    if(delivery.includes('اصفهان')&&!line.includes('اصفهان'))continue;
+   if(delivery.includes('اهواز')&&!line.includes('اهواز'))continue;
    if(delivery.includes('کارخانه')&&!line.includes('کارخانه'))continue;
    if(delivery.includes('انبار')&&!line.includes('انبار'))continue;
    const p=line.match(/([0-9۰-۹٠-٩][0-9۰-۹٠-٩,٬٫.]*)\s*(تومان|ریال)/);
