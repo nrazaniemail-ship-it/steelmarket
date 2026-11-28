@@ -1,4 +1,5 @@
 name: Deploy Fooladban to GitHub Pages
+# Redeploy the current main branch after API client timeout diagnostics update.
 on:
   push:
     branches: [main]
