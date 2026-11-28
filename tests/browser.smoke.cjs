@@ -38,8 +38,10 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('#layer-assistant').count(),1);
   if(await page.locator('#mcProductCatalog').count()===0){const diag=await page.evaluate(()=>({scripts:[...document.scripts].map(x=>x.src),ready:document.readyState,main:!!document.querySelector('main.wrap'),source:!!document.getElementById('sourcePanel'),shell:!!document.getElementById('fooladbanLayerShell')}));throw new Error('Product catalog missing. Page errors: '+errors.join('\\n')+' Diagnostics: '+JSON.stringify(diag))}
   await page.locator('#mcProductCatalog').waitFor({state:'attached'});
-  assert.equal(await page.locator('#mcProductCatalog input[data-catalog-id]').count(),21);
+  assert.equal(await page.locator('#mcProductCatalog input[data-catalog-id]').count(),22);
   const flatGoods=await page.locator('#mcProductCatalog .mc-group').filter({hasText:'مقاطع تخت'}).innerText();
+  assert.ok(flatGoods.indexOf('ورق گرم')<flatGoods.indexOf('ورق سیاه'));
+  assert.ok(flatGoods.indexOf('ورق سیاه')<flatGoods.indexOf('ورق گرم (سیاه)-تخت'));
   assert.ok(flatGoods.indexOf('ورق گرم')<flatGoods.indexOf('ورق گرم (سیاه)-تخت'));
   assert.ok(flatGoods.indexOf('ورق گرم (سیاه)-تخت')<flatGoods.indexOf('ورق گرم (سیاه)-کلاف'));
   assert.equal(await page.locator('#mcSourceRegistry .mc-source').count(),7);
