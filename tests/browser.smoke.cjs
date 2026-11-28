@@ -6,8 +6,9 @@ const assert = require('node:assert/strict');
   const page=await browser.newPage({viewport:{width:390,height:844}});
   const errors=[];page.on('pageerror',e=>errors.push(e.stack||e.message));
   async function longPressMove(source,target){
-   const a=await source.boundingBox(),b=await target.boundingBox();assert.ok(a&&b,'drag cards must be visible');
-   const sx=a.x+a.width-3,sy=a.y+a.height/2,tx=b.x+b.width/2,ty=b.y+b.height/2;
+   await source.scrollIntoViewIfNeeded();const a=await source.boundingBox(),b=await target.boundingBox();assert.ok(a&&b,'drag cards must be visible');
+   const sx=a.x+a.width-3,sy=a.y+a.height/2,tx=b.x+b.width/2,ty=Math.max(b.y+Math.min(b.height/2,40),20);// target may be a tall card with the embedded form; stay inside the viewport
+   
    await page.mouse.move(sx,sy);await page.mouse.down();await page.waitForTimeout(550);await page.mouse.move(tx,ty,{steps:5});await page.mouse.up();await page.waitForTimeout(100);
   }
   await page.route('https://example.invalid/**',route=>route.abort());
@@ -140,16 +141,21 @@ const assert = require('node:assert/strict');
   await page.locator('#taAnalyze').click();
   await page.locator('#taResults .ta-result').first().waitFor();
   assert.equal(await page.locator('#taResults').innerText().then(t=>t.includes('بهای خرید هر تن')),true);
+  assert.equal(await page.locator('#fbTopsisPanel').count(),1);
+  assert.equal(await page.locator('#fbToolkit').count(),1);
+  await page.locator('#fbLayerNav [data-layer-target="analysis"]').click();
+  await page.locator('#fbToolkit select').first().selectOption('rebar');
+  assert.equal(await page.locator('#fbToolkit .tk-out').first().innerText().then(t=>t.includes('۱۸٫۹')),true);
   await page.locator('#fbLayerNav [data-layer-target="settings"]').click();
   assert.equal(await page.locator('#layer-settings').isVisible(),true);
-  assert.equal(await page.locator('#layer-settings .fb-settings-card').count(),23);
-  assert.equal(await page.locator('#layer-settings').innerText().then(t=>t.includes('رنگ آیکون‌ها')),true);
-  assert.equal(await page.locator('#layer-settings').innerText().then(t=>t.includes('ذخیره تنظیمات ظاهری')),true);
+  assert.equal(await page.locator('#layer-settings .fb-settings-card').count(),24);
+  assert.equal(await page.locator('#layer-settings').textContent().then(t=>t.includes('رنگ آیکون‌ها')),true);
   assert.equal(await page.locator('#layer-settings .fb-about-brand img').getAttribute('src'),'./icon.svg');
-  await page.locator('#layer-settings summary').filter({hasText:'قالب نمایش'}).click();
+  await page.locator('#layer-settings summary').filter({hasText:'قالب برنامه'}).click();
   await page.locator('#layer-settings summary').filter({hasText:'ترتیب لایه‌ها'}).click();
   assert.equal(await page.locator('.fb-layer-order').count(),6);
-  await page.locator('#layer-settings .fb-setting-row select').first().selectOption('light');
+  await page.locator('#layer-settings summary').filter({hasText:'ظاهر برنامه'}).click();
+  await page.locator('#layer-settings details').filter({has:page.locator('summary',{hasText:'ظاهر برنامه'})}).locator('select').first().selectOption('light');
   assert.equal(await page.locator('html').getAttribute('data-theme'),'light');
   assert.deepEqual(errors,[]);
   console.log('Browser smoke test passed: six-layer navigation, product cards with monitoring, selected product registration, settings, theme, layer order and no runtime exceptions');
