@@ -100,20 +100,6 @@ const assert = require('node:assert/strict');
   assert.deepEqual(validity,{valid:true,invalid:[]});
   await page.locator('#productForm button[type=submit]').click();
   await page.waitForFunction(()=>JSON.parse(localStorage.getItem('fooladban.v1')||'{"products":[]}').products.some(p=>p.catalogId==='rebar'&&p.productGrade==='A3'));
-  // One registered source (IME) may serve different catalog products even when its generic URL is shared.
-  const hotRolledCard=page.locator('#mcDashboardPicks .mc-dashboard-card[data-catalog-id="hot-rolled"]');
-  await hotRolledCard.locator('[data-toggle-watch]').click();
-  await hotRolledCard.locator('[data-open-products]').click();
-  await page.locator('#pCatalogProduct').selectOption('hot-rolled');
-  await page.locator('#pGrade').selectOption('ST37');
-  await page.locator('#pSize').selectOption('۳');
-  await page.locator('#pSourceRegistry').selectOption('ime');
-  await page.locator('#pUrl').fill('https://example.invalid/rebar');
-  await page.locator('#productForm button[type=submit]').click();
-  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('fooladban.v1')||'{"products":[]}').products.some(p=>p.catalogId==='hot-rolled'&&p.sourceRef==='ime'));
-  assert.equal(await page.evaluate(()=>{const ps=JSON.parse(localStorage.getItem('fooladban.v1')||'{}').products.filter(p=>p.sourceRef==='ime');return new Set(ps.map(p=>p.catalogId)).size>=2}),true,'The same IME source and shared URL must be reusable for different goods');
-  await page.evaluate(()=>{const s=JSON.parse(localStorage.getItem('fooladban.v1')||'{}'),p=s.products.find(x=>x.catalogId==='hot-rolled');window.confirm=()=>true;document.querySelectorAll('#products [data-delete]').forEach(b=>{if(b.dataset.delete===p?.id)b.click()})});
-  
   await page.waitForFunction(()=>[...document.querySelectorAll('#mcDashboardPicks .mc-dashboard-watch-title')].some(x=>x.textContent.includes('۱ مرجع')||x.textContent.includes('1 مرجع')));
   await page.locator('#mcDashboardPicks [data-toggle-watch]').first().click();
   await page.locator('#mcDashboardPicks .mc-dashboard-record').first().waitFor();
@@ -297,6 +283,23 @@ const assert = require('node:assert/strict');
   await mobilePage.waitForFunction(()=>{const cards=[...document.querySelectorAll('#mcDashboardPicks .mc-dashboard-card')];return cards.length===2&&cards[0]?.dataset.catalogId==='hot-rolled'});
   assert.deepEqual(await mobilePage.locator('#mcDashboardPicks .mc-dashboard-card').evaluateAll(xs=>xs.map(x=>x.dataset.catalogId)),['hot-rolled','rebar'],'Long-press touch drag must reorder dashboard cards on mobile');
   await mobileContext.close();
+  // Isolated regression test: a single IME source can be assigned to multiple distinct products.
+  const sourceContext=await browser.newContext({viewport:{width:390,height:844}});
+  const sourcePage=await sourceContext.newPage();
+  await sourcePage.addInitScript(()=>{localStorage.setItem('fooladban.v1',JSON.stringify({products:[{id:'source-rebar',catalogId:'rebar',productKey:'rebar',name:'میلگرد',productGrade:'A3',productSize:'۱۶',market:'ایران',currency:'IRT',measureUnit:'kg',sourceRef:'ime',url:'https://example.invalid/rebar',history:[]}],events:[],settings:{auto:false,apiUrl:''}}));localStorage.setItem('fooladban.market-config.v1',JSON.stringify({selected:['rebar','hot-rolled'],order:['rebar','hot-rolled'],sources:[]}))});
+  await sourcePage.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+  await sourcePage.waitForFunction(()=>document.querySelectorAll('#mcDashboardPicks .mc-dashboard-card').length===2);
+  const hotSourceCard=sourcePage.locator('#mcDashboardPicks .mc-dashboard-card[data-catalog-id="hot-rolled"]');
+  await hotSourceCard.locator('[data-open-products]').click();
+  await sourcePage.locator('#pCatalogProduct').selectOption('hot-rolled');
+  await sourcePage.locator('#pGrade').selectOption('ST37');
+  await sourcePage.locator('#pSize').selectOption('۳');
+  await sourcePage.locator('#pSourceRegistry').selectOption('ime');
+  await sourcePage.locator('#pUrl').fill('https://example.invalid/rebar');
+  await sourcePage.locator('#productForm button[type=submit]').click();
+  await sourcePage.waitForFunction(()=>JSON.parse(localStorage.getItem('fooladban.v1')||'{"products":[]}').products.some(p=>p.catalogId==='hot-rolled'&&p.sourceRef==='ime'));
+  assert.equal(await sourcePage.evaluate(()=>{const ps=JSON.parse(localStorage.getItem('fooladban.v1')||'{}').products.filter(p=>p.sourceRef==='ime');return new Set(ps.map(p=>p.catalogId)).size>=2}),true,'The same IME source and shared URL must be reusable for different goods');
+  await sourceContext.close();
   assert.deepEqual(errors,[]);
   console.log('Browser smoke test passed: six-layer navigation, product cards with monitoring, selected product registration, settings, theme, layer order and no runtime exceptions');
  }finally{await browser.close()}
