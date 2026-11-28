@@ -128,5 +128,21 @@ test('source-specific steel price adapters',async t=>{
   const coil='<table><tr><td>ورق سیاه - 2 - فولاد مبارکه - رول عرض 125</td><td class="meta-width*length">۱۲۵</td><td class="meta-brand-name">فولاد مبارکه</td><td class="meta-form-name">رول</td><td class="meta-delivery">انبار اصفهان</td><td class="meta-unit">کیلوگرم</td><td class="meta-price">۱۶۲,۵۰۰</td><td>۰٪</td></tr></table>';
   assert.equal(extractPivanSheetPrice(coil,sheetSource),null);
  });
+ await t.test('extracts Ahanonline sheet and coil from the exact price/date header columns',async()=>{
+  const {extractIranianSheetTablePrice}=await import('../workers/source-adapters.js');
+  const html='<h3>ورق سیاه 2 میل</h3><table><tr><th>سایز</th><th>برند</th><th>حالت</th><th>محل تحویل</th><th>تاریخ بروزرسانی</th><th>قیمت (تومان)</th><th>نوسانات</th><th>نمودار</th></tr><tr><td>1250*2500</td><td>فولاد مبارکه</td><td>برش خورده</td><td>بنگاه تهران</td><td>1405/9/5</td><td>169,150</td><td>+0.5%</td><td></td></tr><tr><td>1250</td><td>فولاد مبارکه</td><td>رول</td><td>کارخانه</td><td>1405/9/5</td><td>166,360</td><td>+0.5%</td><td></td></tr></table>';
+  const sheet={product_key:'hot-rolled-sheet',product_name:'ورق گرم (سیاه)-تخت',specification:'ضخامت 2 میلیمتر عرض 1250 طول 2500 فولاد مبارکه برش خورده',delivery:'بنگاه تهران'};
+  const coil={product_key:'hot-rolled-coil',product_name:'ورق گرم (سیاه)-کلاف',specification:'ضخامت 2 میلیمتر عرض 1250 فولاد مبارکه رول',delivery:'کارخانه'};
+  assert.deepEqual(extractIranianSheetTablePrice(html,sheet,'ahanonline'),{price:169150,sourceDate:'1405/9/5'});
+  assert.deepEqual(extractIranianSheetTablePrice(html,coil,'ahanonline'),{price:166360,sourceDate:'1405/9/5'});
+ });
+ await t.test('Ahanonline coil and sheet records cannot cross-match each other',async()=>{
+  const {extractIranianSheetTablePrice}=await import('../workers/source-adapters.js');
+  const html='<h3>ورق سیاه 2 میل</h3><table><tr><th>سایز</th><th>برند</th><th>حالت</th><th>محل تحویل</th><th>تاریخ بروزرسانی</th><th>قیمت (تومان)</th></tr><tr><td>1250*2500</td><td>فولاد مبارکه</td><td>برش خورده</td><td>بنگاه تهران</td><td>1405/9/5</td><td>169,150</td></tr><tr><td>1250</td><td>فولاد مبارکه</td><td>رول</td><td>کارخانه</td><td>1405/9/5</td><td>166,360</td></tr></table>';
+  const wrongSheet={product_key:'hot-rolled-sheet',product_name:'ورق تخت',specification:'ضخامت 2 میلیمتر عرض 1250 طول 3000 فولاد مبارکه برش خورده',delivery:'بنگاه تهران'};
+  const wrongCoil={product_key:'hot-rolled-coil',product_name:'ورق کلاف',specification:'ضخامت 2 میلیمتر عرض 1250 فولاد مبارکه رول',delivery:'بنگاه تهران'};
+  assert.equal(extractIranianSheetTablePrice(html,wrongSheet,'ahanonline'),null);
+  assert.equal(extractIranianSheetTablePrice(html,wrongCoil,'ahanonline'),null);
+ });
 
 });
