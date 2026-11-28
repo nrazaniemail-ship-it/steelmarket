@@ -159,6 +159,7 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('#taResults').innerText().then(t=>t.includes('بهای خرید هر تن')),true);
   assert.equal(await page.locator('#fbTopsisPanel').count(),1);
   await page.locator('#fbLayerNav [data-layer-target="dashboard"]').click();
+  await page.locator('#fbLayerNav [data-layer-target="dashboard"]').click();
   await page.locator('#mcSelectGoods').click();
   await page.locator('#mcProductCatalog input[data-catalog-id="rebar"]').uncheck();
   await page.locator('#mcProductCatalog input[data-catalog-id="hot-rolled"]').uncheck();
