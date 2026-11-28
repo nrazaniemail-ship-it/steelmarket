@@ -7,7 +7,7 @@ const KEY='fooladban.v1',DAY=864e5,fa=(n,d=0)=>Number.isFinite(n)?n.toLocaleStri
 const digits=s=>String(s??'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٬,\s]/g,'').replace('٫','.');
 const num=v=>{const n=Number(digits(v));return Number.isFinite(n)&&n>=0?n:NaN};
 function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
-function products(){try{const s=JSON.parse(localStorage.getItem(KEY)||'{}');return Array.isArray(s.products)?s.products.filter(p=>p&&Array.isArray(p.history)):[]}catch{return[]}}
+function products(){try{const s=JSON.parse(localStorage.getItem(KEY)||'{}'),selected=new Set((window.FooladbanMarketConfig?.selectedProducts||[]).map(String));return Array.isArray(s.products)?s.products.filter(p=>p&&Array.isArray(p.history)&&selected.has(String(p.catalogId||p.productKey||''))):[]}catch{return[]}}
 const style=el('style');style.textContent=`#fbToolkit{background:linear-gradient(145deg,var(--panel),#102035);border:1px solid var(--line);border-radius:16px;padding:15px;margin:0 0 14px}
 #fbToolkit h2{font-size:1rem;margin:0 0 6px}#fbToolkit h3{font-size:.86rem;color:var(--gold);margin:16px 0 8px}#fbToolkit .tk-note{font-size:.72rem;color:var(--muted);line-height:1.9;margin:0 0 8px}
 #fbToolkit .tk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}#fbToolkit label{display:grid;gap:4px;font-size:.74rem;color:var(--muted)}
@@ -65,6 +65,6 @@ const mg=el('div','tk-grid');for(const [k,t,d] of defs){const i=el('input');i.ty
 function mcalc(){const a=num(mi.inp.value),y=num(mi.yield.value),c=num(mi.conv.value||'0'),o=num(mi.out.value);mout.replaceChildren();if(!(a>0&&y>0&&o>0)||!Number.isFinite(c)){mout.textContent='قیمت ماده اولیه، ضریب مصرف و قیمت فروش را وارد کنید.';return}
 const cost=a*y+c,m=o-cost,pc=m/o*100;const d=el('div');d.append(document.createTextNode('بهای تمام‌شده هر تن محصول: '),el('b','',fa(cost)));const d2=el('div');d2.append(document.createTextNode('حاشیه ناخالص: '),el('b',m>=0?'tk-up':'tk-down',fa(m)+' ('+fa(pc,1)+'٪ از قیمت فروش)'));const d3=el('div');d3.append(document.createTextNode('نقطه سربه‌سر قیمت فروش: '),el('b','',fa(cost)));mout.append(d,d2,d3)}
 host.append(root);buildFields();mcalc();renderPulse();
-window.addEventListener('fooladban:product-updated',renderPulse);window.addEventListener('storage',e=>{if(e.key===KEY)renderPulse()});
+window.addEventListener('fooladban:product-updated',renderPulse);window.addEventListener('fooladban:dashboard-selection-changed',renderPulse);window.addEventListener('storage',e=>{if(e.key===KEY)renderPulse()});
 window.FooladbanToolkit={renderPulse,SHAPES};
 })();
