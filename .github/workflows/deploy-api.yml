@@ -75,28 +75,29 @@ jobs:
           grep -qi "access-control-allow-origin: $ORIGIN" /tmp/fooladban-cors-headers
           echo "Browser CORS preflight: OK"
       - name: Verify live price fetch and persisted D1 observation
-        env:
-          API_TOKEN: ${{ secrets.FOOLADB_API_TOKEN }}
         run: |
           python3 - <<'PY'
-          import json, os, urllib.request, urllib.error, urllib.parse
+          import json, urllib.request, urllib.parse, urllib.error
           base = "https://fooladban-steel-api.n-razaniemail.workers.dev"
-          token = os.environ["API_TOKEN"]
           def request(path, method="GET"):
-              headers = {"Authorization": "Bearer " + token, "Accept": "application/json"}
+              headers = {"Accept": "application/json"}
               if method == "POST":
                   headers["Content-Type"] = "application/json"
               req = urllib.request.Request(base + path, data=b"{}" if method == "POST" else None, headers=headers, method=method)
-              with urllib.request.urlopen(req, timeout=45) as response:
-                  return json.loads(response.read().decode("utf-8"))
-          sources = request("/sources")
+              try:
+                  with urllib.request.urlopen(req, timeout=45) as response:
+                      return json.loads(response.read().decode("utf-8"))
+              except urllib.error.HTTPError as error:
+                  detail = error.read().decode("utf-8", "replace")
+                  raise RuntimeError("HTTP " + str(error.code) + ": " + detail[:300])
+          sources = request("/public/sources")
           enabled = [s for s in sources if s.get("enabled")]
           print("Enabled D1 price sources:", len(enabled))
           verified = 0
           for source in enabled:
               sid = source["id"]
               try:
-                  result = request("/sources/" + urllib.parse.quote(sid, safe="") + "/check", "POST")
+                  result = request("/public/sources/" + urllib.parse.quote(sid, safe="") + "/check", "POST")
                   assert result.get("stored") is True, result
                   rows = request("/public/observations?product_key=" + urllib.parse.quote(source["product_key"], safe=""))
                   assert any(row.get("source_id") == sid and row.get("observed_at") == result.get("observed_at") for row in rows), "new observation not found in D1"
