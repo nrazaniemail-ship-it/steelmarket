@@ -4,8 +4,10 @@ function json(data, status = 200, cors = {}) {
  return new Response(JSON.stringify(data), { status, headers: { 'content-type':'application/json; charset=utf-8', 'cache-control':'no-store', ...cors } });
 }
 function originAllowed(origin, env) {
- const list = String(env.APP_ORIGIN || '').split(',').map(x => x.trim().replace(/\/+$/, '')).filter(Boolean);
- return !!origin && list.includes(origin.replace(/\/+$/, ''));
+ const list = String(env.APP_ORIGIN || '').split(',').map(x => x.trim()).filter(Boolean).map(x => {
+  try { return new URL(x).origin; } catch { return x.replace(/\\/+$/, ''); }
+ });
+ return !!origin && list.includes(origin.replace(/\\/+$/, ''));
 }
 function corsHeaders(req, env) {
  const origin = req.headers.get('origin') || '';
