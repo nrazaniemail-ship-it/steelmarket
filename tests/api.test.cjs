@@ -83,6 +83,21 @@ test('public price endpoint resolves Markaz Ahan hot-rolled prices without admin
  }finally{global.fetch=oldFetch}
 });
 
+test('public price lookup resolves Markaz Ahan variant through the Telegram preview',async()=>{
+ const oldFetch=global.fetch;
+ const html='<div class="tgme_widget_message_text js-message_text" dir="auto">#ورق_سیاه<br>ورق سیاه ضخامت 2 میلیمتر فولاد سبا عرض 1.25 انبار اصفهان ⬅ 163,636 تومان<br>ورق سیاه ضخامت 2 میلیمتر فولاد سبا عرض 1 انبار اصفهان ⬅ 165,454 تومان</div>';
+ global.fetch=async(url)=>{assert.match(String(url),/t\\.me\\/s\\/markazeahan4/);return new Response(html,{status:200,headers:{'content-type':'text/html; charset=utf-8'}})};
+ try{
+  const env={DB:dbMock(),APP_ORIGIN:'https://nrazaniemail-ship-it.github.io',ALLOWED_HOSTS:'markazeahan.com,t.me'};
+  const q=new URLSearchParams({url:'https://markazeahan.com/',product_key:'hot-rolled',product_name:'ورق گرم',specification:'2 میلیمتر عرض 1.25 فولاد سبا',source_kind:'free_market',parser_mode:'auto',currency:'IRT',measure_unit:'kg',delivery:'انبار اصفهان'});
+  const res=await worker.default.fetch(new Request('https://api.example.workers.dev/public/price?'+q,{headers:{Origin:env.APP_ORIGIN}}),env);
+  const body=await res.json();
+  assert.equal(res.status,200);
+  assert.equal(body.price,163636);
+  assert.equal(body.currency,'IRT');
+ }finally{global.fetch=oldFetch}
+});
+
 test('public manual check fetches an enabled registered source and appends an observation without admin token',async()=>{
  const source={id:'src-public',product_key:'rebar16',product_name:'میلگرد ۱۶',url:'https://prices.example.com/p',source_kind:'factory',parser_mode:'regex',regex:'price: ([0-9]+)',currency:'IRT',measure_unit:'kg',enabled:1,last_attempt_at:null};
  const calls=[];
