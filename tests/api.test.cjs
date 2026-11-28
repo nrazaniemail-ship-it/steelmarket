@@ -19,6 +19,16 @@ test('public market and source endpoints return data without admin token',async(
   assert.ok(Array.isArray(await res.json()));
  }
 });
+test('CORS accepts a configured GitHub Pages URL with a repository path',async()=>{
+ const DB=dbMock();
+ const origin='https://nrazaniemail-ship-it.github.io';
+ const env={DB,APP_ORIGIN:origin+'/steelmarket'};
+ const req=new Request('https://api.example.workers.dev/health',{headers:{Origin:origin}});
+ const res=await worker.default.fetch(req,env);
+ assert.equal(res.status,200);
+ assert.equal(res.headers.get('access-control-allow-origin'),origin);
+});
+
 test('admin source write remains protected',async()=>{
  const DB=dbMock();
  const env={DB,APP_ORIGIN:'https://nrazaniemail-ship-it.github.io',ALLOWED_HOSTS:'prices.example.com',API_TOKEN:'secret'};
