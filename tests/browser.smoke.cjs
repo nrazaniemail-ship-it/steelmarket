@@ -97,7 +97,7 @@ const assert = require('node:assert/strict');
   await page.locator('#productForm button[type=submit]').click();
   await page.waitForFunction(()=>JSON.parse(localStorage.getItem('fooladban.v1')||'{"products":[]}').products.some(p=>p.catalogId==='rebar'&&p.productGrade==='A3'));
   await page.waitForFunction(()=>[...document.querySelectorAll('#mcDashboardPicks .mc-dashboard-watch-title')].some(x=>x.textContent.includes('۱ مرجع')||x.textContent.includes('1 مرجع')));
-  await page.evaluate(()=>{const key='fooladban.v1',s=JSON.parse(localStorage.getItem(key)||'{}'),p=s.products.find(x=>x.catalogId==='rebar');s.products.push({...p,id:'duplicate-rebar-test',name:'رکورد تکراری آزمایشی',history:[...(p.history||[])]});localStorage.setItem(key,JSON.stringify(s));window.dispatchEvent(new CustomEvent('fooladban:product-updated',{detail:{id:'duplicate-rebar-test'}}))});
+  await page.evaluate(()=>{const key='fooladban.v1',s=JSON.parse(localStorage.getItem(key)||'{}'),p=s.products.find(x=>x.catalogId==='rebar');s.products.push({...p,id:'duplicate-rebar-test',name:'رکورد تکراری آزمایشی',checkedAt:0,history:[...(p.history||[])]});localStorage.setItem(key,JSON.stringify(s));window.dispatchEvent(new CustomEvent('fooladban:product-updated',{detail:{id:'duplicate-rebar-test'}}))});
   await page.waitForFunction(()=>document.querySelectorAll('#fbTradeComparison #taProducts .ta-product').length===1);
   assert.equal(await page.locator('#fbTradeComparison #taProducts .ta-product').count(),1,'Comparable product selector must show one row per selected catalog product');
   await page.evaluate(()=>{
