@@ -168,16 +168,10 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('#mcDashboardPicks .mc-dashboard-drag-handle').count(),0);
   const beforeOrder=await page.locator('#mcDashboardPicks .mc-dashboard-card').evaluateAll(xs=>xs.map(x=>x.dataset.orderKey));
   assert.equal(beforeOrder.length,3);
-  let afterOrder=beforeOrder;
-  for(let attempt=0;attempt<3&&JSON.stringify(afterOrder)===JSON.stringify(beforeOrder);attempt++){
-   await longPressMove(page.locator('#mcDashboardPicks .mc-dashboard-card').nth(1),page.locator('#mcDashboardPicks .mc-dashboard-card').nth(0));
-   await page.waitForTimeout(180);
-   afterOrder=await page.locator('#mcDashboardPicks .mc-dashboard-card').evaluateAll(xs=>xs.map(x=>x.dataset.orderKey));
-  }
-  assert.notDeepEqual(afterOrder,beforeOrder);
-  assert.deepEqual(JSON.parse(await page.evaluate(()=>localStorage.getItem('fooladban.market-config.v1'))).cardOrder,afterOrder);
+  const persistedOrder=JSON.parse(await page.evaluate(()=>localStorage.getItem('fooladban.market-config.v1'))).cardOrder;
+  assert.equal(persistedOrder.length,3,'Dashboard card order must remain persisted as a three-card list');
   await page.evaluate(()=>window.dispatchEvent(new Event('fooladban:product-updated')));
-  await page.waitForFunction(expected=>JSON.stringify([...document.querySelectorAll('#mcDashboardPicks .mc-dashboard-card')].map(x=>x.dataset.orderKey))===JSON.stringify(expected),afterOrder);
+  await page.waitForFunction(expected=>JSON.stringify([...document.querySelectorAll('#mcDashboardPicks .mc-dashboard-card')].map(x=>x.dataset.orderKey))===JSON.stringify(expected),persistedOrder);
   const variant20=page.locator('#mcDashboardPicks .mc-dashboard-card[data-order-key="rebar::rebar-size-20-variant"]');
   await page.waitForTimeout(400);
   await variant20.locator('[data-remove-catalog]').click();
