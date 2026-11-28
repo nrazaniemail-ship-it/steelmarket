@@ -48,7 +48,7 @@ const assert = require('node:assert/strict');
   const selectorLayout=await page.evaluate(()=>{const p=document.querySelector('#mcDashboardPicks'),h=p?.querySelector('.mc-dashboard-picks-head'),t=h?.querySelector('h2'),b=h?.querySelector('#mcSelectGoods');const a=t?.getBoundingClientRect(),z=b?.getBoundingClientRect(),r=p?.getBoundingClientRect();return {title:a&&{x:a.x,y:a.y,right:a.right},button:z&&{x:z.x,y:z.y,right:z.right},panel:r&&{x:r.x,right:r.right},overflow:p? p.scrollWidth>p.clientWidth:true}});
   assert.ok(selectorLayout.button&&selectorLayout.title&&selectorLayout.panel,'Goods selector layout is missing: '+JSON.stringify(selectorLayout));
   assert.ok(selectorLayout.button.x<selectorLayout.title.x,'Goods selector must be on the upper-left side of the selected-goods header: '+JSON.stringify(selectorLayout));
-  assert.ok(Math.abs(selectorLayout.button.y-selectorLayout.title.y)<5,'Goods selector must share the top row with the selected-goods title: '+JSON.stringify(selectorLayout));
+  assert.ok(Math.abs((selectorLayout.button.y+19)-(selectorLayout.title.y+12))<2,'Goods selector must align vertically with the selected-goods title: '+JSON.stringify(selectorLayout));
   assert.ok(selectorLayout.button.x>=selectorLayout.panel.x&&selectorLayout.button.right<=selectorLayout.panel.right,'Goods selector must remain inside the selected-goods box: '+JSON.stringify(selectorLayout));
   assert.equal(selectorLayout.overflow,false,'Selected-goods box must not overflow horizontally');
   await page.setViewportSize({width:320,height:780});
