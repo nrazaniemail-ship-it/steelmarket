@@ -112,8 +112,7 @@ const assert = require('node:assert/strict');
   await page.locator('#productForm button[type=submit]').click();
   await page.waitForFunction(()=>JSON.parse(localStorage.getItem('fooladban.v1')||'{"products":[]}').products.some(p=>p.catalogId==='hot-rolled'&&p.sourceRef==='ime'));
   assert.equal(await page.evaluate(()=>{const ps=JSON.parse(localStorage.getItem('fooladban.v1')||'{}').products.filter(p=>p.sourceRef==='ime');return new Set(ps.map(p=>p.catalogId)).size>=2}),true,'The same IME source and shared URL must be reusable for different goods');
-  await page.evaluate(()=>{const key='fooladban.v1',s=JSON.parse(localStorage.getItem(key)||'{}');s.products=s.products.filter(p=>p.catalogId!=='hot-rolled');localStorage.setItem(key,JSON.stringify(s));window.dispatchEvent(new Event('fooladban:product-updated'))});
-  await page.reload({waitUntil:'networkidle'});
+  await page.evaluate(()=>{const s=JSON.parse(localStorage.getItem('fooladban.v1')||'{}'),p=s.products.find(x=>x.catalogId==='hot-rolled');window.confirm=()=>true;document.querySelectorAll('#products [data-delete]').forEach(b=>{if(b.dataset.delete===p?.id)b.click()})});
   
   await page.waitForFunction(()=>[...document.querySelectorAll('#mcDashboardPicks .mc-dashboard-watch-title')].some(x=>x.textContent.includes('۱ مرجع')||x.textContent.includes('1 مرجع')));
   await page.locator('#mcDashboardPicks [data-toggle-watch]').first().click();
