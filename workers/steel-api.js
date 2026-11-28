@@ -3,16 +3,22 @@ const now = () => Date.now();
 function json(data, status = 200, cors = {}) {
  return new Response(JSON.stringify(data), { status, headers: { 'content-type':'application/json; charset=utf-8', 'cache-control':'no-store', ...cors } });
 }
+function originAllowed(origin, env) {
+ const list = String(env.APP_ORIGIN || '').split(',').map(x => x.trim().replace(/\/+$/, '')).filter(Boolean);
+ return !!origin && list.includes(origin.replace(/\/+$/, ''));
+}
 function corsHeaders(req, env) {
  const origin = req.headers.get('origin') || '';
- const allowed = env.APP_ORIGIN || '';
- return origin && origin === allowed ? { 'access-control-allow-origin':origin, 'access-control-allow-methods':'GET,POST,PATCH,OPTIONS', 'access-control-allow-headers':'content-type,authorization', 'vary':'Origin' } : {};
+ return originAllowed(origin, env) ? { 'access-control-allow-origin':origin, 'access-control-allow-methods':'GET,POST,PATCH,OPTIONS', 'access-control-allow-headers':'content-type,authorization', 'vary':'Origin' } : {};
 }
 function validPublicUrl(raw, allowed) {
  let u; try { u = new URL(raw); } catch { throw Error('invalid_url'); }
  if (u.protocol !== 'https:' || u.username || u.password) throw Error('https_required');
+ if (u.port && u.port !== '443') throw Error('port_not_allowed');
  const h = u.hostname.toLowerCase();
- if (!allowed.includes(h)) throw Error('host_not_allowlisted');
+ const bare = x => String(x).toLowerCase().replace(/^www\./, '');
+ if (!allowed.some(a => bare(a) === bare(h))) throw Error('host_not_allowlisted');
+ if (h.startsWith('[') || /^\d+(\.\d+){0,3}$/.test(h)) throw Error('ip_literal_blocked');
  if (h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.local') ||
      /^127\.|^10\.|^192\.168\.|^169\.254\.|^172\.(1[6-9]|2\d|3[01])\./.test(h) || h === '::1') throw Error('private_host_blocked');
  return u;
@@ -28,16 +34,25 @@ function attr(attrs, name) {
 }
 function selectorText(body, selector) {
  const q = String(selector || '').trim();
- const matches = body.matchAll(/<([a-z][a-z0-9:-]*)\b([^>]*)>([\s\S]*?)<\/\1\s*>/gi);
- for (const m of matches) {
-  const attrs = m[2] || '';
+ if (!/^(#[\w-]+|\.[\w-]+|\[data-price\]|\[itemprop=price\])$/.test(q)) throw Error('supported_selectors: #id, .class, [data-price], [itemprop=price]');
+ const open = /<([a-z][a-z0-9:-]*)\b([^>]*)>/gi;
+ let m;
+ while ((m = open.exec(body))) {
+  const tag = m[1].toLowerCase(), attrs = m[2] || '';
+  if (tag === 'script' || tag === 'style') continue;
   let ok = false;
   if (q.startsWith('#')) ok = attr(attrs, 'id') === q.slice(1);
   else if (q.startsWith('.')) ok = attr(attrs, 'class').split(/\s+/).includes(q.slice(1));
-  else if (q === '[data-price]') ok = /\bdata-price(?:\s|=|>)/i.test(attrs);
-  else if (q === '[itemprop=price]') ok = attr(attrs, 'itemprop') === 'price';
-  else throw Error('supported_selectors: #id, .class, [data-price], [itemprop=price]');
-  if (ok) return attr(attrs, 'content') || attr(attrs, 'data-price') || m[3].replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ');
+  else if (q === '[data-price]') ok = /\bdata-price(?:\s|=|>|\/|$)/i.test(attrs);
+  else ok = attr(attrs, 'itemprop') === 'price';
+  if (!ok) continue;
+  const direct = attr(attrs, 'content') || attr(attrs, 'data-price');
+  if (direct) return direct;
+  const rest = body.slice(open.lastIndex);
+  const close = rest.search(new RegExp('</' + tag + '\\s*>', 'i'));
+  if (close < 0) continue;
+  const inner = rest.slice(0, close).replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').trim();
+  if (inner) return inner;
  }
  throw Error('selector_no_match');
 }
@@ -81,18 +96,47 @@ async function fetchSafe(source, env) {
  if (!/text\/html|application\/json|text\/plain/i.test(response.headers.get('content-type') || '')) throw Error('unsupported_content_type');
  const body = await response.text(); if (body.length > 1500000) throw Error('response_too_large'); return body;
 }
+async function safeEqual(a, b) {
+ const enc = new TextEncoder(), [x, y] = await Promise.all([crypto.subtle.digest('SHA-256', enc.encode(a)), crypto.subtle.digest('SHA-256', enc.encode(b))]);
+ const u = new Uint8Array(x), v = new Uint8Array(y); let d = 0; for (let i = 0; i < u.length; i++) d |= u[i] ^ v[i]; return d === 0;
+}
+const CLIENT_ERRORS = new Set(['invalid_url','https_required','port_not_allowed','host_not_allowlisted','ip_literal_blocked','private_host_blocked']);
+// Reject implausible jumps so one bad scrape cannot poison the append-only ledger.
+function plausible(price, previous) {
+ const p = Number(previous?.raw_price);
+ if (!(p > 0)) return;
+ if (price / p > 4 || price / p < 0.25) throw Error('implausible_price_change');
+}
+async function recordObservation(env, source, price, observedAt) {
+ const rates = { IRR:1, IRT:10, USD:Number(env.USD_IRR), AED:Number(env.AED_IRR), EUR:Number(env.EUR_IRR), CNY:Number(env.CNY_IRR), INR:Number(env.INR_IRR), TRY:Number(env.TRY_IRR), GBP:Number(env.GBP_IRR) };
+ const fx = rates[source.currency] || 0, factor = source.measure_unit === 'ton' ? 0.001 : 1;
+ const normalized = fx > 0 ? price * factor * fx : null;
+ const previous = await env.DB.prepare('SELECT raw_price FROM observations WHERE source_id=? ORDER BY observed_at DESC LIMIT 1').bind(source.id).first();
+ plausible(price, previous);
+ const stmts = [env.DB.prepare('INSERT INTO observations(id,source_id,product_key,source_kind,raw_price,currency,measure_unit,irr_per_kg,observed_at,recorded_at) VALUES(?,?,?,?,?,?,?,?,?,?)').bind(crypto.randomUUID(), source.id, source.product_key, source.source_kind, price, source.currency, source.measure_unit, normalized, observedAt, observedAt)];
+ if (previous && Number(previous.raw_price) !== price) {
+  const pct = (price - Number(previous.raw_price)) / Number(previous.raw_price) * 100;
+  stmts.push(env.DB.prepare('INSERT INTO market_events(id,product_key,source_id,old_price,new_price,change_pct,created_at) VALUES(?,?,?,?,?,?,?)').bind(crypto.randomUUID(), source.product_key, source.id, previous.raw_price, price, pct, observedAt));
+ }
+ stmts.push(env.DB.prepare('UPDATE sources SET last_attempt_at=?,last_success_at=?,last_error=NULL,consecutive_failures=0 WHERE id=?').bind(observedAt, observedAt, source.id));
+ if (typeof env.DB.batch === 'function') await env.DB.batch(stmts); else for (const s of stmts) await s.run();
+ return { normalized };
+}
+async function recordFailure(env, id, error) {
+ try { await env.DB.prepare('UPDATE sources SET last_attempt_at=?,last_error=?,consecutive_failures=consecutive_failures+1 WHERE id=?').bind(now(), String(error?.message || error).slice(0, 300), id).run(); } catch {}
+}
 export default {
  async fetch(request, env) {
   const u = new URL(request.url), cors = corsHeaders(request, env);
   if (request.method === 'OPTIONS') return new Response(null, { headers:cors });
   if (u.pathname === '/health') return json({ ok:true, service:'fooladban-steel-api', time:now() }, 200, cors);
   if (!env.DB) return json({ error:'D1 binding DB is not configured' }, 503, cors);
-  const authorized = env.API_TOKEN && request.headers.get('authorization') === 'Bearer ' + env.API_TOKEN;
+  const authorized = !!env.API_TOKEN && await safeEqual(request.headers.get('authorization') || '', 'Bearer ' + env.API_TOKEN);
   try {
    if (u.pathname === '/public/market' && request.method === 'GET') {
     const r = await env.DB.prepare(`SELECT o.id,o.source_id,o.product_key,o.source_kind,o.raw_price,o.currency,o.measure_unit,o.irr_per_kg,o.observed_at,o.recorded_at,s.product_name,s.specification,s.market,s.delivery,s.tax_basis,s.enabled,s.last_attempt_at,s.last_success_at,s.last_error,s.consecutive_failures
      FROM observations o JOIN sources s ON s.id=o.source_id
-     WHERE o.observed_at=(SELECT MAX(o2.observed_at) FROM observations o2 WHERE o2.source_id=o.source_id)
+     WHERE s.enabled=1 AND o.observed_at=(SELECT MAX(o2.observed_at) FROM observations o2 WHERE o2.source_id=o.source_id)
      ORDER BY o.product_key,s.source_kind`).all();
     return json(r.results,200,cors);
    }
@@ -102,7 +146,7 @@ export default {
    }
    if (u.pathname === '/public/observations' && request.method === 'GET') {
     const key=u.searchParams.get('product_key'); if(!key)return json({error:'product_key_required'},400,cors);
-    const r=await env.DB.prepare('SELECT o.id,o.source_id,o.product_key,o.source_kind,o.raw_price,o.currency,o.measure_unit,o.irr_per_kg,o.observed_at,o.recorded_at,s.product_name,s.specification FROM observations o JOIN sources s ON s.id=o.source_id WHERE o.product_key=? ORDER BY o.observed_at DESC LIMIT 500').bind(key).all();
+    const r=await env.DB.prepare('SELECT o.id,o.source_id,o.product_key,o.source_kind,o.raw_price,o.currency,o.measure_unit,o.irr_per_kg,o.observed_at,o.recorded_at,s.product_name,s.specification,s.market FROM observations o JOIN sources s ON s.id=o.source_id WHERE o.product_key=? ORDER BY o.observed_at DESC LIMIT 1500').bind(key).all();
     return json(r.results,200,cors);
    }
    if (u.pathname === '/public/events' && request.method === 'GET') {
@@ -132,14 +176,10 @@ export default {
     if(!source)return json({error:'source_not_found'},404,cors);
     const attempted=now();
     try {
-     const body=await fetchSafe(source,env),price=parse(body,source),rates={IRR:1,IRT:10,USD:Number(env.USD_IRR),AED:Number(env.AED_IRR),EUR:Number(env.EUR_IRR),CNY:Number(env.CNY_IRR),INR:Number(env.INR_IRR),TRY:Number(env.TRY_IRR),GBP:Number(env.GBP_IRR)};
-     const fx=rates[source.currency]||0,factor=source.measure_unit==='ton'?0.001:1,normalized=fx>0?price*factor*fx:null;
-     const previous=await env.DB.prepare('SELECT raw_price FROM observations WHERE source_id=? ORDER BY observed_at DESC LIMIT 1').bind(id).first();
-     await env.DB.prepare('INSERT INTO observations(id,source_id,product_key,source_kind,raw_price,currency,measure_unit,irr_per_kg,observed_at,recorded_at) VALUES(?,?,?,?,?,?,?,?,?,?)').bind(crypto.randomUUID(),id,source.product_key,source.source_kind,price,source.currency,source.measure_unit,normalized,attempted,attempted).run();
-     if(previous&&Number(previous.raw_price)!==price){const pct=(price-Number(previous.raw_price))/Number(previous.raw_price)*100;await env.DB.prepare('INSERT INTO market_events(id,product_key,source_id,old_price,new_price,change_pct,created_at) VALUES(?,?,?,?,?,?,?)').bind(crypto.randomUUID(),source.product_key,id,previous.raw_price,price,pct,attempted).run();}
-     await env.DB.prepare('UPDATE sources SET last_attempt_at=?,last_success_at=?,last_error=NULL,consecutive_failures=0 WHERE id=?').bind(attempted,attempted,id).run();
+     const body=await fetchSafe(source,env),price=parse(body,source);
+     const { normalized }=await recordObservation(env,source,price,attempted);
      return json({ok:true,price,currency:source.currency,measure_unit:source.measure_unit,irr_per_kg:normalized,observed_at:attempted},200,cors);
-    }catch(error){await env.DB.prepare('UPDATE sources SET last_attempt_at=?,last_error=?,consecutive_failures=consecutive_failures+1 WHERE id=?').bind(attempted,String(error.message||error).slice(0,300),id).run();return json({error:error.message||'source_check_failed'},502,cors);}
+    }catch(error){await recordFailure(env,id,error);return json({error:error.message||'source_check_failed'},502,cors);}
    }
    if (u.pathname.startsWith('/sources/') && request.method === 'PATCH') {
     if(!authorized)return json({error:'unauthorized'},401,cors);
@@ -170,30 +210,22 @@ export default {
     return json(r.results, 200, cors);
    }
    return json({ error:'not_found' }, 404, cors);
-  } catch (error) { return json({ error:error.message || 'internal_error' }, 500, cors); }
+  } catch (error) { const m = error?.message || 'internal_error'; const bad = CLIENT_ERRORS.has(m) || error instanceof SyntaxError; return json({ error: bad ? m : 'internal_error' }, bad ? 400 : 500, cors); }
  },
  async scheduled(event, env, ctx) {
   if (!env.DB) return;
   ctx.waitUntil((async () => {
    const time = now();
-   const { results = [] } = await env.DB.prepare('SELECT * FROM sources WHERE enabled=1 AND (last_attempt_at IS NULL OR last_attempt_at <= ? - interval_minutes * 60000)').bind(time).all();
+   // slack of 90s: cron ticks start slightly earlier than the previous attempt finished
+   const { results = [] } = await env.DB.prepare('SELECT * FROM sources WHERE enabled=1 AND (last_attempt_at IS NULL OR last_attempt_at <= ? - interval_minutes * 60000 + 90000) ORDER BY COALESCE(last_attempt_at,0) ASC LIMIT 20').bind(time).all();
    for (const source of results) {
+    // claim atomically so overlapping cron runs do not duplicate observations
+    const claim = await env.DB.prepare('UPDATE sources SET last_attempt_at=? WHERE id=? AND (last_attempt_at IS NULL OR last_attempt_at<=?)').bind(time, source.id, time - source.interval_minutes * 60000 + 90000).run();
+    if (claim?.meta && claim.meta.changes === 0) continue;
     try {
      const body = await fetchSafe(source, env), price = parse(body, source);
-     const rates = { IRR:1, IRT:10, USD:Number(env.USD_IRR), AED:Number(env.AED_IRR), EUR:Number(env.EUR_IRR), CNY:Number(env.CNY_IRR), INR:Number(env.INR_IRR), TRY:Number(env.TRY_IRR), GBP:Number(env.GBP_IRR) };
-     const fx = rates[source.currency] || 0, factor = source.measure_unit === 'ton' ? 0.001 : 1;
-     const normalized = fx > 0 ? price * factor * fx : null, id = crypto.randomUUID(), recorded = now();
-     const previous = await env.DB.prepare('SELECT raw_price FROM observations WHERE source_id=? ORDER BY observed_at DESC LIMIT 1').bind(source.id).first();
-     await env.DB.prepare('INSERT INTO observations(id,source_id,product_key,source_kind,raw_price,currency,measure_unit,irr_per_kg,observed_at,recorded_at) VALUES(?,?,?,?,?,?,?,?,?,?)')
-      .bind(id,source.id,source.product_key,source.source_kind,price,source.currency,source.measure_unit,normalized,recorded,recorded).run();
-     if(previous && Number(previous.raw_price)!==price){
-      const pct=(price-Number(previous.raw_price))/Number(previous.raw_price)*100;
-      await env.DB.prepare('INSERT INTO market_events(id,product_key,source_id,old_price,new_price,change_pct,created_at) VALUES(?,?,?,?,?,?,?)').bind(crypto.randomUUID(),source.product_key,source.id,previous.raw_price,price,pct,recorded).run();
-     }
-     await env.DB.prepare('UPDATE sources SET last_attempt_at=?,last_success_at=?,last_error=NULL,consecutive_failures=0 WHERE id=?').bind(recorded,recorded,source.id).run();
-    } catch (error) {
-     await env.DB.prepare('UPDATE sources SET last_attempt_at=?,last_error=?,consecutive_failures=consecutive_failures+1 WHERE id=?').bind(now(),String(error.message||error).slice(0,300),source.id).run();
-    }
+     await recordObservation(env, source, price, now());
+    } catch (error) { await recordFailure(env, source.id, error); }
    }
   })());
  }

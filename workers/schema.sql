@@ -21,3 +21,4 @@ CREATE INDEX IF NOT EXISTS idx_obs_source_time ON observations(source_id,observe
 CREATE TRIGGER IF NOT EXISTS observations_no_update BEFORE UPDATE ON observations BEGIN SELECT RAISE(ABORT,'observations are append-only'); END;
 CREATE TRIGGER IF NOT EXISTS observations_no_delete BEFORE DELETE ON observations BEGIN SELECT RAISE(ABORT,'observations are append-only'); END;
 CREATE TABLE IF NOT EXISTS market_events(id TEXT PRIMARY KEY,product_key TEXT NOT NULL,source_id TEXT NOT NULL,old_price REAL,new_price REAL NOT NULL,change_pct REAL,created_at INTEGER NOT NULL,FOREIGN KEY(source_id) REFERENCES sources(id));
+CREATE INDEX IF NOT EXISTS idx_events_time ON market_events(created_at);
