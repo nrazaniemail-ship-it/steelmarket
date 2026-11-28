@@ -87,6 +87,18 @@ function sourceWidth(source){
  const m=spec.match(/عرض\s*(\d+(?:[.,٫]\d+)?)/);
  return m?sourceDimension(m[1]):'';
 }
+function sourceLength(source){
+ const spec=sourceText(source.specification||'');
+ const m=spec.match(/طول\s*(\d+(?:[.,٫]\d+)?)/);
+ if(!m)return '';
+ const n=Number(m[1].replace(',','.').replace('٫','.'));
+ return String(Math.round(n<=12?n*1000:n<=1000?n*10:n));
+}
+function dimensionMm(value){
+ const n=Number(String(value||'').replace(',','.').replace('٫','.'));
+ if(!(n>0))return '';
+ return String(Math.round(n>10&&n<=300?n*10:n<=12?n*1000:n));
+}
 function sourceMaker(source){
  const spec=sourceText([source.product_name,source.specification].join(' '));
  return ['فولاد مبارکه','مبارکه','فولاد سبا','سبا','اکسین','کاویان','گیلان','خرم آباد','نورد قطعات','قطعات']
@@ -153,6 +165,7 @@ export function extractPivanSheetPrice(body,source={}){
  const html=String(body||''),thickness=sourceThickness(source),width=sourceWidth(source);
  if(thickness===null)return null;
  const maker=sourceMaker(source),delivery=sourceText(source.delivery||''),spec=sourceText(source.specification||'');
+ const isCoil=/رول|کلاف/.test(spec),length=sourceLength(source);
  const matches=[];
  for(const row of tableRows(html)){
   const td=[...String(row.html||'').matchAll(/<td\b([^>]*)>([\s\S]*?)<\/td>/gi)].map(m=>{
@@ -167,15 +180,23 @@ export function extractPivanSheetPrice(body,source={}){
   if(!(Number.isFinite(t)&&Math.abs(t-thickness)<0.001))continue;
   const size=title.match(/(\d+(?:[.,]\d+)?)\s*[x×*]\s*(\d+(?:[.,]\d+)?)/);
   if(width){
-   if(!size)continue;
-   const dims=[Number(size[1].replace(',','.')),Number(size[2].replace(',','.'))];
-   if(Math.round(Math.min(...dims)*10)!==Number(width))continue;
+   if(isCoil){
+    const widthText=title.match(/(?:رول|کلاف)\s*(?:عرض\s*)?(\d+(?:[.,]\d+)?)/)?.[1]||td.find(x=>x.classes.includes('meta-width*length'))?.text||td[1]?.text||'';
+    const widthMatch=String(widthText).match(/\d+(?:[.,]\d+)?/);
+    if(!widthMatch||dimensionMm(widthMatch[0])!==String(width))continue;
+   }else{
+    if(!size)continue;
+    const dims=[dimensionMm(size[1]),dimensionMm(size[2])].sort((a,b)=>Number(a)-Number(b));
+    if(dims[0]!==String(width))continue;
+    if(length&&dims[1]!==length)continue;
+   }
   }
   const brand=td.find(x=>x.classes.includes('meta-brand-name'))?.text||td[2]?.text||'';
   if(maker&&!(brand.includes(maker)||title.includes(maker)||(maker.includes('فولاد مبارکه')&&brand.includes('مبارکه'))))continue;
   const mode=td.find(x=>x.classes.includes('meta-form-name'))?.text||td[3]?.text||'';
+  if(isCoil&&!/رول|کلاف/.test(mode))continue;
+  if(!isCoil&&/رول|کلاف/.test(mode))continue;
   if(spec.includes('برش')&&!mode.includes('برش'))continue;
-  if(spec.includes('رول')&&!mode.includes('رول'))continue;
   if(spec.includes('فابریک')&&!mode.includes('فابریک'))continue;
   const place=td.find(x=>x.classes.includes('meta-delivery'))?.text||td[4]?.text||'';
   if(delivery.includes('تهران')&&!place.includes('تهران'))continue;
