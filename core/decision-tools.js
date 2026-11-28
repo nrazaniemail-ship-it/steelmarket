@@ -14,7 +14,7 @@ const style=document.createElement('style');style.textContent=`
 @media(max-width:560px){.fb-compare-controls,.fb-assistant-form,.fb-compare-list{grid-template-columns:1fr}.fb-compare-canvas{height:250px}}
 `;document.head.append(style);
 const state=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return {products:[]}}};
-const products=()=>{const selected=new Set((window.FooladbanMarketConfig?.selectedProducts||[]).map(String));return Array.isArray(state().products)?state().products.filter(p=>selected.has(String(p.catalogId||p.productKey||''))):[]};
+const products=()=>{const selected=new Set((window.FooladbanMarketConfig?.selectedProducts||[]).map(String)),rows=Array.isArray(state().products)?state().products.filter(p=>selected.has(String(p.catalogId||p.productKey||''))):[],unique=new Map();for(const p of rows){const key=String(p.catalogId||p.productKey||p.id||'');if(!key)continue;const score=x=>Math.max(Number(x.checkedAt)||0,Number(x.lastSuccessAt)||0,Number(x.history?.at(-1)?.time)||0);const current=unique.get(key);if(!current||score(p)>score(current))unique.set(key,p)}return [...unique.values()]};
 const analysis=$('layer-analysis'),assistant=$('layer-assistant');
 if(analysis){
 const panel=document.createElement('section');panel.className='fb-tool-panel';panel.innerHTML='<h2>مقایسه روند قیمت چند محصول</h2><p class="fb-tool-muted">محصولات را انتخاب کنید تا تاریخچه قیمت آن‌ها روی یک نمودار زمان ـ قیمت نمایش داده شود. برای مقایسه محصولات با ارز یا واحد متفاوت، حالت شاخصی (مبنای ۱۰۰) را انتخاب کنید.</p>';
