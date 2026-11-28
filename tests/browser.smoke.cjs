@@ -315,7 +315,7 @@ const assert = require('node:assert/strict');
    {id:coilId,product_key:'hot-rolled-coil',product_name:'ورق گرم (سیاه)-کلاف',market:'ایران',source_kind:'free_market',currency:'IRT',measure_unit:'kg',specification:'ضخامت ۲ · عرض ۱۲۵۰ میلی‌متر · کلاف',delivery:'کارخانه',enabled:true,last_attempt_at:coilTime,last_success_at:coilTime}
   ];
   await splitPage.route('https://fooladban-steel-api.n-razaniemail.workers.dev/**',async route=>{
-   const u=new URL(route.request().url),path=u.pathname;
+   const u=new URL(route.request().url()),path=u.pathname;
    let body=[];
    if(path==='/health')body={ok:true};
    else if(path==='/public/sources')body=splitSources;
