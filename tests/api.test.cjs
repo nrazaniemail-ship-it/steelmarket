@@ -53,7 +53,7 @@ test('public history requires a product key',async()=>{
 test('public manual check fetches an enabled registered source and appends an observation without admin token',async()=>{
  const source={id:'src-public',product_key:'rebar16',product_name:'میلگرد ۱۶',url:'https://prices.example.com/p',source_kind:'factory',parser_mode:'regex',regex:'price: ([0-9]+)',currency:'IRT',measure_unit:'kg',enabled:1,last_attempt_at:null};
  const calls=[];
- const DB={prepare(sql){return{args:[],bind(...args){this.args=args;return this},async first(){calls.push({sql,args:this.args});return sql.includes('SELECT * FROM sources')?source:null},async run(){calls.push({sql,args:this.args});return{success:true,meta:{changes:1}}},async all(){return{results:[]}}}}};
+ const DB={prepare(sql){return{args:[],bind(...args){this.args=args;return this},async first(){calls.push({sql,args:this.args});return sql.includes('SELECT * FROM sources')?source:(sql.includes('SELECT raw_price FROM observations')?{raw_price:10112903191009008}:null)},async run(){calls.push({sql,args:this.args});return{success:true,meta:{changes:1}}},async all(){return{results:[]}}}}};
  const oldFetch=global.fetch;
  global.fetch=async()=>new Response('price: 54321',{status:200,headers:{'content-type':'text/plain'}});
  try{
