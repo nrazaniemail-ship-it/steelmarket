@@ -107,11 +107,11 @@ function renderDashboardPicks(){
     const last=p.history?.at(-1),prev=p.history?.at(-2),change=last&&prev&&Number(prev.price)?(Number(last.price)-Number(prev.price))/Number(prev.price)*100:null;
     const detail=el('div','mc-dashboard-record');
     const meta=[p.productGrade,p.productSize,p.productManufacturer,p.market,p.delivery].filter(Boolean).join(' · ')||p.specification||p.group||'مشخصات ثبت نشده';
-    const top=el('div','mc-dashboard-record-meta');top.append(el('span','',meta),el('small','',p.sourceName||'مرجع ثبت‌شده'));detail.append(top);
+    const top=el('div','mc-dashboard-record-meta');top.append(el('span','',meta),el('small','',(p.sourceName||'مرجع ثبت‌شده')+(last?.time?' · تاریخ قیمت: '+formatCheckedAt(last.time):'')));detail.append(top);
     const priceLine=el('div','mc-dashboard-price-line');priceLine.append(el('strong','',last?money(last.price,p.currency):'—'));
     const status=last?((change===null?'بدون سابقه قبلی':(change>0?'▲ ':change<0?'▼ ':'')+Math.abs(change).toLocaleString('fa-IR',{maximumFractionDigits:2})+'٪')):(p.error?'دریافت ناموفق':'در انتظار اولین قیمت');
     priceLine.append(el('span','mc-dashboard-change '+(change>0?'up':change<0?'down':'neutral'),status));detail.append(priceLine);
-    const foot=el('div','mc-dashboard-record-foot');foot.append(el('small','',last?.time?'تاریخ قیمت منبع: '+formatCheckedAt(last.time):'تاریخ قیمت: ثبت نشده'));foot.append(el('small','',p.checkedAt?'آخرین بررسی: '+formatCheckedAt(p.checkedAt):'هنوز بررسی نشده'));
+    const foot=el('div','mc-dashboard-record-foot');foot.append(el('small','',p.checkedAt?'آخرین بررسی: '+formatCheckedAt(p.checkedAt):'هنوز بررسی نشده'));
     for(const [label,actionName] of [['نمودار','chart'],['ویرایش','edit'],['بررسی قیمت','refresh'],['منبع','source'],['حذف','delete']]){const b=el('button',actionName==='delete'?'mc-dashboard-watch-action danger':'mc-dashboard-watch-action',label);b.type='button';b.dataset.watchAction=actionName;b.dataset.watchId=p.id;foot.append(b)}
     detail.append(foot);watch.append(detail);
    }
