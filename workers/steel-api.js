@@ -1,4 +1,4 @@
-import { identifyAdapter, extractStructuredPrice, extractImeTradePrice, extractMarkazAhanTelegramPrice, extractIranianSheetTablePrice } from './source-adapters.js';
+import { identifyAdapter, extractStructuredPrice, extractImeTradePrice, extractMarkazAhanTelegramPrice, extractIranianSheetTablePrice, extractPivanSheetPrice, extractIromartTelegramPrice } from './source-adapters.js';
 const now = () => Date.now();
 function json(data, status = 200, cors = {}) {
  return new Response(JSON.stringify(data), { status, headers: { 'content-type':'application/json; charset=utf-8', 'cache-control':'no-store', ...cors } });
@@ -151,8 +151,19 @@ async function fetchSourcePrice(source,env) {
   if(!price)throw Error('markazeahan_variant_not_found_or_ambiguous');
   return {price,sourceDate:null};
  }
+ if(adapter.id==='iromart' && String(source.product_key)==='hot-rolled') {
+  const body=await fetchSafe({...source,url:'https://t.me/s/iromart'},env);
+  const result=extractIromartTelegramPrice(body,source);
+  if(!result)throw Error('iromart_price_requires_explicit_currency_unit_and_exact_variant');
+  return result;
+ }
  const body=await fetchSafe(source,env);
- if(['ahanonline','pivan','ahanprice','iromart'].includes(adapter.id)) {
+ if(adapter.id==='pivan') {
+  const result=extractPivanSheetPrice(body,source);
+  if(!result)throw Error('pivan_variant_price_not_found_or_ambiguous');
+  return result;
+ }
+ if(['ahanonline','ahanprice'].includes(adapter.id)) {
   const result=extractIranianSheetTablePrice(body,source,adapter.id);
   if(!result)throw Error('variant_price_not_found_or_ambiguous');
   return result;
