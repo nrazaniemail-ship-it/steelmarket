@@ -165,7 +165,7 @@ const assert = require('node:assert/strict');
   assert.deepEqual(JSON.parse(await page.evaluate(()=>localStorage.getItem('fooladban.market-config.v1'))).cardOrder,afterOrder);
   await page.evaluate(()=>window.dispatchEvent(new Event('fooladban:product-updated')));
   await page.waitForFunction(expected=>JSON.stringify([...document.querySelectorAll('#mcDashboardPicks .mc-dashboard-card')].map(x=>x.dataset.orderKey))===JSON.stringify(expected),afterOrder);
-  const variant20=page.locator('#mcDashboardPicks .mc-dashboard-card[data-catalog-id="rebar"]:has(.mc-dashboard-card-head b:has-text("۲۰"))');
+  const variant20=page.locator('#mcDashboardPicks .mc-dashboard-card[data-order-key="rebar::rebar-size-20-variant"]');
   await variant20.locator('[data-remove-catalog]').click();
   assert.equal(await page.locator('#mcDashboardPicks .mc-dashboard-card[data-catalog-id="rebar"]').count(),1,'Removing one specification variant must keep sibling variants visible');
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('fooladban.v1')||'{}').products.some(x=>x.catalogId==='rebar'&&x.productSize==='۲۰')),true,'Hiding a dashboard variant must preserve its stored source records');
