@@ -290,6 +290,7 @@ const assert = require('node:assert/strict');
   await sourcePage.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
   await sourcePage.waitForFunction(()=>document.querySelectorAll('#mcDashboardPicks .mc-dashboard-card').length===2);
   const hotSourceCard=sourcePage.locator('#mcDashboardPicks .mc-dashboard-card[data-catalog-id="hot-rolled"]');
+  await hotSourceCard.locator('[data-toggle-watch]').click();
   await hotSourceCard.locator('[data-open-products]').click();
   await sourcePage.locator('#pCatalogProduct').selectOption('hot-rolled');
   await sourcePage.locator('#pGrade').selectOption('ST37');
