@@ -201,7 +201,7 @@ export default {
     try {
      const body=await fetchSafe(source,env),price=parse(body,source);
      const { normalized }=await recordObservation(env,source,price,attempted);
-     return json({ok:true,price,currency:source.currency,measure_unit:source.measure_unit,irr_per_kg:normalized,observed_at:attempted},200,cors);
+     return json({ok:true,stored:true,id,price,currency:source.currency,measure_unit:source.measure_unit,irr_per_kg:normalized,observed_at:attempted},200,cors);
     }catch(error){await recordFailure(env,id,error);return json({error:error.message||'source_check_failed'},502,cors);}
    }
    if (u.pathname.startsWith('/sources/') && request.method === 'PATCH') {
