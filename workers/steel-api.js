@@ -116,7 +116,7 @@ async function recordObservation(env, source, price, observedAt) {
  const previous = await env.DB.prepare('SELECT raw_price FROM observations WHERE source_id=? ORDER BY observed_at DESC LIMIT 1').bind(source.id).first();
  plausible(price, previous);
  const stmts = [env.DB.prepare('INSERT INTO observations(id,source_id,product_key,source_kind,raw_price,currency,measure_unit,irr_per_kg,observed_at,recorded_at) VALUES(?,?,?,?,?,?,?,?,?,?)').bind(crypto.randomUUID(), source.id, source.product_key, source.source_kind, price, source.currency, source.measure_unit, normalized, observedAt, observedAt)];
- if (previous && Number(previous.raw_price) !== price) {
+ if (previous && Number(previous.raw_price) > 0 && Number(previous.raw_price) <= 1e12 && Number(previous.raw_price) !== price) {
   const pct = (price - Number(previous.raw_price)) / Number(previous.raw_price) * 100;
   stmts.push(env.DB.prepare('INSERT INTO market_events(id,product_key,source_id,old_price,new_price,change_pct,created_at) VALUES(?,?,?,?,?,?,?)').bind(crypto.randomUUID(), source.product_key, source.id, previous.raw_price, price, pct, observedAt));
  }
