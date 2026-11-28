@@ -137,6 +137,27 @@ jobs:
               print(f"SOURCE_RESULT {name}: FAIL {type(exc).__name__}: {exc}")
           PY
 
+      - name: Diagnose live Pivan price table markup
+        continue-on-error: true
+        run: |
+          python3 - <<'PY'
+          import json, urllib.parse, urllib.request, re
+          api="https://fooladban-steel-api.n-razaniemail.workers.dev/public/fetch?"
+          url="https://pivan.co/"
+          req=urllib.request.Request(api+urllib.parse.urlencode({"url":url}),headers={"Accept":"application/json","User-Agent":"FooladbanSourceDiagnostics/1.0"})
+          try:
+            with urllib.request.urlopen(req,timeout=40) as response: data=json.loads(response.read().decode("utf-8"))
+            html=data.get("body","")
+            print("PIVAN_HTML_LENGTH",len(html))
+            for term in ["ورق سیاه","آخرین بروزرسانی","قیمت روز آهن"]:
+              pos=html.find(term)
+              print("PIVAN_TERM",term,"FOUND",pos)
+              if pos>=0: print("PIVAN_CONTEXT",re.sub(r"\\s+"," ",html[max(0,pos-500):pos+1800])[:2300])
+            print("PIVAN_TR_COUNT",len(re.findall(r"<tr\\b",html,re.I)))
+            print("PIVAN_TD_COUNT",len(re.findall(r"<td\\b",html,re.I)))
+          except Exception as exc: print("PIVAN_DIAGNOSTIC_FAILED",repr(exc))
+          PY
+
       - name: Probe live Markaz Ahan hot-rolled sheet feed
         continue-on-error: true
         run: |
