@@ -20,7 +20,7 @@ jobs:
         env:
           D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
           APP_ORIGIN: ${{ vars.FOOLADB_APP_ORIGIN }}
-          ALLOWED_HOSTS: ${{ vars.FOOLADB_ALLOWED_HOSTS }}
+          ALLOWED_HOSTS: ${{ vars.FOOLADB_ALLOWED_HOSTS }},qeymato.com
         run: |
           test -n "$D1_DATABASE_ID" || (echo "Missing D1_DATABASE_ID secret" && exit 1)
           test -n "$APP_ORIGIN" || (echo "Missing FOOLADB_APP_ORIGIN variable" && exit 1)
@@ -57,6 +57,44 @@ jobs:
             value="$(printenv "$name" || true)"
             if [ -n "$value" ]; then printf '%s' "$value" | npx --yes wrangler@4 secret put "$name" --config workers/wrangler.toml; fi
           done
+      - name: Configure product-specific steel price pages
+        env:
+          API_TOKEN: ${{ secrets.FOOLADB_API_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          base = "https://fooladban-steel-api.n-razaniemail.workers.dev"
+          ua = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36 FooladbanDeployCheck/1.0"
+          def call(path, payload=None):
+              headers = {"Accept": "application/json", "User-Agent": ua, "Authorization": "Bearer " + os.environ["API_TOKEN"]}
+              data = None
+              method = "GET"
+              if payload is not None:
+                  method = "POST"
+                  data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+                  headers["Content-Type"] = "application/json"
+              req = urllib.request.Request(base + path, data=data, headers=headers, method=method)
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  return json.loads(response.read().decode("utf-8"))
+          sources = call("/sources")
+          configs = {
+              "422f16f3-c5f8-405f-abcf-96540ef5306a": ("اسلب[^0-9۰-۹٠-٩]{0,80}([0-9۰-۹٠-٩,٬]+)", "اسلب (تختال)"),
+              "6ffffadd-9ebf-4bd6-b95c-3e607313fd5a": ("ورق گرم[^0-9۰-۹٠-٩]{0,80}([0-9۰-۹٠-٩,٬]+)", "ورق گرم")
+          }
+          updated = 0
+          for source in sources:
+              if source["id"] not in configs:
+                  continue
+              regex, label = configs[source["id"]]
+              payload = {key: source.get(key) for key in ("id", "product_key", "product_name", "specification", "source_kind", "market", "currency", "measure_unit", "delivery", "tax_basis", "interval_minutes")}
+              payload.update({"url": "https://qeymato.com/fa/commodities", "parser_mode": "regex", "regex": regex, "selector": "", "json_path": "price", "currency": "IRT", "measure_unit": "kg", "interval_minutes": 15})
+              result = call("/sources", payload)
+              assert result.get("ok") is True, result
+              updated += 1
+              print("Configured source:", label, "from Qeymato commodity exchange summary")
+          if updated != 2:
+              raise SystemExit("Expected to configure both existing steel sources; updated " + str(updated))
+          PY
       - name: Verify deployed API health, CORS, and D1 read endpoints
         run: |
           API="https://fooladban-steel-api.n-razaniemail.workers.dev"
