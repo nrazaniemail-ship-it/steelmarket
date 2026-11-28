@@ -50,6 +50,23 @@ test('public history requires a product key',async()=>{
  assert.equal((await res.json()).error,'product_key_required');
 });
 
+test('public fetch proxies only allowlisted source URLs for browser-side parsing',async()=>{
+ const oldFetch=global.fetch;
+ global.fetch=async(url)=>new Response('<html>price: 54321</html>',{status:200,headers:{'content-type':'text/html; charset=utf-8'}});
+ try{
+  const env={DB:dbMock(),APP_ORIGIN:'https://nrazaniemail-ship-it.github.io',ALLOWED_HOSTS:'markazeahan.com'};
+  const url='https://api.example.workers.dev/public/fetch?url='+encodeURIComponent('https://www.markazeahan.com/products/hot-rolled');
+  const req=new Request(url,{headers:{Origin:env.APP_ORIGIN}});
+  const res=await worker.default.fetch(req,env),body=await res.json();
+  assert.equal(res.status,200);
+  assert.equal(body.ok,true);
+  assert.match(body.body,/price: 54321/);
+  assert.equal(res.headers.get('access-control-allow-origin'),env.APP_ORIGIN);
+  const blocked=await worker.default.fetch(new Request('https://api.example.workers.dev/public/fetch?url='+encodeURIComponent('https://not-allowed.example/p')),env);
+  assert.equal(blocked.status,400);
+ }finally{global.fetch=oldFetch}
+});
+
 test('public manual check fetches an enabled registered source and appends an observation without admin token',async()=>{
  const source={id:'src-public',product_key:'rebar16',product_name:'میلگرد ۱۶',url:'https://prices.example.com/p',source_kind:'factory',parser_mode:'regex',regex:'price: ([0-9]+)',currency:'IRT',measure_unit:'kg',enabled:1,last_attempt_at:null};
  const calls=[];
