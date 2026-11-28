@@ -294,8 +294,13 @@ function applySourceProfile(){
  }else if(x.id==='markazeahan'&&key==='hot-rolled'){
   target=x.url||'';
   sourceInfo.textContent='اتصال اختصاصی کانال قیمت ورق گرم مرکز آهن؛ تطبیق ضخامت و در صورت نیاز عرض، کارخانه و محل تحویل الزامی است.';
+ }else if(['ahanonline','pivan','iromart','ahanprice'].includes(x.id)){
+  target=x.url||'';
+  sourceInfo.textContent=x.id==='iromart'?'صفحه فهرست ورق گرم آیرومارت بررسی می‌شود؛ اگر قیمت در صفحه «تماس» باشد، دریافت خودکار ممکن نیست.':
+   'صفحه فهرست قیمت ورق سیاه '+x.name+' انتخاب شد؛ قیمت فقط در صورت تطبیق دقیق ضخامت، عرض، کارخانه و محل تحویل پذیرفته می‌شود.';
  }else{
-  sourceInfo.textContent=x.name+' · برای دریافت قیمت باید لینک دقیق صفحه همان کالا را وارد کنید؛ صفحه اصلی سایت قابل استعلام قیمت نیست.';
+  target=x.url||'';
+  sourceInfo.textContent=x.name+' · برای این منبع صفحه دقیق کالا را انتخاب کنید؛ از صفحه اصلی به‌تنهایی قیمت استخراج نمی‌شود.';
  }
  input.value=target;
  input.required=true;
