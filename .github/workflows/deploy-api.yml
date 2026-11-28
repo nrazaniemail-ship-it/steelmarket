@@ -57,3 +57,14 @@ jobs:
             value="$(printenv "$name" || true)"
             if [ -n "$value" ]; then printf '%s' "$value" | npx --yes wrangler@4 secret put "$name" --config workers/wrangler.toml; fi
           done
+      - name: Verify deployed API health, CORS, and D1 read endpoints
+        run: |
+          API="https://fooladban-steel-api.n-razaniemail.workers.dev"
+          ORIGIN="https://nrazaniemail-ship-it.github.io"
+          curl -fsS --max-time 20 "$API/health" | python3 -c "import json,sys; d=json.load(sys.stdin); assert d.get('ok') is True, d; print('Health endpoint: OK')"
+          curl -fsS --max-time 30 "$API/public/sources" | python3 -c "import json,sys; d=json.load(sys.stdin); assert isinstance(d,list), d; print('D1 sources endpoint: OK ('+str(len(d))+' rows)')"
+          curl -fsS --max-time 30 "$API/public/market" | python3 -c "import json,sys; d=json.load(sys.stdin); assert isinstance(d,list), d; print('D1 market endpoint: OK ('+str(len(d))+' rows)')"
+          curl -fsS --max-time 30 "$API/public/events" | python3 -c "import json,sys; d=json.load(sys.stdin); assert isinstance(d,list), d; print('D1 events endpoint: OK ('+str(len(d))+' rows)')"
+          curl -sS --max-time 20 -D /tmp/fooladban-cors-headers -o /dev/null -X OPTIONS "$API/health" -H "Origin: $ORIGIN" -H "Access-Control-Request-Method: GET" -H "Access-Control-Request-Headers: authorization,content-type"
+          grep -qi "access-control-allow-origin: $ORIGIN" /tmp/fooladban-cors-headers
+          echo "Browser CORS preflight: OK"
