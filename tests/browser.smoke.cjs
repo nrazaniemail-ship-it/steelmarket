@@ -305,7 +305,65 @@ const assert = require('node:assert/strict');
   await sourcePage.locator('#productForm button[type=submit]').click();
   await sourcePage.waitForFunction(()=>JSON.parse(localStorage.getItem('fooladban.v1')||'{"products":[]}').products.some(p=>p.catalogId==='hot-rolled'&&p.sourceRef==='ime'));
   assert.equal(await sourcePage.evaluate(()=>{const ps=JSON.parse(localStorage.getItem('fooladban.v1')||'{}').products.filter(p=>p.sourceRef==='ime');return new Set(ps.map(p=>p.catalogId)).size>=2}),true,'The same IME source and shared URL must be reusable for different goods');
+
   await sourceContext.close();
+  // Phone-sized end-to-end UI contract: sheet and coil must keep independent source prices and observation dates.
+  const splitContext=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  const splitPage=await splitContext.newPage();
+  const sheetId='pivan-hot-rolled-sheet-2mm-mobarakeh-1250x2500-tehran';
+  const coilId='ahanonline-hot-rolled-coil-2mm-mobarakeh-1250-factory';
+  const baseTime=Date.parse('2026-11-28T08:00:00Z');
+  let sheetPrice=170900,coilPrice=168180,sheetTime=baseTime,coilTime=baseTime+60000;
+  const splitSources=[
+   {id:sheetId,product_key:'hot-rolled-sheet',product_name:'ورق گرم (سیاه)-تخت',market:'ایران',source_kind:'free_market',currency:'IRT',measure_unit:'kg',specification:'ضخامت ۲ · عرض ۱۲۵۰ · طول ۲۵۰۰ میلی‌متر',delivery:'انبار تهران',enabled:true,last_attempt_at:sheetTime,last_success_at:sheetTime},
+   {id:coilId,product_key:'hot-rolled-coil',product_name:'ورق گرم (سیاه)-کلاف',market:'ایران',source_kind:'free_market',currency:'IRT',measure_unit:'kg',specification:'ضخامت ۲ · عرض ۱۲۵۰ میلی‌متر · کلاف',delivery:'کارخانه',enabled:true,last_attempt_at:coilTime,last_success_at:coilTime}
+  ];
+  await splitPage.route('https://fooladban-steel-api.n-razaniemail.workers.dev/**',async route=>{
+   const u=new URL(route.request().url),path=u.pathname;
+   let body=[];
+   if(path==='/health')body={ok:true};
+   else if(path==='/public/sources')body=splitSources;
+   else if(path==='/public/market'||path==='/public/events')body=[];
+   else if(path==='/public/observations'){
+    const key=u.searchParams.get('product_key');
+    body=key==='hot-rolled-sheet'?[{source_id:sheetId,raw_price:sheetPrice,observed_at:sheetTime,irr_per_kg:sheetPrice*10}]:key==='hot-rolled-coil'?[{source_id:coilId,raw_price:coilPrice,observed_at:coilTime,irr_per_kg:coilPrice*10}]:[];
+   }else if(path==='/public/price'){
+    const key=u.searchParams.get('product_key');
+    if(key==='hot-rolled-sheet'){sheetPrice=171250;sheetTime=baseTime+120000;splitSources[0].last_attempt_at=sheetTime;splitSources[0].last_success_at=sheetTime;body={ok:true,price:sheetPrice,currency:'IRT',measure_unit:'kg'};}
+    else if(key==='hot-rolled-coil'){coilPrice=168950;coilTime=baseTime+180000;splitSources[1].last_attempt_at=coilTime;splitSources[1].last_success_at=coilTime;body={ok:true,price:coilPrice,currency:'IRT',measure_unit:'kg'};}
+    else body={ok:false,error:'unexpected_product_key'};
+   }else body={};
+   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
+  });
+  await splitPage.addInitScript(({sheetId,coilId,baseTime})=>{
+   localStorage.setItem('fooladban.v1',JSON.stringify({products:[
+    {id:sheetId,catalogId:'hot-rolled-sheet',productKey:'hot-rolled-sheet',name:'ورق گرم (سیاه)-تخت',sourceName:'پایوان',specification:'ضخامت ۲ · عرض ۱۲۵۰ · طول ۲۵۰۰ میلی‌متر',delivery:'انبار تهران',market:'ایران',currency:'IRT',measureUnit:'kg',unit:'kg',sourceKind:'free_market',url:'https://pivan.co/',history:[{price:170900,time:baseTime,irrPerKg:1709000}],checkedAt:baseTime,lastSuccessAt:baseTime,threshold:0},
+    {id:coilId,catalogId:'hot-rolled-coil',productKey:'hot-rolled-coil',name:'ورق گرم (سیاه)-کلاف',sourceName:'آهن آنلاین',specification:'ضخامت ۲ · عرض ۱۲۵۰ میلی‌متر · کلاف',delivery:'کارخانه',market:'ایران',currency:'IRT',measureUnit:'kg',unit:'kg',sourceKind:'free_market',url:'https://ahanonline.com/',history:[{price:168180,time:baseTime+60000,irrPerKg:1681800}],checkedAt:baseTime+60000,lastSuccessAt:baseTime+60000,threshold:0}
+   ],events:[],settings:{auto:false,apiUrl:'https://fooladban-steel-api.n-razaniemail.workers.dev',interval:15}}));
+   localStorage.setItem('fooladban.market-config.v1',JSON.stringify({selected:['hot-rolled-sheet','hot-rolled-coil'],order:['hot-rolled-sheet','hot-rolled-coil'],sources:[]}));
+  },{sheetId,coilId,baseTime});
+  await splitPage.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+  await splitPage.waitForFunction(()=>document.querySelectorAll('#mcDashboardPicks .mc-dashboard-card').length===2);
+  await splitPage.locator('#mcDashboardPicks [data-toggle-watch]').nth(0).click();
+  await splitPage.locator('#mcDashboardPicks [data-toggle-watch]').nth(1).click();
+  const sheetCard=splitPage.locator('#mcDashboardPicks .mc-dashboard-card[data-catalog-id="hot-rolled-sheet"]');
+  const coilCard=splitPage.locator('#mcDashboardPicks .mc-dashboard-card[data-catalog-id="hot-rolled-coil"]');
+  await splitPage.waitForFunction(()=>document.querySelectorAll('#mcDashboardPicks .mc-dashboard-record').length===2);
+  const initialCards=await splitPage.evaluate(()=>[...document.querySelectorAll('#mcDashboardPicks .mc-dashboard-card')].map(c=>({id:c.dataset.catalogId,text:c.querySelector('.mc-dashboard-record')?.innerText||''})));
+  assert.ok(initialCards.find(x=>x.id==='hot-rolled-sheet').text.includes('۱۷۰٬۹۰۰'),'Sheet card must show only the sheet source price: '+JSON.stringify(initialCards));
+  assert.ok(initialCards.find(x=>x.id==='hot-rolled-coil').text.includes('۱۶۸٬۱۸۰'),'Coil card must show only the coil source price: '+JSON.stringify(initialCards));
+  assert.ok(initialCards.every(x=>x.text.includes('تاریخ قیمت منبع:')),'Each dashboard source record must display its observation date');
+  await sheetCard.locator('[data-watch-action="refresh"]').click();
+  await splitPage.waitForFunction(()=>document.querySelector('#mcDashboardPicks .mc-dashboard-card[data-catalog-id="hot-rolled-sheet"] .mc-dashboard-record')?.innerText.includes('۱۷۱٬۲۵۰'));
+  const afterSheet=await splitPage.evaluate(()=>[...document.querySelectorAll('#mcDashboardPicks .mc-dashboard-card')].map(c=>({id:c.dataset.catalogId,text:c.querySelector('.mc-dashboard-record')?.innerText||''})));
+  assert.ok(afterSheet.find(x=>x.id==='hot-rolled-sheet').text.includes('۱۷۱٬۲۵۰'),'Refreshing sheet must update its own card');
+  assert.ok(afterSheet.find(x=>x.id==='hot-rolled-coil').text.includes('۱۶۸٬۱۸۰'),'Refreshing sheet must not alter coil card');
+  await coilCard.locator('[data-watch-action="refresh"]').click();
+  await splitPage.waitForFunction(()=>document.querySelector('#mcDashboardPicks .mc-dashboard-card[data-catalog-id="hot-rolled-coil"] .mc-dashboard-record')?.innerText.includes('۱۶۸٬۹۵۰'));
+  const afterBoth=await splitPage.evaluate(()=>[...document.querySelectorAll('#mcDashboardPicks .mc-dashboard-card')].map(c=>({id:c.dataset.catalogId,text:c.querySelector('.mc-dashboard-record')?.innerText||''})));
+  assert.ok(afterBoth.find(x=>x.id==='hot-rolled-sheet').text.includes('۱۷۱٬۲۵۰'),'Refreshing coil must not alter sheet card');
+  assert.ok(afterBoth.find(x=>x.id==='hot-rolled-coil').text.includes('۱۶۸٬۹۵۰'),'Coil refresh must update only coil card');
+  await splitContext.close();
   assert.deepEqual(errors,[]);
   console.log('Browser smoke test passed: six-layer navigation, product cards with monitoring, selected product registration, settings, theme, layer order and no runtime exceptions');
  }finally{await browser.close()}
