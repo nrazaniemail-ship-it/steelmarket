@@ -181,7 +181,7 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('#layer-settings .fb-about-brand img').getAttribute('src'),'./icon.svg');
   await page.locator('#layer-settings summary').filter({hasText:'قالب برنامه'}).click();
   await page.locator('#layer-settings summary').filter({hasText:'ترتیب لایه‌ها'}).click();
-  assert.equal(await page.locator('.fb-layer-order').count(),6);
+  assert.equal(await page.locator('.fb-layer-order').count(),5);
   await page.locator('#layer-settings summary').filter({hasText:'ظاهر برنامه'}).click();
   await page.locator('#layer-settings details').filter({has:page.locator('summary',{hasText:'ظاهر برنامه'})}).locator('select').first().selectOption('light');
   assert.equal(await page.locator('html').getAttribute('data-theme'),'light');
