@@ -136,7 +136,7 @@ const assert = require('node:assert/strict');
   await variant16Card.locator('[data-edit-catalog]').click();
   await page.waitForFunction(()=>document.querySelector('#pSize')?.value==='۱۶');
   assert.equal(await page.locator('#pSize').inputValue(),'۱۶','Card edit must open the exact specification variant');
-  await page.locator('#fbLayerNav [data-layer-target="dashboard"]').click();
+  await page.locator('#addPanel button').filter({hasText:'بازگشت به کارت کالا'}).click();
   await page.waitForFunction(()=>{const p=document.querySelector('#addPanel'),card=document.querySelector('#mcDashboardPicks .mc-dashboard-card');return !!p&&!p.closest('.mc-dashboard-card')&&p.style.display==='none'&&card?.querySelector('[data-toggle-watch]')?.getAttribute('aria-expanded')==='false'});
   assert.equal(await page.locator('#productForm').count(),1,'Product form must remain mounted after save');
   await page.locator('#mcDashboardPicks [data-toggle-watch]').first().click();
