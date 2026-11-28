@@ -30,3 +30,18 @@ test('Android launcher resources exist for every density',()=>{
  for(const d of['mdpi','hdpi','xhdpi','xxhdpi','xxxhdpi'])for(const n of['ic_launcher','ic_launcher_round','ic_launcher_foreground','ic_launcher_monochrome'])
   assert.ok(fs.existsSync(path.join(__dirname,`../app/src/main/res/mipmap-${d}/${n}.png`)),d+'/'+n);
 });
+
+test('hot-rolled flat sheet and coil are listed directly after parent hot-rolled product',()=>{
+ const source=fs.readFileSync(path.join(__dirname,'../core/market-config.js'),'utf8');
+ const match=source.match(/\['مقاطع تخت',\[(.*?)\]\]/s);
+ assert.ok(match,'flat products group exists');
+ const ids=[...match[1].matchAll(/\['([^']+)'\s*,\s*'([^']+)'\]/g)].map(x=>({id:x[1],name:x[2]}));
+ const parent=ids.findIndex(x=>x.id==='hot-rolled');
+ assert.ok(parent>=0,'parent hot-rolled product exists');
+ assert.deepEqual(ids.slice(parent,parent+3),[
+  {id:'hot-rolled',name:'ورق گرم'},
+  {id:'hot-rolled-sheet',name:'ورق گرم (سیاه)-تخت'},
+  {id:'hot-rolled-coil',name:'ورق گرم (سیاه)-کلاف'}
+ ]);
+ assert.equal(new Set(ids.map(x=>x.id)).size,ids.length,'catalog IDs must be unique');
+});
