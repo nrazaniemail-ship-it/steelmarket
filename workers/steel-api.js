@@ -155,6 +155,27 @@ export default {
     const r=await env.DB.prepare('SELECT id,product_key,source_id,old_price,new_price,change_pct,created_at FROM market_events ORDER BY created_at DESC LIMIT 100').all();
     return json(r.results,200,cors);
    }
+   // Public manual refresh is restricted to an already-registered source, an allowlisted HTTPS host,
+   // and a per-source cooldown. Admin credentials are not exposed to the browser for price checks.
+   const publicCheck = u.pathname.match(/^\\/public\\/sources\\/([^/]+)\\/check$/);
+   if (publicCheck && request.method === 'POST') {
+    const id=decodeURIComponent(publicCheck[1]);
+    const source=await env.DB.prepare('SELECT * FROM sources WHERE id=? AND enabled=1').bind(id).first();
+    if(!source)return json({error:'source_not_found'},404,cors);
+    const attempted=now(), cooldown=60000;
+    if(Number(source.last_attempt_at)>attempted-cooldown)
+     return json({error:'source_cooldown',retry_after_seconds:Math.ceil((Number(source.last_attempt_at)+cooldown-attempted)/1000)},429,cors);
+    const claim=await env.DB.prepare('UPDATE sources SET last_attempt_at=? WHERE id=? AND enabled=1 AND (last_attempt_at IS NULL OR last_attempt_at<=?)').bind(attempted,id,attempted-cooldown).run();
+    if(claim?.meta && claim.meta.changes===0)return json({error:'source_cooldown',retry_after_seconds:60},429,cors);
+    try {
+     const body=await fetchSafe(source,env),price=parse(body,source);
+     const { normalized }=await recordObservation(env,source,price,attempted);
+     return json({ok:true,id,price,currency:source.currency,measure_unit:source.measure_unit,irr_per_kg:normalized,observed_at:attempted,stored:true},200,cors);
+    } catch(error) {
+     await recordFailure(env,id,error);
+     return json({error:error.message||'source_check_failed',stored:false},502,cors);
+    }
+   }
    if (u.pathname === '/sources' && request.method === 'POST') {
     if (!authorized) return json({ error:'unauthorized' }, 401, cors);
     const s = await request.json();
