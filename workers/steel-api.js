@@ -1,4 +1,4 @@
-import { identifyAdapter, extractStructuredPrice } from './source-adapters.js';
+import { identifyAdapter, extractStructuredPrice, extractImeTradePrice } from './source-adapters.js';
 const now = () => Date.now();
 function json(data, status = 200, cors = {}) {
  return new Response(JSON.stringify(data), { status, headers: { 'content-type':'application/json; charset=utf-8', 'cache-control':'no-store', ...cors } });
@@ -98,6 +98,57 @@ async function fetchSafe(source, env) {
  if (!/text\/html|application\/json|text\/plain/i.test(response.headers.get('content-type') || '')) throw Error('unsupported_content_type');
  const body = await response.text(); if (body.length > 1500000) throw Error('response_too_large'); return body;
 }
+
+function jalaliDate(date) {
+ const gy=date.getUTCFullYear(),gm=date.getUTCMonth()+1,gd=date.getUTCDate();
+ const gdm=[0,31,59,90,120,151,181,212,243,273,304,334];
+ const gy2=gm>2?gy+1:gy;
+ let days=355666+365*gy+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400)+gd+gdm[gm-1];
+ let jy=-1595+33*Math.floor(days/12053);days%=12053;jy+=4*Math.floor(days/1461);days%=1461;
+ if(days>365){jy+=Math.floor((days-1)/365);days=(days-1)%365}
+ const jm=days<186?1+Math.floor(days/31):7+Math.floor((days-186)/30);
+ const jd=days<186?1+days%31:1+(days-186)%30;
+ return jy+'/'+String(jm).padStart(2,'0')+'/'+String(jd).padStart(2,'0');
+}
+async function fetchImePrice(source,env) {
+ const allowed=(env.ALLOWED_HOSTS||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);
+ validPublicUrl(source.url,allowed);
+ const tehranNow=new Date(now()+210*60000);
+ const toDate=new Date(Date.UTC(tehranNow.getUTCFullYear(),tehranNow.getUTCMonth(),tehranNow.getUTCDate()));
+ const fromDate=new Date(toDate.getTime()-30*86400000);
+ const from=jalaliDate(fromDate),to=jalaliDate(toDate);
+ const endpoint='https://www.ime.co.ir/SubSystems/IME/Services/Home/imedata.asmx/GetAmareMoamelatList';
+ const payload={Language:8,fari:false,GregorianFromDate:from,GregorianToDate:to,MainCat:1,Cat:1,SubCat:0,Producer:0};
+ let response;
+ try {
+  response=await fetch(endpoint,{method:'POST',redirect:'manual',signal:AbortSignal.timeout(30000),headers:{
+   'user-agent':'Mozilla/5.0 (compatible; FooladbanPriceMonitor/1.0)',
+   'accept':'text/plain, */*; q=0.01',
+   'content-type':'application/json; charset=utf-8',
+   'origin':'https://www.ime.co.ir',
+   'referer':'https://www.ime.co.ir/offer-stat.html',
+   'x-requested-with':'XMLHttpRequest'
+  },body:JSON.stringify(payload)});
+ } catch(error) { throw Error('ime_network_error: '+(error?.message||'upstream_unreachable')); }
+ if(response.status>=300&&response.status<400)throw Error('ime_redirect_blocked');
+ if(!response.ok)throw Error('ime_http_'+response.status);
+ const raw=await response.text();
+ if(raw.length>8000000)throw Error('ime_response_too_large');
+ let data;try{data=JSON.parse(raw)}catch{throw Error('ime_invalid_json_response')}
+ const result=extractImeTradePrice(data,source);
+ if(!result)throw Error('ime_no_matching_traded_price');
+ return result;
+}
+async function fetchSourcePrice(source,env) {
+ const adapter=identifyAdapter(source.url);
+ if(adapter.id==='ime') {
+  const result=await fetchImePrice(source,env);
+  return {price:result.price,sourceDate:result.sourceDate};
+ }
+ const body=await fetchSafe(source,env);
+ return {price:parse(body,source),sourceDate:null};
+}
+
 async function safeEqual(a, b) {
  const enc = new TextEncoder(), [x, y] = await Promise.all([crypto.subtle.digest('SHA-256', enc.encode(a)), crypto.subtle.digest('SHA-256', enc.encode(b))]);
  const u = new Uint8Array(x), v = new Uint8Array(y); let d = 0; for (let i = 0; i < u.length; i++) d |= u[i] ^ v[i]; return d === 0;
@@ -168,7 +219,7 @@ export default {
     const claim=await env.DB.prepare('UPDATE sources SET last_attempt_at=? WHERE id=? AND enabled=1 AND (last_attempt_at IS NULL OR last_attempt_at<=?)').bind(attempted,id,attempted-cooldown).run();
     if(claim?.meta && claim.meta.changes===0)return json({error:'source_cooldown',retry_after_seconds:60},429,cors);
     try {
-     const body=await fetchSafe(source,env),price=parse(body,source);
+     const {price}=await fetchSourcePrice(source,env);
      const { normalized }=await recordObservation(env,source,price,attempted);
      return json({ok:true,id,price,currency:source.currency,measure_unit:source.measure_unit,irr_per_kg:normalized,observed_at:attempted,stored:true},200,cors);
     } catch(error) {
@@ -246,7 +297,7 @@ export default {
     const claim = await env.DB.prepare('UPDATE sources SET last_attempt_at=? WHERE id=? AND (last_attempt_at IS NULL OR last_attempt_at<=?)').bind(time, source.id, time - source.interval_minutes * 60000 + 90000).run();
     if (claim?.meta && claim.meta.changes === 0) continue;
     try {
-     const body = await fetchSafe(source, env), price = parse(body, source);
+     const {price} = await fetchSourcePrice(source, env);
      await recordObservation(env, source, price, now());
     } catch (error) { await recordFailure(env, source.id, error); }
    }
