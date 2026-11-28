@@ -41,4 +41,16 @@ test('source-specific steel price adapters',async t=>{
   assert.equal(extractImeTradePrice({d:'[]'},{product_key:'hot-rolled',product_name:'ورق گرم'}),null);
  });
 
+ await t.test('matches a specific Markaz Ahan hot-rolled sheet variant from its public sheet channel',async()=>{
+  const {extractMarkazAhanTelegramPrice}=await import('../workers/source-adapters.js');
+  const html='<div class="tgme_widget_message_text js-message_text" dir="auto">#ورق_سیاه<br>ورق سیاه ضخامت 2 میلیمتر فولاد سبا عرض 1.25 انبار اصفهان ⬅ 163,636 تومان<br>ورق سیاه ضخامت 2 میلیمتر فولاد سبا عرض 1 انبار اصفهان ⬅ 165,454 تومان</div>';
+  const source={product_key:'hot-rolled',product_name:'ورق گرم',specification:'2 میلیمتر عرض 1.25 فولاد سبا',delivery:'انبار اصفهان'};
+  assert.equal(extractMarkazAhanTelegramPrice(html,source),163636);
+ });
+ await t.test('refuses ambiguous Markaz Ahan sheet prices without exact dimensions',async()=>{
+  const {extractMarkazAhanTelegramPrice}=await import('../workers/source-adapters.js');
+  const html='<div class="tgme_widget_message_text js-message_text">ورق سیاه ضخامت 2 میلیمتر فولاد سبا عرض 1 انبار اصفهان ⬅ 165,454 تومان<br>ورق سیاه ضخامت 2 میلیمتر فولاد سبا عرض 1.25 انبار اصفهان ⬅ 163,636 تومان</div>';
+  assert.equal(extractMarkazAhanTelegramPrice(html,{product_key:'hot-rolled',product_name:'ورق گرم',specification:'2 میلیمتر فولاد سبا'}),null);
+ });
+
 });
