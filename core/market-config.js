@@ -7,7 +7,7 @@ const KEY='fooladban.market-config.v1';
 const products=[
  ['شمش‌ها',[['slab','اسلب (تختال)'],['billet-bloom','بلوم و بیلت فولادی'],['alloy-billet-bloom','بلوم و بیلت فولاد آلیاژی']]],
  ['مقاطع طولی',[['long-sections','تیرآهن، ناودانی و نبشی'],['rebar','میلگرد'],['alloy-rebar','میلگرد فولاد آلیاژی'],['wire-rod','سیم فولادی'],['rail','ریل راه‌آهن']]],
- ['مقاطع تخت',[['hot-rolled','ورق گرم'],['hot-rolled-sheet','ورق گرم (سیاه)-تخت'],['hot-rolled-coil','ورق گرم (سیاه)-کلاف'],['cold-rolled','ورق سرد'],['galvanized','ورق گالوانیزه'],['tinplate','ورق قلع‌اندود'],['prepainted','ورق رنگی']]],
+ ['مقاطع تخت',[['hot-rolled','ورق گرم'],['black-sheet','ورق سیاه'],['hot-rolled-sheet','ورق گرم (سیاه)-تخت'],['hot-rolled-coil','ورق گرم (سیاه)-کلاف'],['cold-rolled','ورق سرد'],['galvanized','ورق گالوانیزه'],['tinplate','ورق قلع‌اندود'],['prepainted','ورق رنگی']]],
  ['زنجیره بالادست فولاد',[['iron-ore-lump','سنگ‌آهن کلوخه'],['iron-ore-fines','سنگ‌آهن دانه‌بندی'],['iron-concentrate','کنسانتره سنگ‌آهن'],['pellet','گندله'],['sponge-iron','آهن اسفنجی'],['hbi','بریکت آهن اسفنجی']]]
 ];
 const defaults=[
