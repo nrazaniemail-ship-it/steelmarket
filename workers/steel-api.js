@@ -1,4 +1,4 @@
-import { identifyAdapter, extractStructuredPrice, extractImeTradePrice, extractMarkazAhanTelegramPrice } from './source-adapters.js';
+import { identifyAdapter, extractStructuredPrice, extractImeTradePrice, extractMarkazAhanTelegramPrice, extractIranianSheetTablePrice } from './source-adapters.js';
 const now = () => Date.now();
 function json(data, status = 200, cors = {}) {
  return new Response(JSON.stringify(data), { status, headers: { 'content-type':'application/json; charset=utf-8', 'cache-control':'no-store', ...cors } });
@@ -152,6 +152,11 @@ async function fetchSourcePrice(source,env) {
   return {price,sourceDate:null};
  }
  const body=await fetchSafe(source,env);
+ if(['ahanonline','pivan','ahanprice','iromart'].includes(adapter.id)) {
+  const result=extractIranianSheetTablePrice(body,source,adapter.id);
+  if(!result)throw Error('variant_price_not_found_or_ambiguous');
+  return result;
+ }
  return {price:parse(body,source),sourceDate:null};
 }
 
