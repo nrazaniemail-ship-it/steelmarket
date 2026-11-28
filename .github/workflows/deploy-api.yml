@@ -245,6 +245,77 @@ jobs:
           print("BLACK_SHEET_END_TO_END: PASS")
           PY
 
+      - name: Register and verify independent hot-rolled sheet and coil sources in D1
+        env:
+          API_TOKEN: ${{ secrets.FOOLADB_API_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.parse, urllib.request
+          API = "https://fooladban-steel-api.n-razaniemail.workers.dev"
+          TOKEN = os.environ.get("API_TOKEN", "")
+          if not TOKEN: raise SystemExit("Missing FOOLADB_API_TOKEN")
+          common = {
+            "source_kind":"free_market", "market":"Iran", "url":"https://pivan.co/",
+            "parser_mode":"auto", "currency":"IRT", "measure_unit":"kg",
+            "tax_basis":"", "interval_minutes":15
+          }
+          sources = [
+            {**common,
+             "id":"pivan-hot-rolled-sheet-2mm-mobarakeh-1250x2500-tehran",
+             "product_key":"hot-rolled-sheet", "product_name":"ورق گرم (سیاه)-تخت",
+             "specification":"ضخامت 2 میلیمتر عرض 1250 میلیمتر طول 2500 میلیمتر فولاد مبارکه برش خورده",
+             "delivery":"انبار تهران"},
+            {**common,
+             "id":"pivan-hot-rolled-coil-2mm-mobarakeh-1250-isfahan",
+             "product_key":"hot-rolled-coil", "product_name":"ورق گرم (سیاه)-کلاف",
+             "specification":"ضخامت 2 میلیمتر عرض 1250 میلیمتر فولاد مبارکه رول",
+             "delivery":"اصفهان"}
+          ]
+          def call(path, method="GET", payload=None, auth=False):
+            data=None if payload is None else json.dumps(payload,ensure_ascii=False).encode()
+            headers={"Accept":"application/json","User-Agent":"FooladbanSheetCoilD1Verification/1.0"}
+            if data is not None: headers["Content-Type"]="application/json"
+            if auth: headers["Authorization"]="Bearer "+TOKEN
+            req=urllib.request.Request(API+path,data=data,headers=headers,method=method)
+            with urllib.request.urlopen(req,timeout=60) as response:
+              return json.loads(response.read().decode("utf-8"))
+          # Do not create either D1 source unless BOTH live prices match their own physical form.
+          previews=[]
+          for source in sources:
+            query=urllib.parse.urlencode({
+              "url":source["url"],"product_key":source["product_key"],
+              "product_name":source["product_name"],"specification":source["specification"],
+              "source_kind":source["source_kind"],"parser_mode":source["parser_mode"],
+              "currency":source["currency"],"measure_unit":source["measure_unit"],
+              "delivery":source["delivery"]})
+            result=call("/public/price?"+query)
+            if not result.get("ok") or float(result.get("price") or 0)<=0:
+              raise SystemExit("LIVE_PRICE_PRECHECK_FAILED "+source["product_key"]+": "+json.dumps(result,ensure_ascii=False))
+            previews.append(result)
+            print("LIVE_PRICE_PRECHECK_PASS",source["product_key"],result["price"],result.get("currency"),result.get("measure_unit"),"source_date=",result.get("source_date"))
+          # Register and check each distinct product-key/source-id pair.
+          for source,preview in zip(sources,previews):
+            created=call("/sources","POST",source,auth=True)
+            if not created.get("ok") or created.get("id")!=source["id"]:
+              raise SystemExit("SOURCE_REGISTER_FAILED "+source["id"]+": "+json.dumps(created,ensure_ascii=False))
+            checked=call("/sources/"+urllib.parse.quote(source["id"],safe="")+"/check","POST",{},auth=True)
+            if not checked.get("ok") or not checked.get("stored") or float(checked.get("price") or 0)<=0:
+              raise SystemExit("SOURCE_CHECK_FAILED "+source["id"]+": "+json.dumps(checked,ensure_ascii=False))
+            if float(checked["price"])!=float(preview["price"]):
+              raise SystemExit("PRICE_CHANGED_DURING_CHECK "+source["id"]+": preview="+str(preview["price"])+" stored="+str(checked["price"]))
+            rows=call("/public/observations?"+urllib.parse.urlencode({"product_key":source["product_key"]}))
+            found=[x for x in rows if x.get("source_id")==source["id"] and float(x.get("raw_price") or 0)==float(checked["price"])]
+            if not found:
+              raise SystemExit("D1_OBSERVATION_MISSING "+source["id"]+": "+json.dumps(rows[:5],ensure_ascii=False))
+            visible=call("/public/sources")
+            saved=next((x for x in visible if x.get("id")==source["id"]),None)
+            if not saved or saved.get("product_key")!=source["product_key"] or not saved.get("enabled"):
+              raise SystemExit("D1_SOURCE_NOT_ENABLED "+source["id"]+": "+json.dumps(saved,ensure_ascii=False))
+            print("D1_SOURCE_PASS",source["product_key"],json.dumps(saved,ensure_ascii=False))
+            print("D1_OBSERVATION_PASS",source["product_key"],json.dumps(found[0],ensure_ascii=False))
+          print("HOT_ROLLED_SHEET_AND_COIL_END_TO_END: PASS")
+          PY
+
       - name: Probe live Markaz Ahan hot-rolled sheet feed
         continue-on-error: true
         run: |
