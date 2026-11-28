@@ -10,6 +10,7 @@ on:
       - 'sw.js'
       - 'core/**'
       - 'tests/live-deployed.smoke.cjs'
+      - '.github/workflows/live-deployed.yml'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 permissions:
