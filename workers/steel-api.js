@@ -138,7 +138,7 @@ export default {
    if (u.pathname === '/public/market' && request.method === 'GET') {
     const r = await env.DB.prepare(`SELECT o.id,o.source_id,o.product_key,o.source_kind,o.raw_price,o.currency,o.measure_unit,o.irr_per_kg,o.observed_at,o.recorded_at,s.product_name,s.specification,s.market,s.delivery,s.tax_basis,s.enabled,s.last_attempt_at,s.last_success_at,s.last_error,s.consecutive_failures
      FROM observations o JOIN sources s ON s.id=o.source_id
-     WHERE s.enabled=1 AND s.last_error IS NULL AND o.observed_at=(SELECT MAX(o2.observed_at) FROM observations o2 WHERE o2.source_id=o.source_id)
+     WHERE s.enabled=1 AND s.last_error IS NULL AND o.raw_price<=1e12 AND o.observed_at=(SELECT MAX(o2.observed_at) FROM observations o2 WHERE o2.source_id=o.source_id)
      ORDER BY o.product_key,s.source_kind`).all();
     return json(r.results,200,cors);
    }
@@ -148,7 +148,7 @@ export default {
    }
    if (u.pathname === '/public/observations' && request.method === 'GET') {
     const key=u.searchParams.get('product_key'); if(!key)return json({error:'product_key_required'},400,cors);
-    const r=await env.DB.prepare('SELECT o.id,o.source_id,o.product_key,o.source_kind,o.raw_price,o.currency,o.measure_unit,o.irr_per_kg,o.observed_at,o.recorded_at,s.product_name,s.specification,s.market FROM observations o JOIN sources s ON s.id=o.source_id WHERE o.product_key=? ORDER BY o.observed_at DESC LIMIT 1500').bind(key).all();
+    const r=await env.DB.prepare('SELECT o.id,o.source_id,o.product_key,o.source_kind,o.raw_price,o.currency,o.measure_unit,o.irr_per_kg,o.observed_at,o.recorded_at,s.product_name,s.specification,s.market FROM observations o JOIN sources s ON s.id=o.source_id WHERE o.product_key=? AND o.raw_price<=1e12 ORDER BY o.observed_at DESC LIMIT 1500').bind(key).all();
     return json(r.results,200,cors);
    }
    if (u.pathname === '/public/events' && request.method === 'GET') {
