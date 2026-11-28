@@ -149,6 +149,90 @@ export function extractIranianSheetTablePrice(body,source={},adapterId=''){
 }
 
 
+export function extractPivanSheetPrice(body,source={}){
+ const html=String(body||''),thickness=sourceThickness(source),width=sourceWidth(source);
+ if(thickness===null)return null;
+ const maker=sourceMaker(source),delivery=sourceText(source.delivery||''),spec=sourceText(source.specification||'');
+ const matches=[];
+ for(const row of tableRows(html)){
+  const cells=row.cells, title=cells[0]||'', joined=cells.join(' | ');
+  if(!title.includes('ورق سیاه')&&!title.includes('ورق گرم'))continue;
+  const titleParts=title.split(/\\s*[-–—]\\s*/);
+  const t=titleParts.length>1?Number(titleParts[1].replace(',','.').replace('٫','.')):null;
+  if(!(Number.isFinite(t)&&Math.abs(t-thickness)<0.001))continue;
+  const size=title.match(/(\\d+(?:[.,]\\d+)?)\\s*[x×*]\\s*(\\d+(?:[.,]\\d+)?)/);
+  if(width){
+   if(!size)continue;
+   const dims=[Number(size[1].replace(',','.')),Number(size[2].replace(',','.'))];
+   const rowWidth=Math.round(Math.min(...dims)*10);
+   if(rowWidth!==Number(width))continue;
+  }
+  const brand=cells[1]||'';
+  if(maker&&!(brand.includes(maker)||title.includes(maker)||(maker.includes('فولاد مبارکه')&&brand.includes('مبارکه'))))continue;
+  const mode=cells[2]||'';
+  if(spec.includes('برش')&&!mode.includes('برش'))continue;
+  if(spec.includes('رول')&&!mode.includes('رول'))continue;
+  if(spec.includes('فابریک')&&!mode.includes('فابریک'))continue;
+  const place=cells[3]||'';
+  if(delivery.includes('تهران')&&!place.includes('تهران'))continue;
+  if(delivery.includes('اصفهان')&&!place.includes('اصفهان'))continue;
+  if(delivery.includes('کارخانه')&&!place.includes('کارخانه'))continue;
+  if((delivery.includes('انبار')||delivery.includes('بنگاه'))&&!/(انبار|بنگاه)/.test(place))continue;
+  if(!/کیلوگرم|کیلو\\b/.test(cells[4]||''))continue;
+  const priceCell=cells.at(-1)||'';
+  if(/تماس|ناموجود|استعلام/.test(priceCell))continue;
+  const prices=[...priceCell.matchAll(/[0-9][0-9,٬.٫]*/g)].map(m=>numericPrice(m[0])).filter(n=>n>=10000&&n<=10000000);
+  const price=prices.at(-1);
+  if(!price)continue;
+  const before=sourceText(html.slice(Math.max(0,row.index-5000),row.index));
+  const date=sourceDateNear(before.slice(-1800))||sourceDateNear(html.slice(row.index,row.index+1200));
+  matches.push({price,sourceDate:date});
+ }
+ if(!matches.length)return null;
+ const prices=[...new Set(matches.map(x=>x.price))];
+ if(prices.length!==1)return null;
+ const dates=matches.filter(x=>x.price===prices[0]&&x.sourceDate).map(x=>x.sourceDate).sort();
+ return {price:prices[0],sourceDate:dates.at(-1)||null};
+}
+
+export function extractIromartTelegramPrice(body,source={}){
+ const html=String(body||'');
+ const messages=[...html.matchAll(/<div[^>]*class=["'][^"']*tgme_widget_message_text[^"']*["'][^>]*>([\\s\\S]*?)<\\/div>/gi)].map(m=>markazText(m[1]));
+ if(!messages.length||String(source.product_key||'')!=='hot-rolled')return null;
+ const spec=markazText([source.product_name,source.specification].filter(Boolean).join(' '));
+ const thickness=spec.match(/(\\d+(?:[.,٫]\\d+)?)\\s*(?:میلی?متر|میل)/);
+ if(!thickness)return null;
+ const width=spec.match(/عرض\\s*(\\d+(?:[.,٫]\\d+)?)/);
+ const makers=['فولاد مبارکه','مبارکه','فولاد سبا','سبا','اکسین','کاویان','گیلان','قطعات'];
+ const maker=makers.find(x=>spec.includes(x));
+ const delivery=markazText(source.delivery||'');
+ const found=[];
+ for(const message of messages){
+  if(!/قیمت_ورق_سیاه|ورق\\s*(?:سیاه|گرم)/.test(message))continue;
+  const lines=message.split(/[\\n؛;]/).map(x=>x.trim()).filter(Boolean);
+  for(const line of lines){
+   if(!/تومان|ریال/.test(line))continue;
+   const t=line.match(/(?:ضخامت\\s*)?(\\d+(?:[.,٫]\\d+)?)\\s*(?:میلی?متر|میل)/);
+   if(!t||Math.abs(Number(t[1].replace(',','.').replace('٫','.'))-Number(thickness[1].replace(',','.').replace('٫','.')))>0.001)continue;
+   if(width){const w=line.match(/عرض\\s*(\\d+(?:[.,٫]\\d+)?)/);if(!w||Math.abs(Number(w[1].replace(',','.').replace('٫','.'))-Number(width[1].replace(',','.').replace('٫','.')))>0.001)continue}
+   if(maker&&!line.includes(maker))continue;
+   if(delivery.includes('تهران')&&!line.includes('تهران'))continue;
+   if(delivery.includes('اصفهان')&&!line.includes('اصفهان'))continue;
+   if(delivery.includes('کارخانه')&&!line.includes('کارخانه'))continue;
+   if(delivery.includes('انبار')&&!line.includes('انبار'))continue;
+   const p=line.match(/([0-9۰-۹٠-٩][0-9۰-۹٠-٩,٬٫.]*)\\s*(تومان|ریال)/);
+   if(!p)continue;
+   let price=numericPrice(p[1]);
+   if(p[2]==='ریال')price/=10;
+   if(price>=10000&&price<=10000000)found.push(price);
+  }
+ }
+ if(!found.length)return null;
+ const unique=[...new Set(found)];
+ return unique.length===1?{price:unique[0],sourceDate:null}:null;
+}
+
+
 // Parse the public IME physical-market ASMX response. Prices are Rial/kg for tonne-based goods.
 function imeText(value){return String(value??'').replace(/[ي]/g,'ی').replace(/[ك]/g,'ک').replace(/\s+/g,' ').trim().toLowerCase()}
 export function extractImeTradePrice(payload, source={}){
