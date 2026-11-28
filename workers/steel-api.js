@@ -250,7 +250,7 @@ export default {
     if(!source)return json({error:'source_not_found'},404,cors);
     const attempted=now();
     try {
-     const body=await fetchSafe(source,env),price=parse(body,source);
+     const {price}=await fetchSourcePrice(source,env);
      const { normalized }=await recordObservation(env,source,price,attempted);
      return json({ok:true,stored:true,id,price,currency:source.currency,measure_unit:source.measure_unit,irr_per_kg:normalized,observed_at:attempted},200,cors);
     }catch(error){await recordFailure(env,id,error);return json({error:error.message||'source_check_failed'},502,cors);}
