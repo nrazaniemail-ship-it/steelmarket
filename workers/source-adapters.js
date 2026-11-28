@@ -58,3 +58,32 @@ export function extractStructuredPrice(body, adapterId='custom'){
  return null;
 }
 export { ADAPTERS };
+
+
+// Parse the public IME physical-market ASMX response. Prices are Rial/kg for tonne-based goods.
+function imeText(value){return String(value??'').replace(/[ي]/g,'ی').replace(/[ك]/g,'ک').replace(/\s+/g,' ').trim().toLowerCase()}
+export function extractImeTradePrice(payload, source={}){
+ let rows=payload;
+ if(typeof rows==='string'){try{rows=JSON.parse(rows)}catch{return null}}
+ if(rows&&typeof rows==='object'&&!Array.isArray(rows)&&typeof rows.d==='string'){try{rows=JSON.parse(rows.d)}catch{return null}}
+ if(!Array.isArray(rows))return null;
+ const key=String(source.product_key||'').toLowerCase();
+ const wanted=key==='hot-rolled'?'ورق گرم':key==='cold-rolled'?'ورق سرد':String(source.product_name||'').split(/[|–—-]/)[0].trim();
+ if(!wanted)return null;
+ const needle=imeText(wanted);
+ let matched=rows.filter(row=>imeText(row.GoodsName).includes(needle)&&Number(row.Price)>0&&Number(row.Quantity)>0);
+ const productLabel=imeText(source.product_name||'');
+ const producerHint=productLabel.replace(needle,'').replace(/[|–—-]/g,' ').trim();
+ if(producerHint.length>2){const byProducer=matched.filter(row=>imeText(row.ProducerName).includes(producerHint));if(byProducer.length)matched=byProducer}
+ if(!matched.length)return null;
+ const latest=matched.map(row=>String(row.date||'')).sort().at(-1);
+ const current=matched.filter(row=>String(row.date||'')===latest);
+ const quantity=current.reduce((sum,row)=>sum+Number(row.Quantity||0),0);
+ if(!(quantity>0))return null;
+ const rialPerKg=current.reduce((sum,row)=>sum+Number(row.Price)*Number(row.Quantity||0),0)/quantity;
+ if(!(rialPerKg>0&&Number.isFinite(rialPerKg)))return null;
+ let price=rialPerKg;
+ if(String(source.currency||'IRR').toUpperCase()==='IRT')price/=10;
+ if(String(source.measure_unit||'kg').toLowerCase()==='ton')price*=1000;
+ return {price,sourceDate:latest,rows:current.length,quantity,currency:String(source.currency||'IRR').toUpperCase(),measure_unit:String(source.measure_unit||'kg').toLowerCase()};
+}
