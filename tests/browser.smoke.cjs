@@ -97,6 +97,7 @@ const assert = require('node:assert/strict');
   const watchDiag=await page.evaluate(()=>{const b=document.querySelector('#mcDashboardPicks [data-toggle-watch]'),c=b?.closest('.mc-dashboard-card'),w=c?.querySelector('.mc-dashboard-watch'),t=w?.querySelector('.mc-dashboard-watch-title');return {expanded:b?.getAttribute('aria-expanded'),cardClass:c?.className,hidden:w?.hidden,display:w&&getComputedStyle(w).display,titleDisplay:t&&getComputedStyle(t).display,layer:window.FooladbanLayers?.active,trace:window.__fbTrace?.slice(-12)}});
   if(!await page.locator('#mcDashboardPicks .mc-dashboard-watch-title').first().isVisible()) throw new Error('Watch panel toggle diagnostic: '+JSON.stringify(watchDiag)+'; page errors: '+errors.join('\\n'));
   assert.equal(watchDiag.expanded,'true');
+  await page.locator('#mcDashboardPicks [data-watch-action="edit"]').first().click();
   await page.locator('#mcProductDetails details.mc-advanced summary').click();
   await page.locator('#pMode').selectOption('selector');
   assert.equal(await page.locator('#selectorField').isVisible(),true);
