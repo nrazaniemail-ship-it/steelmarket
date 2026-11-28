@@ -254,6 +254,16 @@ jobs:
           API = "https://fooladban-steel-api.n-razaniemail.workers.dev"
           TOKEN = os.environ.get("API_TOKEN", "")
           if not TOKEN: raise SystemExit("Missing FOOLADB_API_TOKEN")
+          # Emit only the matching public Pivan rows to diagnose the live coil form.
+          try:
+            raw=call("/public/fetch?"+urllib.parse.urlencode({"url":"https://pivan.co/"}))
+            import re
+            for tr in re.findall(r"<tr\\b[^>]*>([\\s\\S]*?)</tr>",raw.get("body",""),re.I):
+              cells=[re.sub(r"<[^>]+>"," ",x).replace("&nbsp;"," ").strip() for x in re.findall(r"<td\\b[^>]*>([\\s\\S]*?)</td>",tr,re.I)]
+              if cells and "ورق سیاه" in cells[0] and re.search(r"-\\s*2\\s*-",cells[0]):
+                print("PIVAN_2MM_ROW",json.dumps(cells,ensure_ascii=False))
+          except Exception as exc:
+            print("PIVAN_2MM_DIAGNOSTIC_ERROR",repr(exc))
           common = {
             "source_kind":"free_market", "market":"Iran", "url":"https://pivan.co/",
             "parser_mode":"auto", "currency":"IRT", "measure_unit":"kg",
