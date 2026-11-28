@@ -118,7 +118,7 @@ async function fetchImePrice(source,env) {
  const fromDate=new Date(toDate.getTime()-30*86400000);
  const from=jalaliDate(fromDate),to=jalaliDate(toDate);
  const endpoint='https://www.ime.co.ir/SubSystems/IME/Services/Home/imedata.asmx/GetAmareMoamelatList';
- const payload={Language:8,fari:false,GregorianFromDate:from,GregorianToDate:to,MainCat:1,Cat:1,SubCat:0,Producer:0};
+ const payload={Language:8,fari:false,GregorianFromDate:from,GregorianToDate:to,MainCat:0,Cat:0,SubCat:0,Producer:0};
  let response;
  try {
   response=await fetch(endpoint,{method:'POST',redirect:'manual',signal:AbortSignal.timeout(30000),headers:{
@@ -219,9 +219,9 @@ export default {
     const claim=await env.DB.prepare('UPDATE sources SET last_attempt_at=? WHERE id=? AND enabled=1 AND (last_attempt_at IS NULL OR last_attempt_at<=?)').bind(attempted,id,attempted-cooldown).run();
     if(claim?.meta && claim.meta.changes===0)return json({error:'source_cooldown',retry_after_seconds:60},429,cors);
     try {
-     const {price}=await fetchSourcePrice(source,env);
+     const {price,sourceDate}=await fetchSourcePrice(source,env);
      const { normalized }=await recordObservation(env,source,price,attempted);
-     return json({ok:true,id,price,currency:source.currency,measure_unit:source.measure_unit,irr_per_kg:normalized,observed_at:attempted,stored:true},200,cors);
+     return json({ok:true,id,price,currency:source.currency,measure_unit:source.measure_unit,source_date:sourceDate||null,irr_per_kg:normalized,observed_at:attempted,stored:true},200,cors);
     } catch(error) {
      await recordFailure(env,id,error);
      return json({error:error.message||'source_check_failed',stored:false},502,cors);
