@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const panel=document.getElementById('fbTradeComparison');if(!panel)return;
+const host=document.getElementById('fbTradeComparison');if(!host)return;document.getElementById('fbTopsisPanel')?.remove();const panel=document.createElement('div');panel.id='fbTopsisPanel';panel.style.cssText='margin-top:18px;padding-top:14px;border-top:1px solid var(--line)';host.append(panel);
 const STORE='fooladban.topsis.scenarios.v1';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const number=v=>{const raw=String(v??'').trim();if(!raw)return null;const x=Number(raw.replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٬,\s]/g,'').replace('٫','.'));return Number.isFinite(x)?x:null};
@@ -82,9 +82,9 @@ $('tpDirection').addEventListener('change',updateDirection);
 $('tpAddAlternative').addEventListener('click',()=>{addAlternative();renderAlternatives()});
 $('tpAddCriterion').addEventListener('click',()=>{const key='custom-'+(++customCounter);criteria.push({key,name:'معیار جدید '+customCounter,weight:1,type:'cost',unit:'مقدار',custom:true});alternatives.forEach(a=>a.values[key]='');renderCriteria();renderAlternatives()});
 $('tpRank').addEventListener('click',rank);
-$('tpSave').addEventListener('click',()=>{localStorage.setItem(STORE,JSON.stringify({direction:direction(),tonnage:$('tpTonnage').value,criteria,alternatives}));$('tpStatus').textContent='سناریوها و معیارها در حافظه همین دستگاه ذخیره شدند.'});
+$('tpSave').addEventListener('click',()=>{try{localStorage.setItem(STORE,JSON.stringify({direction:direction(),tonnage:$('tpTonnage').value,criteria,alternatives}))}catch{$('tpStatus').textContent='ذخیره‌سازی محلی ممکن نیست';return}$('tpStatus').textContent='سناریوها و معیارها در حافظه همین دستگاه ذخیره شدند.'});
 $('tpClear').addEventListener('click',()=>$('tpResults').innerHTML='<div class="ta-empty">نتایج پاک شد؛ تعریف سناریوها حفظ شده است.</div>');
-try{const saved=JSON.parse(localStorage.getItem(STORE)||'null');if(saved&&Array.isArray(saved.criteria)&&Array.isArray(saved.alternatives)){criteria.splice(0,criteria.length,...saved.criteria);alternatives=saved.alternatives;altCounter=alternatives.length;customCounter=criteria.filter(x=>x.custom).length;$('tpDirection').value=saved.direction==='sell'?'sell':'buy';$('tpTonnage').value=saved.tonnage||''}}catch{}
+try{const saved=JSON.parse(localStorage.getItem(STORE)||'null');if(saved&&Array.isArray(saved.criteria)&&Array.isArray(saved.alternatives)){criteria.splice(0,criteria.length,...saved.criteria.filter(c=>c&&c.key).map(c=>({...c,weight:Number(c.weight)||0,type:c.type==='benefit'?'benefit':'cost'})));alternatives=saved.alternatives.filter(a=>a&&a.id).map(a=>({...a,values:{...(typeof defaults==='function'?defaults():{}),...(a.values||{})}}));altCounter=Math.max(alternatives.length,...alternatives.map(a=>Number(String(a.id).replace(/\D/g,''))||0));customCounter=Math.max(criteria.filter(x=>x.custom).length,...criteria.map(c=>Number(String(c.key).replace(/^custom-/,''))||0));$('tpDirection').value=saved.direction==='sell'?'sell':'buy';$('tpTonnage').value=saved.tonnage||''}}catch{}
 if(!alternatives.length){addAlternative('سناریوی اول');addAlternative('سناریوی دوم')}
 updateDirection();
 })();

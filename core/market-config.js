@@ -21,7 +21,8 @@ const defaults=[
 ];
 const labels={iran:'ایران',global:'جهانی / شاخص‌های بین‌المللی',china:'چین',europe:'اروپا', 'north-america':'آمریکای شمالی',turkey:'ترکیه',india:'هند','middle-east':'خاورمیانه'};
 let cfg;
-try{cfg=JSON.parse(localStorage.getItem(KEY)||'{}')}catch{cfg={}}
+try{cfg=JSON.parse(localStorage.getItem(KEY)||'{}');if(!cfg||typeof cfg!=='object'||Array.isArray(cfg))cfg={}}catch{cfg={}}
+if(Array.isArray(cfg.sources))cfg.sources=cfg.sources.filter(x=>x&&typeof x==='object');
 const storedSources=Array.isArray(cfg.sources)?cfg.sources:[];
 let migratedSources=[...storedSources];
 if((Number(cfg.sourceCatalogVersion)||0)<3){
@@ -113,7 +114,7 @@ function enableHoldReorder(container,selector,{items,persist,scope=()=>true}){
   let nearest=null,best=Infinity;
   for(const candidate of candidates){const r=candidate.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,d=Math.hypot(e.clientX-cx,e.clientY-cy);if(d<best){best=d;nearest={candidate,r,cx,cy}}}
   if(!nearest){container.insertBefore(drag.placeholder,container.querySelector(selector));return}
-  const before=e.clientY<nearest.cy||(Math.abs(e.clientY-nearest.cy)<nearest.r.height*.25&&e.clientX<nearest.cx);
+  const inside=e.clientX>=nearest.r.left&&e.clientX<=nearest.r.right&&e.clientY>=nearest.r.top&&e.clientY<=nearest.r.bottom;const before=inside?!!(drag.placeholder.compareDocumentPosition(nearest.candidate)&Node.DOCUMENT_POSITION_PRECEDING):(e.clientY<nearest.cy||(Math.abs(e.clientY-nearest.cy)<nearest.r.height*.25&&e.clientX<nearest.cx));
   nearest.candidate[before?'before':'after'](drag.placeholder);
  });
  container.addEventListener('pointerup',e=>{if(pending&&pending.pointerId===e.pointerId)clearPending();finish(e)});
