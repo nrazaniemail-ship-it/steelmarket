@@ -2,7 +2,7 @@
 
 سامانه وب/PWA واکنش‌گرا برای ارزیابی تفکیک‌شده قیمت محصولات زنجیره فولاد در بازار ایران و بازارهای بین‌المللی.
 
-**نسخه وب منتشرشده:** https://nrazaniemail-ship-it.github.io/steelmarket/
+**نسخه وب منتشرشده:** https://nrazaniemail-ship-it.github.io/fooladban/
 
 ## نسخه ۱.۶
 رفع باگ‌های ممیزی کامل، آیکون جدید و «ابزارهای معامله‌گر» (نبض بازار، ماشین‌حساب وزن مقاطع، حاشیه تبدیل زنجیره). جزئیات: [CHANGELOG_1_6](docs/CHANGELOG_1_6.md). برای اپ اندروید، `https://appassets.androidplatform.net` را به `FOOLADB_APP_ORIGIN` بیفزایید.
