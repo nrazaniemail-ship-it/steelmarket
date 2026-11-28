@@ -1,1 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="256" height="256" viewBox="0 0 256 256"><image x="0" y="0" width="256" height="256" preserveAspectRatio="xMidYMid meet" xlink:href="./fooladban-logo.jpg"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 1024 1024" role="img" aria-label="فولادبان">
+<circle cx="513" cy="515" r="487" fill="#fff" stroke="#0047a0" stroke-width="22"/>
+<g fill="#0047a0">
+<rect x="224" y="751" width="70" height="134"/><rect x="335" y="715" width="69" height="170"/>
+<rect x="443" y="667" width="69" height="218"/><rect x="551" y="609" width="69" height="276"/>
+<rect x="659" y="534" width="69" height="351"/><path d="M770 439h69v410l-38 36h-31z"/>
+</g>
+<path fill="#e60012" d="M183 722C420 660 650 520 773 320l-43-26 146-52-22 144-35-32C700 560 450 700 183 722z"/>
+</svg>
