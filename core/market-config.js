@@ -80,7 +80,7 @@ function renderDashboardPicks(){
     detail.append(foot);watch.append(detail);
    }
   }
-  card.append(watch);if(activeFormCard===item.id&&activeForm){card.append(activeForm);activeForm.style.display=''}picksList.append(card);
+  card.append(watch);picksList.append(card);
  }
 }
 
