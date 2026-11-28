@@ -7,8 +7,8 @@ const assert = require('node:assert/strict');
   const errors=[];page.on('pageerror',e=>errors.push(e.stack||e.message));
   await page.addInitScript(()=>{localStorage.setItem('fooladban.v1',JSON.stringify({products:[{id:'legacy-slab',catalogId:'slab',productKey:'slab',name:'اسلب آزمایشی خارج از سبد',group:'شمش‌ها',market:'ایران',currency:'IRT',measureUnit:'kg',history:[{price:1000000,time:Date.now()}]}],events:[],settings:{auto:false,apiUrl:'https://example.invalid/api'}}));localStorage.setItem('fooladban.market-config.v1',JSON.stringify({selected:[],order:[],sources:[]}));window.__fbTrace=[];for(const type of ['pointerdown','pointerup','click'])window.addEventListener(type,e=>window.__fbTrace.push({type,target:e.target?.outerHTML?.slice(0,220),path:e.composedPath().slice(0,6).map(n=>n?.id||n?.className||n?.tagName)}),true)});
   async function longPressMove(source,target){
-   await source.scrollIntoViewIfNeeded();const a=await source.boundingBox(),b=await target.boundingBox();assert.ok(a&&b,'drag cards must be visible');
-   const sx=a.x+a.width-3,sy=a.y+a.height/2,tx=b.x+b.width/2,ty=Math.max(b.y+Math.min(b.height/2,110),76);// keep the drop point below sticky headers while remaining inside tall cards
+   await source.scrollIntoViewIfNeeded();const a=await source.locator('.mc-dashboard-card-head b').boundingBox(),b=await target.locator('.mc-dashboard-card-head b').boundingBox();assert.ok(a&&b,'dashboard card titles must be visible');
+   const sx=a.x+a.width/2,sy=a.y+a.height/2,tx=b.x+b.width/2,ty=b.y+b.height/2;// use non-interactive title text for a deterministic long-press drag
    
    await page.mouse.move(sx,sy);await page.mouse.down();await page.waitForTimeout(550);await page.mouse.move(tx,ty,{steps:5});await page.mouse.up();await page.waitForTimeout(100);
   }
