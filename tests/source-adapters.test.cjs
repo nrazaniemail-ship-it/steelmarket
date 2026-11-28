@@ -110,5 +110,23 @@ test('source-specific steel price adapters',async t=>{
   const html='<div class="tgme_widget_message_text js-message_text">ورق سیاه ضخامت 2 میلیمتر فولاد سبا عرض 1 انبار اصفهان ⬅ 165,454 تومان<br>ورق سیاه ضخامت 2 میلیمتر فولاد سبا عرض 1.25 انبار اصفهان ⬅ 163,636 تومان</div>';
   assert.equal(extractMarkazAhanTelegramPrice(html,{product_key:'hot-rolled',product_name:'ورق گرم',specification:'2 میلیمتر فولاد سبا'}),null);
  });
+ await t.test('extracts sheet and coil prices independently with exact dimensions and form',async()=>{
+  const {extractPivanSheetPrice}=await import('../workers/source-adapters.js');
+  const sheet='<div><time datetime="2026-11-28T10:00:00+00:00">امروز</time><table><tr><td>ورق سیاه - 2 - فولاد مبارکه - 250x125</td><td class="meta-width*length">۱۲۵ x ۲۵۰</td><td class="meta-brand-name">فولاد مبارکه اصفهان</td><td class="meta-form-name">برش خورده</td><td class="meta-delivery">انبار تهران</td><td class="meta-unit">کیلوگرم</td><td class="meta-price">۱۷۰,۹۰۰</td><td class="meta-priceDifference">۰٪</td></tr></table></div>';
+  const coil='<div><time datetime="2026-11-28T10:00:00+00:00">امروز</time><table><tr><td>ورق سیاه - 2 - فولاد مبارکه - رول عرض 125</td><td class="meta-width*length">۱۲۵</td><td class="meta-brand-name">فولاد مبارکه اصفهان</td><td class="meta-form-name">رول</td><td class="meta-delivery">انبار اصفهان</td><td class="meta-unit">کیلوگرم</td><td class="meta-price">۱۶۲,۵۰۰</td><td class="meta-priceDifference">۰٪</td></tr></table></div>';
+  const sheetSource={product_key:'hot-rolled-sheet',product_name:'ورق گرم (سیاه)-تخت',specification:'ضخامت 2 میلیمتر عرض 1250 میلیمتر طول 2500 میلیمتر فولاد مبارکه برش خورده',delivery:'انبار تهران'};
+  const coilSource={product_key:'hot-rolled-coil',product_name:'ورق گرم (سیاه)-کلاف',specification:'ضخامت 2 میلیمتر عرض 1250 میلیمتر فولاد مبارکه رول',delivery:'انبار اصفهان'};
+  assert.deepEqual(extractPivanSheetPrice(sheet,sheetSource),{price:170900,sourceDate:'2026-11-28'});
+  assert.deepEqual(extractPivanSheetPrice(coil,coilSource),{price:162500,sourceDate:'2026-11-28'});
+ });
+ await t.test('never assigns a sheet quote to a coil or vice versa',async()=>{
+  const {extractPivanSheetPrice}=await import('../workers/source-adapters.js');
+  const sheet='<table><tr><td>ورق سیاه - 2 - فولاد مبارکه - 250x125</td><td class="meta-width*length">۱۲۵ x ۲۵۰</td><td class="meta-brand-name">فولاد مبارکه</td><td class="meta-form-name">برش خورده</td><td class="meta-delivery">انبار تهران</td><td class="meta-unit">کیلوگرم</td><td class="meta-price">۱۷۰,۹۰۰</td><td>۰٪</td></tr></table>';
+  const coilSource={product_key:'hot-rolled-coil',product_name:'ورق گرم (سیاه)-کلاف',specification:'ضخامت 2 میلیمتر عرض 1250 میلیمتر فولاد مبارکه رول',delivery:'انبار تهران'};
+  const sheetSource={product_key:'hot-rolled-sheet',product_name:'ورق گرم (سیاه)-تخت',specification:'ضخامت 2 میلیمتر عرض 1250 میلیمتر طول 2500 میلیمتر فولاد مبارکه برش خورده',delivery:'انبار تهران'};
+  assert.equal(extractPivanSheetPrice(sheet,coilSource),null);
+  const coil='<table><tr><td>ورق سیاه - 2 - فولاد مبارکه - رول عرض 125</td><td class="meta-width*length">۱۲۵</td><td class="meta-brand-name">فولاد مبارکه</td><td class="meta-form-name">رول</td><td class="meta-delivery">انبار اصفهان</td><td class="meta-unit">کیلوگرم</td><td class="meta-price">۱۶۲,۵۰۰</td><td>۰٪</td></tr></table>';
+  assert.equal(extractPivanSheetPrice(coil,sheetSource),null);
+ });
 
 });
