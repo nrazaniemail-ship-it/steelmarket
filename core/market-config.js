@@ -14,7 +14,7 @@ const defaults=[
  {id:'ime',name:'بورس کالای ایران (IME)',market:'iran',url:'https://www.ime.co.ir/offer-stat.html',enabled:true,priority:1,type:'منبع رسمی · قیمت پایه و معاملات عمده'},
  {id:'ahanonline',name:'آهن آنلاین',market:'iran',url:'https://ahanonline.com/product-category/انواع-ورق/ورق-سیاه/',enabled:true,priority:2,type:'مرجع خصوصی بازار · فروشنده'},
  {id:'markazeahan',name:'مرکز آهن',market:'iran',url:'https://markazeahan.com/',enabled:true,priority:3,type:'مرجع خصوصی بازار · فروشنده'},
- {id:'pivan',name:'پیوان',market:'iran',url:'https://pivan.co/product-category/sheet/st37-sheet/',enabled:true,priority:4,type:'مرجع خصوصی بازار · فروشنده'},
+ {id:'pivan',name:'پیوان',market:'iran',url:'https://pivan.co/',enabled:true,priority:4,type:'مرجع خصوصی بازار · فروشنده'},
  {id:'iromart',name:'آیرومارت',market:'iran',url:'https://iromart.com/sheet/hot-rolled-steel/',enabled:true,priority:5,type:'مرجع خصوصی بازار · فروشنده'},
  {id:'ahanprice',name:'آهن پرایس',market:'iran',url:'https://ahanprice.com/Price/ورق-سیاه',enabled:true,priority:6,type:'مرجع خصوصی بازار · جدول قیمت روز'},
  {id:'tradingeconomics',name:'Trading Economics',market:'global',url:'https://fa.tradingeconomics.com/commodity/hrc-steel',enabled:true,priority:1,type:'مرجع قیمت جهانی'}
@@ -35,6 +35,11 @@ if((Number(cfg.sourceCatalogVersion)||0)<4){
  const oldUrls={ime:'https://www.ime.co.ir/',ahanonline:'https://ahanonline.com/',pivan:'https://pivan.co/',iromart:'https://iromart.com/',ahanprice:'https://ahanprice.com/',tradingeconomics:'https://fa.tradingeconomics.com/'};
  for(const item of defaults){const existing=migratedSources.find(x=>x.id===item.id);if(existing&&existing.url===oldUrls[item.id])existing.url=item.url;}
  cfg.sourceCatalogVersion=4;
+}
+if((Number(cfg.sourceCatalogVersion)||0)<5){
+ const oldPivanUrls=['https://pivan.co/product-category/sheet/st37-sheet/','https://pivan.co/product-category/sheet/'];
+ for(const item of defaults){const existing=migratedSources.find(x=>x.id===item.id);if(item.id==='pivan'&&existing&&oldPivanUrls.includes(existing.url))existing.url=item.url;}
+ cfg.sourceCatalogVersion=5;
 }
 const catalogIds=new Set(products.flatMap(group=>group[1].map(([id])=>id)));
 cfg={...cfg,selected:[...new Set((Array.isArray(cfg.selected)?cfg.selected:[]).map(String).filter(id=>catalogIds.has(id)))],order:[...new Set((Array.isArray(cfg.order)?cfg.order:[]).map(String).filter(id=>catalogIds.has(id)))],cardOrder:[...new Set((Array.isArray(cfg.cardOrder)?cfg.cardOrder:[]).map(String))],hiddenVariants:[...new Set((Array.isArray(cfg.hiddenVariants)?cfg.hiddenVariants:[]).map(String))],sources:migratedSources};
