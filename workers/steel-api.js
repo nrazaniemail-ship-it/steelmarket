@@ -7,7 +7,7 @@ function originAllowed(origin, env) {
  const list = String(env.APP_ORIGIN || '').split(',').map(x => x.trim()).filter(Boolean).map(x => {
   try { return new URL(x).origin; } catch { return x.replace(/\/+$/, ''); }
  });
- return !!origin && list.includes(origin.replace(/\\/+$/, ''));
+ return !!origin && list.includes(origin.replace(/\/+$/, ''));
 }
 function corsHeaders(req, env) {
  const origin = req.headers.get('origin') || '';
