@@ -145,13 +145,13 @@ async function fetchSourcePrice(source,env) {
   const result=await fetchImePrice(source,env);
   return {price:result.price,sourceDate:result.sourceDate};
  }
- if(adapter.id==='markazeahan' && String(source.product_key)==='hot-rolled') {
+ if(adapter.id==='markazeahan' && ['hot-rolled','black-sheet'].includes(String(source.product_key))) {
   const body=await fetchSafe({...source,url:'https://t.me/s/markazeahan4'},env);
   const price=extractMarkazAhanTelegramPrice(body,source);
   if(!price)throw Error('markazeahan_variant_not_found_or_ambiguous');
   return {price,sourceDate:null};
  }
- if(adapter.id==='iromart' && String(source.product_key)==='hot-rolled') {
+ if(adapter.id==='iromart' && ['hot-rolled','black-sheet'].includes(String(source.product_key))) {
   const body=await fetchSafe({...source,url:'https://t.me/s/iromart'},env);
   const result=extractIromartTelegramPrice(body,source);
   if(!result)throw Error('iromart_price_requires_explicit_currency_unit_and_exact_variant');
