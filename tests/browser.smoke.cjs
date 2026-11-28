@@ -253,6 +253,7 @@ const assert = require('node:assert/strict');
   await page.locator('#layer-settings summary').filter({hasText:'ظاهر برنامه'}).click();
   await page.locator('#layer-settings details').filter({has:page.locator('summary',{hasText:'ظاهر برنامه'})}).locator('select').first().selectOption('light');
   assert.equal(await page.locator('html').getAttribute('data-theme'),'light');
+  await page.locator('#fbLayerNav [data-layer-target="sources"]').click();
   const iranAdd=page.locator('#mcAddSourcePanel [data-market-group="iran"]');
   await iranAdd.locator('input[aria-label^="نام مرجع"]').fill('مرجع آزمایشی ایران');
   await iranAdd.locator('input[type="url"]').fill('https://iran.example.test');
