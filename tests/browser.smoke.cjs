@@ -156,7 +156,7 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('#selectorField').isVisible(),true);
   await page.locator('#fbLayerNav [data-layer-target="dashboard"]').click();
   assert.equal(await page.locator('#mcDashboardPicks .mc-dashboard-drag-handle').count(),0);
-  const beforeOrder=await page.locator('#mcDashboardPicks .mc-dashboard-card').evaluateAll(xs=>xs.map(x=>x.dataset.catalogId+'::'+(x.dataset.variantKey||'')));
+  const beforeOrder=await page.locator('#mcDashboardPicks .mc-dashboard-card').evaluateAll(xs=>xs.map(x=>x.dataset.orderKey));
   assert.equal(beforeOrder.length,2);
   await longPressMove(page.locator('#mcDashboardPicks .mc-dashboard-card').nth(1),page.locator('#mcDashboardPicks .mc-dashboard-card').nth(0));
   const afterOrder=await page.locator('#mcDashboardPicks .mc-dashboard-card').evaluateAll(xs=>xs.map(x=>x.dataset.catalogId+'::'+(x.dataset.variantKey||'')));
