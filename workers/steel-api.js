@@ -206,7 +206,20 @@ export default {
     const r=await env.DB.prepare('SELECT id,product_key,source_id,old_price,new_price,change_pct,created_at FROM market_events ORDER BY created_at DESC LIMIT 100').all();
     return json(r.results,200,cors);
    }
-   // Public manual refresh is restricted to an already-registered source, an allowlisted HTTPS host,
+   // Public read-only fetch for locally configured sources. Host restrictions are identical to admin fetches.
+    if (u.pathname === '/public/fetch' && request.method === 'GET') {
+     const raw=u.searchParams.get('url');
+     if(!raw)return json({error:'url_required'},400,cors);
+     try {
+      const body=await fetchSafe({url:raw},env);
+      return json({ok:true,body},200,cors);
+     } catch(error) {
+      const message=error?.message||'source_fetch_failed';
+      const status=message==='upstream_http_403'||message==='upstream_http_429'?502:400;
+      return json({error:message},status,cors);
+     }
+    }
+    // Public manual refresh is restricted to an already-registered source, an allowlisted HTTPS host,
    // and a per-source cooldown. Admin credentials are not exposed to the browser for price checks.
    const publicCheck = u.pathname.match(/^\/public\/sources\/([^/]+)\/check$/);
    if (publicCheck && request.method === 'POST') {
