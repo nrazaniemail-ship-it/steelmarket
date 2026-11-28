@@ -167,6 +167,14 @@ jobs:
               clean=html_module.unescape(re.sub(r"<[^>]+>"," ",msg))
               print("IROMART_POST",re.sub(r"\s+"," ",clean)[:500])
           except Exception as exc: print("IROMART_DIAGNOSTIC_FAILED",repr(exc))
+          try:
+            html=get_page("https://t.me/s/Iromart_co")
+            messages=re.findall(r"<div[^>]*class=["\'][^"\']*tgme_widget_message_text[^"\']*["\'][^>]*>([\s\S]*?)</div>",html,re.I)
+            print("IROMART_CO_MESSAGE_COUNT",len(messages))
+            for msg in messages[-8:]:
+              clean=html_module.unescape(re.sub(r"<[^>]+>"," ",msg))
+              print("IROMART_CO_POST",re.sub(r"\s+"," ",clean)[:600])
+          except Exception as exc: print("IROMART_CO_DIAGNOSTIC_FAILED",repr(exc))
           PY
 
       - name: Probe live Markaz Ahan hot-rolled sheet feed
