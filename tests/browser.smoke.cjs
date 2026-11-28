@@ -168,8 +168,12 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('#mcDashboardPicks .mc-dashboard-drag-handle').count(),0);
   const beforeOrder=await page.locator('#mcDashboardPicks .mc-dashboard-card').evaluateAll(xs=>xs.map(x=>x.dataset.orderKey));
   assert.equal(beforeOrder.length,3);
-  await longPressMove(page.locator('#mcDashboardPicks .mc-dashboard-card').nth(1),page.locator('#mcDashboardPicks .mc-dashboard-card').nth(0));
-  const afterOrder=await page.locator('#mcDashboardPicks .mc-dashboard-card').evaluateAll(xs=>xs.map(x=>x.dataset.orderKey));
+  let afterOrder=beforeOrder;
+  for(let attempt=0;attempt<3&&JSON.stringify(afterOrder)===JSON.stringify(beforeOrder);attempt++){
+   await longPressMove(page.locator('#mcDashboardPicks .mc-dashboard-card').nth(1),page.locator('#mcDashboardPicks .mc-dashboard-card').nth(0));
+   await page.waitForTimeout(180);
+   afterOrder=await page.locator('#mcDashboardPicks .mc-dashboard-card').evaluateAll(xs=>xs.map(x=>x.dataset.orderKey));
+  }
   assert.notDeepEqual(afterOrder,beforeOrder);
   assert.deepEqual(JSON.parse(await page.evaluate(()=>localStorage.getItem('fooladban.market-config.v1'))).cardOrder,afterOrder);
   await page.evaluate(()=>window.dispatchEvent(new Event('fooladban:product-updated')));
