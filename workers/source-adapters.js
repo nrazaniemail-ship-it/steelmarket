@@ -157,10 +157,10 @@ export function extractPivanSheetPrice(body,source={}){
  for(const row of tableRows(html)){
   const cells=row.cells, title=cells[0]||'', joined=cells.join(' | ');
   if(!title.includes('ورق سیاه')&&!title.includes('ورق گرم'))continue;
-  const titleParts=title.split(/\\s*[-–—]\\s*/);
+  const titleParts=title.split(/\s*[-–—]\s*/);
   const t=titleParts.length>1?Number(titleParts[1].replace(',','.').replace('٫','.')):null;
   if(!(Number.isFinite(t)&&Math.abs(t-thickness)<0.001))continue;
-  const size=title.match(/(\\d+(?:[.,]\\d+)?)\\s*[x×*]\\s*(\\d+(?:[.,]\\d+)?)/);
+  const size=title.match(/(\d+(?:[.,]\d+)?)\s*[x×*]\s*(\d+(?:[.,]\d+)?)/);
   if(width){
    if(!size)continue;
    const dims=[Number(size[1].replace(',','.')),Number(size[2].replace(',','.'))];
@@ -178,7 +178,7 @@ export function extractPivanSheetPrice(body,source={}){
   if(delivery.includes('اصفهان')&&!place.includes('اصفهان'))continue;
   if(delivery.includes('کارخانه')&&!place.includes('کارخانه'))continue;
   if((delivery.includes('انبار')||delivery.includes('بنگاه'))&&!/(انبار|بنگاه)/.test(place))continue;
-  if(!/کیلوگرم|کیلو\\b/.test(cells[4]||''))continue;
+  if(!/کیلوگرم|کیلو\b/.test(cells[4]||''))continue;
   const priceCell=cells.at(-1)||'';
   if(/تماس|ناموجود|استعلام/.test(priceCell))continue;
   const prices=[...priceCell.matchAll(/[0-9][0-9,٬.٫]*/g)].map(m=>numericPrice(m[0])).filter(n=>n>=10000&&n<=10000000);
@@ -197,30 +197,30 @@ export function extractPivanSheetPrice(body,source={}){
 
 export function extractIromartTelegramPrice(body,source={}){
  const html=String(body||'');
- const messages=[...html.matchAll(/<div[^>]*class=["'][^"']*tgme_widget_message_text[^"']*["'][^>]*>([\\s\\S]*?)<\\/div>/gi)].map(m=>markazText(m[1]));
+ const messages=[...html.matchAll(/<div[^>]*class=["'][^"']*tgme_widget_message_text[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi)].map(m=>markazText(m[1]));
  if(!messages.length||String(source.product_key||'')!=='hot-rolled')return null;
  const spec=markazText([source.product_name,source.specification].filter(Boolean).join(' '));
- const thickness=spec.match(/(\\d+(?:[.,٫]\\d+)?)\\s*(?:میلی?متر|میل)/);
+ const thickness=spec.match(/(\d+(?:[.,٫]\d+)?)\s*(?:میلی?متر|میل)/);
  if(!thickness)return null;
- const width=spec.match(/عرض\\s*(\\d+(?:[.,٫]\\d+)?)/);
+ const width=spec.match(/عرض\s*(\d+(?:[.,٫]\d+)?)/);
  const makers=['فولاد مبارکه','مبارکه','فولاد سبا','سبا','اکسین','کاویان','گیلان','قطعات'];
  const maker=makers.find(x=>spec.includes(x));
  const delivery=markazText(source.delivery||'');
  const found=[];
  for(const message of messages){
-  if(!/قیمت_ورق_سیاه|ورق\\s*(?:سیاه|گرم)/.test(message))continue;
-  const lines=message.split(/[\\n؛;]/).map(x=>x.trim()).filter(Boolean);
+  if(!/قیمت_ورق_سیاه|ورق\s*(?:سیاه|گرم)/.test(message))continue;
+  const lines=message.split(/[\n؛;]/).map(x=>x.trim()).filter(Boolean);
   for(const line of lines){
-   if(!/تومان|ریال/.test(line)||!/(?:\\/|\\s)کیلو|هر\\s*کیلو|\\bkg\\b/i.test(line))continue;
-   const t=line.match(/(?:ضخامت\\s*)?(\\d+(?:[.,٫]\\d+)?)\\s*(?:میلی?متر|میل)/);
+   if(!/تومان|ریال/.test(line)||!/(?:\/|\s)کیلو|هر\s*کیلو|\bkg\b/i.test(line))continue;
+   const t=line.match(/(?:ضخامت\s*)?(\d+(?:[.,٫]\d+)?)\s*(?:میلی?متر|میل)/);
    if(!t||Math.abs(Number(t[1].replace(',','.').replace('٫','.'))-Number(thickness[1].replace(',','.').replace('٫','.')))>0.001)continue;
-   if(width){const w=line.match(/عرض\\s*(\\d+(?:[.,٫]\\d+)?)/);if(!w||Math.abs(Number(w[1].replace(',','.').replace('٫','.'))-Number(width[1].replace(',','.').replace('٫','.')))>0.001)continue}
+   if(width){const w=line.match(/عرض\s*(\d+(?:[.,٫]\d+)?)/);if(!w||Math.abs(Number(w[1].replace(',','.').replace('٫','.'))-Number(width[1].replace(',','.').replace('٫','.')))>0.001)continue}
    if(maker&&!line.includes(maker))continue;
    if(delivery.includes('تهران')&&!line.includes('تهران'))continue;
    if(delivery.includes('اصفهان')&&!line.includes('اصفهان'))continue;
    if(delivery.includes('کارخانه')&&!line.includes('کارخانه'))continue;
    if(delivery.includes('انبار')&&!line.includes('انبار'))continue;
-   const p=line.match(/([0-9۰-۹٠-٩][0-9۰-۹٠-٩,٬٫.]*)\\s*(تومان|ریال)/);
+   const p=line.match(/([0-9۰-۹٠-٩][0-9۰-۹٠-٩,٬٫.]*)\s*(تومان|ریال)/);
    if(!p)continue;
    let price=numericPrice(p[1]);
    if(p[2]==='ریال')price/=10;
