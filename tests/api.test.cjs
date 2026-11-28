@@ -39,6 +39,10 @@ test('admin source write remains protected',async()=>{
  assert.equal(accepted.status,201);
  assert.ok(DB.calls.some(x=>x.sql.includes('ON CONFLICT(id)')));
 });
+test('rejects implausibly large extracted source prices',()=>{
+ assert.throws(()=>worker.normalize('10112903191009008'),/implausible_price_magnitude/);
+});
+
 test('public history requires a product key',async()=>{
  const env={DB:dbMock()};
  const res=await worker.default.fetch(new Request('https://api.example.workers.dev/public/observations'),env);
