@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
  try{
   const page=await browser.newPage({viewport:{width:390,height:844}});
   const errors=[];page.on('pageerror',e=>errors.push(e.stack||e.message));
+  await page.addInitScript(()=>{window.__fbTrace=[];for(const type of ['pointerdown','pointerup','click'])window.addEventListener(type,e=>window.__fbTrace.push({type,target:e.target?.outerHTML?.slice(0,220),path:e.composedPath().slice(0,6).map(n=>n?.id||n?.className||n?.tagName)}),true)});
   async function longPressMove(source,target){
    await source.scrollIntoViewIfNeeded();const a=await source.boundingBox(),b=await target.boundingBox();assert.ok(a&&b,'drag cards must be visible');
    const sx=a.x+a.width-3,sy=a.y+a.height/2,tx=b.x+b.width/2,ty=Math.max(b.y+Math.min(b.height/2,40),20);// target may be a tall card with the embedded form; stay inside the viewport
@@ -76,7 +77,7 @@ const assert = require('node:assert/strict');
   await page.locator('#productForm button[type=submit]').click();
   await page.locator('#fbLayerNav [data-layer-target="dashboard"]').click();
   await page.locator('#mcDashboardPicks [data-toggle-watch]').first().click();
-  const watchDiag=await page.evaluate(()=>{const b=document.querySelector('#mcDashboardPicks [data-toggle-watch]'),c=b?.closest('.mc-dashboard-card'),w=c?.querySelector('.mc-dashboard-watch'),t=w?.querySelector('.mc-dashboard-watch-title');return {expanded:b?.getAttribute('aria-expanded'),cardClass:c?.className,hidden:w?.hidden,display:w&&getComputedStyle(w).display,titleDisplay:t&&getComputedStyle(t).display,layer:window.FooladbanLayers?.active}});
+  const watchDiag=await page.evaluate(()=>{const b=document.querySelector('#mcDashboardPicks [data-toggle-watch]'),c=b?.closest('.mc-dashboard-card'),w=c?.querySelector('.mc-dashboard-watch'),t=w?.querySelector('.mc-dashboard-watch-title');return {expanded:b?.getAttribute('aria-expanded'),cardClass:c?.className,hidden:w?.hidden,display:w&&getComputedStyle(w).display,titleDisplay:t&&getComputedStyle(t).display,layer:window.FooladbanLayers?.active,trace:window.__fbTrace?.slice(-12)}});
   if(!await page.locator('#mcDashboardPicks .mc-dashboard-watch-title').first().isVisible()) throw new Error('Watch panel toggle diagnostic: '+JSON.stringify(watchDiag)+'; page errors: '+errors.join('\\n'));
   assert.equal(watchDiag.expanded,'true');
   await page.locator('#mcProductDetails details.mc-advanced summary').click();
