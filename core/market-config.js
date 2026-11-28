@@ -54,8 +54,8 @@ const productCatalogMap=new Map(products.flatMap(g=>g[1].map(([id,name])=>[id,{i
 function readWatchlist(){try{return JSON.parse(localStorage.getItem('fooladban.v1')||'{}').products||[]}catch{return[]}}
 function money(value,currency){return Number(value).toLocaleString('fa-IR',{maximumFractionDigits:2})+' '+(currency||'') }
  function formatCheckedAt(value){const d=new Date(value);const p=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).formatToParts(d);const v=Object.fromEntries(p.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));return `${v.day}-${v.month}-${v.year}، ${v.hour}:${v.minute}`}
-function sameQuoteBasis(a,b){return ['marketScope','productGrade','productSize','productManufacturer','delivery','taxBasis','specification'].every(k=>String(a[k]||'').trim().toLowerCase()===String(b[k]||'').trim().toLowerCase())}
-const dashboardVariantFields=['productGrade','productSize','productManufacturer','specification','delivery','marketScope','taxBasis'];
+function sameQuoteBasis(a,b){return ['marketScope','market','productGrade','productSize','productManufacturer','delivery','taxBasis','specification'].every(k=>String(a[k]||'').trim().toLowerCase()===String(b[k]||'').trim().toLowerCase())}
+const dashboardVariantFields=['productGrade','productSize','productManufacturer','specification','delivery','marketScope','market','taxBasis'];
 function dashboardVariantKey(p){return JSON.stringify(dashboardVariantFields.map(k=>String(p[k]||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('fa')))}
 function dashboardCardOrderKey(item){const ids=(item.records||[]).map(p=>String(p.id||'')).filter(Boolean).sort();return item.id+'::'+(ids[0]||'catalog')}
 function dashboardQuoteStats(records){
