@@ -115,7 +115,7 @@ export function extractIranianSheetTablePrice(body,source={},adapterId=''){
   const heading=[...near.matchAll(/ورق\\s*(?:سیاه|گرم)(?:\\s*ضخامت)?\\s*(\\d+(?:[.,٫]\\d+)?)/g)].at(-1);
   const t=rowThickness?Number(rowThickness[1].replace(',','.').replace('٫','.')):heading?Number(heading[1].replace(',','.').replace('٫','.')):null;
   if(t!==null&&Math.abs(t-thickness)>0.001)continue;
-  if(maker&&!joined.includes(maker))continue;
+  if(maker&&!(joined.includes(maker)||near.includes(maker)||(maker.includes('فولاد مبارکه')&&joined.includes('مبارکه'))))continue;
   if(width&&!row.cells.some(c=>sourceDimension(c)===width||c.replace(/[^0-9]/g,'').includes(width)))continue;
   if(delivery){
    const city=delivery.includes('اصفهان')?'اصفهان':delivery.includes('تهران')?'تهران':'';
@@ -124,7 +124,8 @@ export function extractIranianSheetTablePrice(body,source={},adapterId=''){
    if((delivery.includes('بنگاه')||delivery.includes('انبار'))&&!/(بنگاه|انبار)/.test(joined))continue;
   }
   if(state.includes('رول')&&!joined.includes('رول'))continue;
-  if(state.includes('برش')&&!joined.includes('برش'))continue;
+  if(state.includes('برش')&&!joined.includes('برش')&&!(/2500.{0,8}1250|1250.{0,8}2500/.test(joined)))continue;
+  if(state.includes('شیت')&&!/2500.{0,8}1250|1250.{0,8}2500/.test(joined))continue;
   if(state.includes('فابریک')&&!joined.includes('فابریک'))continue;
   let priceText='';
   if(adapterId==='ahanprice')priceText=row.cells[3]||'';
