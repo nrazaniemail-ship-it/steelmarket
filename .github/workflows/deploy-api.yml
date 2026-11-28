@@ -117,7 +117,7 @@ jobs:
           API_TOKEN: ${{ secrets.FOOLADB_API_TOKEN }}
         run: |
           python3 - <<'PY'
-          import json, os, urllib.request, urllib.parse, urllib.error
+          import json, os, time, urllib.request, urllib.parse, urllib.error
           base = "https://fooladban-steel-api.n-razaniemail.workers.dev"
           def request(path, method="GET", admin=False):
               headers = {"Accept": "application/json", "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36 FooladbanDeployCheck/1.0"}
@@ -139,6 +139,8 @@ jobs:
           for source in enabled:
               parts = urllib.parse.urlsplit(source.get("url", ""))
               print("SOURCE CONFIG:", source.get("id"), source.get("product_name"), parts.netloc + parts.path, "parser=", source.get("parser_mode"), "currency=", source.get("currency"), "unit=", source.get("measure_unit"), "selector=", source.get("selector"), "regex=", source.get("regex"))
+          # Let any scheduled 15-minute worker tick or previous manual check clear its 60-second source lock.
+          time.sleep(65)
           verified = 0
           for source in enabled:
               sid = source["id"]
