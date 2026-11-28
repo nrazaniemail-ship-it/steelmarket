@@ -163,7 +163,7 @@ jobs:
             html=get_page("https://t.me/s/iromart")
             messages=re.findall(r"<div[^>]*class=[\"'][^\"']*tgme_widget_message_text[^\"']*[\"'][^>]*>([\s\S]*?)</div>",html,re.I)
             print("IROMART_MESSAGE_COUNT",len(messages))
-            for msg in messages[:8]:
+            for msg in messages[-8:]:
               clean=html_module.unescape(re.sub(r"<[^>]+>"," ",msg))
               print("IROMART_POST",re.sub(r"\s+"," ",clean)[:500])
           except Exception as exc: print("IROMART_DIAGNOSTIC_FAILED",repr(exc))
