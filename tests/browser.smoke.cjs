@@ -45,6 +45,7 @@ const assert = require('node:assert/strict');
   await page.locator('#fbLayerNav [data-layer-target="products"]').click();
   await page.locator('#mcProductCatalog input[data-catalog-id="rebar"]').check();
   await page.locator('#mcProductCatalog input[data-catalog-id="hot-rolled"]').check();
+  await page.waitForFunction(()=>document.querySelector('#mcDashboardPicks')?.innerText.includes('میلگرد'));
   assert.equal(await page.locator('#mcDashboardPicks').innerText().then(t=>t.includes('میلگرد')),true);
   assert.equal(await page.locator('#products .product').count(),0,'An unselected legacy product remains hidden after another product is selected');
   await page.locator('#fbLayerNav [data-layer-target="dashboard"]').click();
