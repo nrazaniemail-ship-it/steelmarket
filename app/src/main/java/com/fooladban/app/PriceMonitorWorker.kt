@@ -24,12 +24,17 @@ class PriceMonitorWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, p
    if (!settings.optBoolean("auto", true)) return Result.success()
    val intervalMs = settings.optLong("interval", 15).coerceAtLeast(15) * 60_000L
    val lastRun = prefs.getLong("lastRunAt", 0L)
-   if (System.currentTimeMillis() - lastRun < intervalMs) return Result.success()
+   if (System.currentTimeMillis() - lastRun < intervalMs - 90_000L) return Result.success()
+   val runStartedAt = System.currentTimeMillis()
    val products = state.optJSONArray("products") ?: JSONArray()
-   val events = state.optJSONArray("events") ?: JSONArray()
-   var changed = false
+   val newEvents = JSONArray()
+   val touched = ArrayList<JSONObject>()
    for (i in 0 until products.length()) {
     val p = products.optJSONObject(i) ?: continue
+    if (isStopped) break
+    // products synced from the central API have no local URL; paused products are skipped
+    if (p.optBoolean("disabled", false) || p.optString("url").isBlank()) continue
+    touched.add(p)
     val attemptedAt = System.currentTimeMillis()
     p.put("lastAttemptAt", attemptedAt)
     try {
@@ -45,24 +50,39 @@ class PriceMonitorWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, p
        val event = JSONObject().put("id", UUID.randomUUID().toString())
         .put("productId", p.optString("id")).put("name", p.optString("name"))
         .put("old", previous).put("price", price).put("change", pct).put("time", observedAt)
-       events.put(0, event)
-       if (settings.optBoolean("alerts", true)) notify(p.optString("id"), p.optString("name"), previous, price, pct)
+       newEvents.put(event)
+       if (settings.optBoolean("alerts", true) && prefs.getString("lastAlert:" + p.optString("id"), "") != "$price") { prefs.edit().putString("lastAlert:" + p.optString("id"), "$price").apply(); notify(p.optString("id"), p.optString("name"), previous, price, pct) }
       }
      }
      hist.put(JSONObject().put("price", price).put("time", observedAt))
      p.put("history", hist).put("verified", true).put("checkedAt", observedAt)
       .put("lastSuccessAt", observedAt).put("consecutiveFailures", 0).remove("error")
      appendObservation(p, price, observedAt)
-     changed = true
     } catch (ex: Exception) {
      p.put("error", ex.message ?: "دریافت ناموفق")
       .put("checkedAt", attemptedAt)
       .put("consecutiveFailures", p.optInt("consecutiveFailures", 0) + 1)
-     changed = true
     }
    }
-   state.put("products", products).put("events", events)
-   prefs.edit().putString("state", state.toString()).putLong("lastRunAt", System.currentTimeMillis()).apply()
+   // Merge into the freshest state so edits made in the WebView during this run are not lost.
+   val fresh = JSONObject(prefs.getString("state", raw) ?: raw)
+   val freshProducts = fresh.optJSONArray("products") ?: JSONArray()
+   val keys = listOf("history", "error", "checkedAt", "lastSuccessAt", "lastAttemptAt", "consecutiveFailures", "verified")
+   for (tp in touched) {
+    for (j in 0 until freshProducts.length()) {
+     val fp = freshProducts.optJSONObject(j) ?: continue
+     if (fp.optString("id") != tp.optString("id")) continue
+     for (k in keys) { if (tp.has(k)) fp.put(k, tp.get(k)) else fp.remove(k) }
+     val h = fp.optJSONArray("history")
+     if (h != null && h.length() > 500) { val c = JSONArray(); for (x in h.length() - 500 until h.length()) c.put(h.get(x)); fp.put("history", c) }
+    }
+   }
+   val oldEvents = fresh.optJSONArray("events") ?: JSONArray()
+   val mergedEvents = JSONArray()
+   for (x in newEvents.length() - 1 downTo 0) mergedEvents.put(newEvents.get(x))
+   for (x in 0 until oldEvents.length()) { if (mergedEvents.length() >= 500) break; mergedEvents.put(oldEvents.get(x)) }
+   fresh.put("products", freshProducts).put("events", mergedEvents)
+   prefs.edit().putString("state", fresh.toString()).putLong("lastRunAt", runStartedAt).apply()
    Result.success()
   } catch (ex: Exception) { Result.retry() }
  }
@@ -71,7 +91,9 @@ class PriceMonitorWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, p
  private fun appendObservation(p: JSONObject, price: Double, observedAt: Long) {
   val prefs = applicationContext.getSharedPreferences("fooladban", Context.MODE_PRIVATE)
   val key = "observationLedger"
-  val ledger = JSONArray(prefs.getString(key, "[]") ?: "[]")
+  val old = JSONArray(prefs.getString(key, "[]") ?: "[]")
+  val ledger = JSONArray()
+  for (x in maxOf(0, old.length() - 4999) until old.length()) ledger.put(old.get(x))
   ledger.put(JSONObject()
    .put("id", UUID.randomUUID().toString())
    .put("productId", p.optString("id"))
@@ -109,7 +131,7 @@ class PriceMonitorWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, p
    }
    if (code !in 200..299) { conn.disconnect(); throw Exception("HTTP $code") }
    val stream = conn.inputStream
-   val bytes = stream.use { it.readBytes() }
+   val bytes = stream.use { s -> val out = java.io.ByteArrayOutputStream(); val buf = ByteArray(8192); var total = 0; while (true) { val n = s.read(buf); if (n < 0) break; total += n; if (total > 1_500_000) throw Exception("حجم پاسخ بیش از حد مجاز است"); out.write(buf, 0, n) }; out.toByteArray() }
    conn.disconnect()
    if (bytes.size > 1_500_000) throw Exception("حجم پاسخ بیش از حد مجاز است")
    body = bytes.toString(Charsets.UTF_8)
@@ -152,7 +174,7 @@ class PriceMonitorWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, p
   val host = url.host.lowercase()
   require(host != "localhost" && !host.endsWith(".local") && !host.endsWith(".localhost")) { "میزبان محلی مجاز نیست" }
   val addresses = InetAddress.getAllByName(host)
-  require(addresses.isNotEmpty() && addresses.none { it.isAnyLocalAddress || it.isLoopbackAddress || it.isLinkLocalAddress || it.isSiteLocalAddress }) { "نشانی شبکه خصوصی مجاز نیست" }
+  require(addresses.isNotEmpty() && addresses.none { it.isAnyLocalAddress || it.isLoopbackAddress || it.isLinkLocalAddress || it.isSiteLocalAddress || it.isMulticastAddress || (it.address.size == 16 && (it.address[0].toInt() and 0xfe) == 0xfc) || (it.address.size == 4 && it.address[0].toInt() == 100 && (it.address[1].toInt() and 0xc0) == 64) }) { "نشانی شبکه خصوصی مجاز نیست" }
  }
 
  private fun path(obj: JSONObject, path: String): Any? {
@@ -163,11 +185,11 @@ class PriceMonitorWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, p
 
  private fun notify(id: String, name: String, old: Double, price: Double, pct: Double) {
   val title = "تغییر قیمت: $name"
-  val body = (if (pct > 0) "افزایش" else "کاهش") + " " + String.format("%.2f", pct) + "٪ | $old ← $price"
+  val body = (if (pct > 0) "افزایش" else "کاهش") + " " + String.format(java.util.Locale.US, "%.2f", pct) + "٪ | $old ← $price"
   val notification = NotificationCompat.Builder(applicationContext, "fooladban_prices")
-   .setSmallIcon(android.R.drawable.stat_notify_more).setContentTitle(title)
+   .setSmallIcon(applicationContext.applicationInfo.icon).setContentTitle(title)
    .setContentText(body).setStyle(NotificationCompat.BigTextStyle().bigText(body))
-   .setPriority(NotificationCompat.PRIORITY_HIGH).setAutoCancel(true).build()
+   .setPriority(NotificationCompat.PRIORITY_HIGH).setAutoCancel(true).setContentIntent(android.app.PendingIntent.getActivity(applicationContext, 0, android.content.Intent(applicationContext, MainActivity::class.java).addFlags(android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP), android.app.PendingIntent.FLAG_IMMUTABLE or android.app.PendingIntent.FLAG_UPDATE_CURRENT)).build()
   (applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
    .notify(id.hashCode(), notification)
  }
