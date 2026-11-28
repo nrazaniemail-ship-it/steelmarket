@@ -40,11 +40,27 @@ test('source-specific steel price adapters',async t=>{
   assert.equal(result.rows,2);
   assert.equal(result.price,11500);
  });
+ await t.test('maps black-sheet catalog key to hot-rolled IME trades without treating its label as a producer',async()=>{
+  const {extractImeTradePrice}=await import('../workers/source-adapters.js');
+  const payload={d:JSON.stringify([{GoodsName:'ورق گرم',ProducerName:'فولاد مبارکه',Price:175000,Quantity:20,date:'1405/09/07'}])};
+  const result=extractImeTradePrice(payload,{product_key:'black-sheet',product_name:'ورق سیاه',currency:'IRT',measure_unit:'kg'});
+  assert.equal(result.price,17500);
+  assert.equal(result.sourceDate,'1405/09/07');
+ });
  await t.test('does not invent an IME price when no matching trade exists',async()=>{
   const {extractImeTradePrice}=await import('../workers/source-adapters.js');
   assert.equal(extractImeTradePrice({d:'[]'},{product_key:'hot-rolled',product_name:'ورق گرم'}),null);
  });
 
+ await t.test('supports black-sheet catalog key in Markaz Ahan and Iromart exact-price adapters',async()=>{
+  const {extractMarkazAhanTelegramPrice,extractIromartTelegramPrice}=await import('../workers/source-adapters.js');
+  const source={product_key:'black-sheet',product_name:'ورق سیاه',specification:'2 میلیمتر عرض 1.25 فولاد سبا',delivery:'انبار اصفهان'};
+  const markaz='<div class="tgme_widget_message_text js-message_text">#ورق_سیاه<br>ورق سیاه ضخامت 2 میلیمتر فولاد سبا عرض 1.25 انبار اصفهان ⬅ 163,636 تومان</div>';
+  assert.equal(extractMarkazAhanTelegramPrice(markaz,source),163636);
+  const iro={...source,specification:'20 میلیمتر کاویان',delivery:'انبار اهواز'};
+  const telegram='<div class="tgme_widget_message_text">#قیمت_ورق_سیاه<br>ورق سیاه ضخامت 20 میل کاویان انبار اهواز قیمت 32,000 تومان/کیلو</div>';
+  assert.deepEqual(extractIromartTelegramPrice(telegram,iro),{price:32000,sourceDate:null});
+ });
  await t.test('extracts exact Ahanonline hot-rolled sheet table row and update date',async()=>{
   const {extractIranianSheetTablePrice}=await import('../workers/source-adapters.js');
   const html='<h3>ورق سیاه 2 میل</h3><table><tr><td>2500*1250</td><td>فولاد مبارکه</td><td>برش خورده</td><td>بنگاه تهران</td><td>176,290</td></tr></table><p>آخرین بروز رسانی : 1405/9/7</p>';
