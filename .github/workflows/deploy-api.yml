@@ -1,5 +1,10 @@
 name: Deploy Fooladban API
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'workers/**'
+      - '.github/workflows/deploy-api.yml'
   workflow_dispatch:
 permissions:
   contents: read
