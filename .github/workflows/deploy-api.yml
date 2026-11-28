@@ -79,7 +79,7 @@ jobs:
           API_TOKEN: ${{ secrets.FOOLADB_API_TOKEN }}
         run: |
           python3 - <<'PY'
-          import json, os, urllib.request, urllib.error
+          import json, os, urllib.request, urllib.error, urllib.parse
           base = "https://fooladban-steel-api.n-razaniemail.workers.dev"
           token = os.environ["API_TOKEN"]
           def request(path, method="GET"):
