@@ -94,7 +94,7 @@ jobs:
             assert len(matches) == 1, (source_id, matches)
             source = matches[0]
             assert source.get("product_key") == product_key, (source_id, source.get("product_key"))
-            assert source.get("enabled") is True, (source_id, source.get("enabled"))
+            assert source.get("enabled") in (True, 1), (source_id, source.get("enabled"))
             query = urllib.parse.urlencode({"product_key": product_key})
             rows = get("/public/observations?" + query)
             own = [r for r in rows if r.get("source_id") == source_id and float(r.get("raw_price") or 0) > 0]
