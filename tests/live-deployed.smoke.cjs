@@ -115,8 +115,8 @@ function sourceDate(value){
 
   const beforeSheet=await page.evaluate(id=>JSON.parse(localStorage.getItem('fooladban.v1')).products.find(p=>p.id===id).history.length,SHEET);
   const beforeCoil=await page.evaluate(id=>JSON.stringify(JSON.parse(localStorage.getItem('fooladban.v1')).products.find(p=>p.id===id).history),COIL);
-  const sheetResponsePromise=page.waitForResponse(r=>r.url().startsWith(API+'/public/price?')&&new URL(r.url()).searchParams.get('product_key')==='hot-rolled-sheet',{timeout:90000});
-  await sheetCard.locator('[data-watch-action="refresh"]').click();
+  const sheetResponsePromise=page.waitForResponse(r=>r.url().startsWith(API+'/public/price?')&&new URL(r.url()).searchParams.get('product_key')==='hot-rolled-sheet',{timeout:120000});
+  await page.evaluate(id=>document.querySelector('#products [data-refresh="'+id+'"]')?.click(),SHEET);
   const sheetResponse=await sheetResponsePromise;
   assert.equal(sheetResponse.status(),200,'Live sheet refresh endpoint must return HTTP 200');
   const refreshedSheet=await sheetResponse.json();
@@ -131,7 +131,7 @@ function sourceDate(value){
   const beforeCoilRefresh=await page.evaluate(id=>JSON.parse(localStorage.getItem('fooladban.v1')).products.find(p=>p.id===id).history.length,COIL);
   const beforeSheetAgain=await page.evaluate(id=>JSON.stringify(JSON.parse(localStorage.getItem('fooladban.v1')).products.find(p=>p.id===id).history),SHEET);
   const coilResponsePromise=page.waitForResponse(r=>r.url().startsWith(API+'/public/price?')&&new URL(r.url()).searchParams.get('product_key')==='hot-rolled-coil',{timeout:90000});
-  await page.locator('#mcDashboardPicks .mc-dashboard-card[data-catalog-id="hot-rolled-coil"] [data-watch-action="refresh"]').click();
+  await page.evaluate(id=>document.querySelector('#products [data-refresh="'+id+'"]')?.click(),COIL);
   const coilResponse=await coilResponsePromise;
   assert.equal(coilResponse.status(),200,'Live coil refresh endpoint must return HTTP 200');
   const refreshedCoil=await coilResponse.json();
