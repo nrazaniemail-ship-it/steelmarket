@@ -106,7 +106,7 @@ const CLIENT_ERRORS = new Set(['invalid_url','https_required','port_not_allowed'
 // Reject implausible jumps so one bad scrape cannot poison the append-only ledger.
 function plausible(price, previous) {
  const p = Number(previous?.raw_price);
- if (!(p > 0)) return;
+ if (!(p > 0) || p > 1e12) return;
  if (price / p > 4 || price / p < 0.25) throw Error('implausible_price_change');
 }
 async function recordObservation(env, source, price, observedAt) {
