@@ -51,6 +51,24 @@ test('source-specific steel price adapters',async t=>{
   const result=extractIranianSheetTablePrice(html,{product_key:'hot-rolled',product_name:'ورق گرم',specification:'2 میلیمتر عرض 1.25 فولاد مبارکه برش خورده',delivery:'بنگاه تهران'},'ahanonline');
   assert.deepEqual(result,{price:176290,sourceDate:'1405/9/7'});
  });
+ await t.test('extracts exact Pivan home-page black-sheet row and current discounted price',async()=>{
+  const {extractPivanSheetPrice}=await import('../workers/source-adapters.js');
+  const html='<h2>قیمت ورق سیاه</h2><p>آخرین بروزرسانی: 1405/09/07 ساعت 12:02</p><table><tr><td>ورق سیاه - 2 - فولاد مبارکه - 250x125</td><td>فولاد مبارکه اصفهان</td><td>برش خورده</td><td>انبار تهران</td><td>کیلوگرم</td><td>183,000 166,400</td></tr></table>';
+  const result=extractPivanSheetPrice(html,{product_key:'hot-rolled',product_name:'ورق گرم',specification:'2 میلیمتر عرض 1.25 فولاد مبارکه برش خورده',delivery:'انبار تهران'});
+  assert.deepEqual(result,{price:166400,sourceDate:'1405/09/07'});
+ });
+ await t.test('does not match Pivan wrong width, location, or ambiguous price rows',async()=>{
+  const {extractPivanSheetPrice}=await import('../workers/source-adapters.js');
+  const html='<p>آخرین بروزرسانی: 1405/09/07</p><table><tr><td>ورق سیاه - 2 - فولاد مبارکه - 200x100</td><td>فولاد مبارکه</td><td>برش خورده</td><td>انبار تهران</td><td>کیلوگرم</td><td>185,000 168,200</td></tr><tr><td>ورق سیاه - 2 - فولاد مبارکه - 250x125</td><td>فولاد مبارکه</td><td>برش خورده</td><td>انبار تهران</td><td>کیلوگرم</td><td>183,000 166,400</td></tr><tr><td>ورق سیاه - 2 - فولاد مبارکه - 250x125</td><td>فولاد مبارکه</td><td>برش خورده</td><td>انبار تهران</td><td>کیلوگرم</td><td>182,000 165,000</td></tr></table>';
+  const source={product_key:'hot-rolled',product_name:'ورق گرم',specification:'2 میلیمتر عرض 1.25 فولاد مبارکه برش خورده',delivery:'انبار تهران'};
+  assert.equal(extractPivanSheetPrice(html,source),null);
+ });
+ await t.test('Iromart accepts only exact Telegram prices with explicit currency and per-kg unit',async()=>{
+  const {extractIromartTelegramPrice}=await import('../workers/source-adapters.js');
+  const source={product_key:'hot-rolled',product_name:'ورق گرم',specification:'20 میلیمتر کاویان',delivery:'انبار اهواز'};
+  assert.deepEqual(extractIromartTelegramPrice('<div class="tgme_widget_message_text">#قیمت_ورق_سیاه<br>ورق سیاه ضخامت 20 میل کاویان انبار اهواز قیمت 32,000 تومان/کیلو</div>',source),{price:32000,sourceDate:null});
+  assert.equal(extractIromartTelegramPrice('<div class="tgme_widget_message_text">#قیمت_ورق_سیاه<br>ورق سیاه ضخامت 20 میل کاویان انبار اهواز 32,000</div>',source),null);
+ });
  await t.test('extracts Ahanprice sheet row only when dimensions and form are exact',async()=>{
   const {extractIranianSheetTablePrice}=await import('../workers/source-adapters.js');
   const html='<table><tr><td>2</td><td>قیمت ورق سیاه 2 میل 2500*1250 مبارکه</td><td>50</td><td>۱۶۹٬۰۹۰</td><td>۱٬۰۰۰</td><td>1405/09/04</td></tr><tr><td>2</td><td>قیمت ورق سیاه 2 میل عرض 1250 رول مبارکه</td><td>18000</td><td>۱۶۶٬۳۶۳</td><td>۱٬۰۰۰</td><td>1405/09/04</td></tr></table>';
