@@ -80,9 +80,10 @@ function renderDashboardPicks(){
   const stats=dashboardQuoteStats(records),summary=el('section','mc-dashboard-market-summary');
   const summaryHead=el('div','mc-dashboard-market-summary-head');summaryHead.append(el('span','','جمع‌بندی قیمت منابع'));const checkAll=el('button','mc-dashboard-market-check','استعلام همه منابع');checkAll.type='button';checkAll.dataset.aggregateCheck=item.id;summaryHead.append(checkAll);summary.append(summaryHead);
   const marketGrid=el('div','mc-dashboard-market-grid');
-  if(stats.values.length>=2){const avg=stats.values.reduce((a,b)=>a+b,0)/stats.values.length;for(const [label,value] of [['میانگین',avg],['حداقل',Math.min(...stats.values)],['حداکثر',Math.max(...stats.values)]]){const cell=el('div','mc-dashboard-market-cell');cell.append(el('small','',label),el('b','',money(value,stats.unit)));marketGrid.append(cell)}}
-  else{const cell=el('div','mc-dashboard-no-price','برای نمایش میانگین، حداقل و حداکثر، دست‌کم دو مرجع هم‌مشخصات با واحد قابل‌مقایسه باید قیمت معتبر داشته باشند.');marketGrid.append(cell)}
-  summary.append(marketGrid,el('div','mc-dashboard-market-note',stats.basis+' · '+stats.count.toLocaleString('fa-IR')+' مرجع دارای قیمت معتبر از '+records.length.toLocaleString('fa-IR')+' مرجع ثبت‌شده'));watch.append(summary);
+  const hasComparablePrices=stats.values.length>=2;
+  const avg=hasComparablePrices?stats.values.reduce((a,b)=>a+b,0)/stats.values.length:null;
+  for(const [label,value] of [['حداکثر',hasComparablePrices?Math.max(...stats.values):null],['میانگین',avg],['حداقل',hasComparablePrices?Math.min(...stats.values):null]]){const cell=el('div','mc-dashboard-market-cell');cell.append(el('small','',label),el('b','',value===null?'—':money(value,stats.unit)));marketGrid.append(cell)}
+  summary.append(marketGrid);watch.append(summary);
   const watchTitle=el('div','mc-dashboard-watch-title','رصد کالا · '+records.length.toLocaleString('fa-IR')+' مرجع');watch.append(watchTitle);
   if(!records.length){
    watch.append(el('div','mc-dashboard-no-price','هنوز مشخصات و مرجع قیمت این کالا در دیده‌بان ثبت نشده است.'));
