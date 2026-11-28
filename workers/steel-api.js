@@ -29,7 +29,7 @@ function normalize(value) {
  const s = String(value ?? '').replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
   .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٬,\s]/g, '')
   .replace('٫', '.').replace(/[^0-9.+-]/g, '');
- const n = Number(s); if (!(n > 0 && Number.isFinite(n))) throw Error('invalid_price'); return n;
+ const n = Number(s); if (!(n > 0 && Number.isFinite(n))) throw Error('invalid_price'); if (n > 1e12) throw Error('implausible_price_magnitude'); return n;
 }
 function attr(attrs, name) {
  const re = /([a-z-]+)\s*=\s*["']([^"']*)["']/gi; for (const m of attrs.matchAll(re)) if (m[1].toLowerCase() === name.toLowerCase()) return m[2]; return '';
@@ -138,7 +138,7 @@ export default {
    if (u.pathname === '/public/market' && request.method === 'GET') {
     const r = await env.DB.prepare(`SELECT o.id,o.source_id,o.product_key,o.source_kind,o.raw_price,o.currency,o.measure_unit,o.irr_per_kg,o.observed_at,o.recorded_at,s.product_name,s.specification,s.market,s.delivery,s.tax_basis,s.enabled,s.last_attempt_at,s.last_success_at,s.last_error,s.consecutive_failures
      FROM observations o JOIN sources s ON s.id=o.source_id
-     WHERE s.enabled=1 AND o.observed_at=(SELECT MAX(o2.observed_at) FROM observations o2 WHERE o2.source_id=o.source_id)
+     WHERE s.enabled=1 AND s.last_error IS NULL AND o.observed_at=(SELECT MAX(o2.observed_at) FROM observations o2 WHERE o2.source_id=o.source_id)
      ORDER BY o.product_key,s.source_kind`).all();
     return json(r.results,200,cors);
    }
