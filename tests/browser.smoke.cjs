@@ -100,6 +100,20 @@ const assert = require('node:assert/strict');
   assert.deepEqual(validity,{valid:true,invalid:[]});
   await page.locator('#productForm button[type=submit]').click();
   await page.waitForFunction(()=>JSON.parse(localStorage.getItem('fooladban.v1')||'{"products":[]}').products.some(p=>p.catalogId==='rebar'&&p.productGrade==='A3'));
+  // One registered source (IME) may serve different catalog products even when its generic URL is shared.
+  const hotRolledCard=page.locator('#mcDashboardPicks .mc-dashboard-card[data-catalog-id="hot-rolled"]');
+  await hotRolledCard.locator('[data-toggle-watch]').click();
+  await hotRolledCard.locator('[data-open-products]').click();
+  await page.locator('#pCatalogProduct').selectOption('hot-rolled');
+  await page.locator('#pGrade').selectOption('ST37');
+  await page.locator('#pSize').selectOption('۳');
+  await page.locator('#pSourceRegistry').selectOption('ime');
+  await page.locator('#pUrl').fill('https://example.invalid/rebar');
+  await page.locator('#productForm button[type=submit]').click();
+  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('fooladban.v1')||'{"products":[]}').products.some(p=>p.catalogId==='hot-rolled'&&p.sourceRef==='ime'));
+  assert.equal(await page.evaluate(()=>{const ps=JSON.parse(localStorage.getItem('fooladban.v1')||'{}').products.filter(p=>p.sourceRef==='ime');return new Set(ps.map(p=>p.catalogId)).size>=2}),true,'The same IME source and shared URL must be reusable for different goods');
+  await page.evaluate(()=>{const key='fooladban.v1',s=JSON.parse(localStorage.getItem(key)||'{}');s.products=s.products.filter(p=>p.catalogId!=='hot-rolled');localStorage.setItem(key,JSON.stringify(s));window.dispatchEvent(new Event('fooladban:product-updated'))});
+  
   await page.waitForFunction(()=>[...document.querySelectorAll('#mcDashboardPicks .mc-dashboard-watch-title')].some(x=>x.textContent.includes('۱ مرجع')||x.textContent.includes('1 مرجع')));
   await page.locator('#mcDashboardPicks [data-toggle-watch]').first().click();
   await page.locator('#mcDashboardPicks .mc-dashboard-record').first().waitFor();
