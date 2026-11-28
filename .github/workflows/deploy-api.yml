@@ -266,10 +266,11 @@ jobs:
              "specification":"ضخامت 2 میلیمتر عرض 1250 میلیمتر طول 2500 میلیمتر فولاد مبارکه برش خورده",
              "delivery":"انبار تهران"},
             {**common,
-             "id":"pivan-hot-rolled-coil-2mm-mobarakeh-1250-isfahan",
+             "id":"ahanonline-hot-rolled-coil-2mm-mobarakeh-1250-factory",
+             "url":"https://ahanonline.com/product-category/انواع-ورق/ورق-سیاه/",
              "product_key":"hot-rolled-coil", "product_name":"ورق گرم (سیاه)-کلاف",
              "specification":"ضخامت 2 میلیمتر عرض 1250 میلیمتر فولاد مبارکه رول",
-             "delivery":"اصفهان"}
+             "delivery":"کارخانه"}
           ]
           def call(path, method="GET", payload=None, auth=False):
             data=None if payload is None else json.dumps(payload,ensure_ascii=False).encode()
