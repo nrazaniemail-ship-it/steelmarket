@@ -155,17 +155,17 @@ export function extractPivanSheetPrice(body,source={}){
  const maker=sourceMaker(source),delivery=sourceText(source.delivery||''),spec=sourceText(source.specification||'');
  const matches=[];
  for(const row of tableRows(html)){
-  const td=[...String(row.html||'').matchAll(/<td\\b([^>]*)>([\\s\\S]*?)<\\/td>/gi)].map(m=>{
+  const td=[...String(row.html||'').matchAll(/<td\b([^>]*)>([\s\S]*?)<\/td>/gi)].map(m=>{
    const cls=(m[1].match(/class=["']([^"']*)["']/i)||[])[1]||'';
-   return {text:sourceText(m[2]),classes:cls.split(/\\s+/)};
+   return {text:sourceText(m[2]),classes:cls.split(/\s+/)};
   });
   if(td.length<6)continue;
   const title=td[0].text;
   if(!title.includes('ورق سیاه')&&!title.includes('ورق گرم'))continue;
-  const titleParts=title.split(/\\s*[-–—]\\s*/);
+  const titleParts=title.split(/\s*[-–—]\s*/);
   const t=titleParts.length>1?Number(titleParts[1].replace(',','.').replace('٫','.')):null;
   if(!(Number.isFinite(t)&&Math.abs(t-thickness)<0.001))continue;
-  const size=title.match(/(\\d+(?:[.,]\\d+)?)\\s*[x×*]\\s*(\\d+(?:[.,]\\d+)?)/);
+  const size=title.match(/(\d+(?:[.,]\d+)?)\s*[x×*]\s*(\d+(?:[.,]\d+)?)/);
   if(width){
    if(!size)continue;
    const dims=[Number(size[1].replace(',','.')),Number(size[2].replace(',','.'))];
@@ -182,7 +182,7 @@ export function extractPivanSheetPrice(body,source={}){
   if(delivery.includes('اصفهان')&&!place.includes('اصفهان'))continue;
   if(delivery.includes('کارخانه')&&!place.includes('کارخانه'))continue;
   if((delivery.includes('انبار')||delivery.includes('بنگاه'))&&!/(انبار|بنگاه)/.test(place))continue;
-  const unit=td.find(x=>/کیلوگرم|کیلو\\b/.test(x.text))?.text||'';
+  const unit=td.find(x=>/کیلوگرم|کیلو\b/.test(x.text))?.text||'';
   if(!unit)continue;
   const priceCell=td.find(x=>x.classes.includes('meta-price'))?.text||td.at(-2)?.text||'';
   if(/تماس|ناموجود|استعلام/.test(priceCell))continue;
@@ -190,7 +190,7 @@ export function extractPivanSheetPrice(body,source={}){
   const price=prices.at(-1);
   if(!price)continue;
   const before=html.slice(Math.max(0,row.index-8000),row.index);
-  const dateTime=[...before.matchAll(/<time[^>]*datetime=["'](\\d{4}-\\d{2}-\\d{2})/gi)].at(-1)?.[1]||null;
+  const dateTime=[...before.matchAll(/<time[^>]*datetime=["'](\d{4}-\d{2}-\d{2})/gi)].at(-1)?.[1]||null;
   const date=dateTime||sourceDateNear(sourceText(before.slice(-3000)))||sourceDateNear(html.slice(row.index,row.index+1200));
   matches.push({price,sourceDate:date});
  }
