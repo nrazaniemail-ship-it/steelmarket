@@ -79,16 +79,15 @@ jobs:
       - name: Verify isolated hot-rolled sheet and coil D1 observations
         run: |
           python3 - <<'PY'
-          import json, urllib.parse, urllib.request
+          import json, urllib.parse, subprocess
           base = "https://fooladban-steel-api.n-razaniemail.workers.dev"
           expected = {
             "pivan-hot-rolled-sheet-2mm-mobarakeh-1250x2500-tehran": "hot-rolled-sheet",
             "ahanonline-hot-rolled-coil-2mm-mobarakeh-1250-factory": "hot-rolled-coil",
           }
           def get(path):
-            req = urllib.request.Request(base + path, headers={"Accept":"application/json","Cache-Control":"no-cache"})
-            with urllib.request.urlopen(req, timeout=30) as response:
-              return json.loads(response.read().decode())
+            raw = subprocess.check_output(["curl", "-fsS", "--max-time", "30", "-H", "Accept: application/json", "-H", "Cache-Control: no-cache", base + path])
+            return json.loads(raw.decode())
           sources = get("/public/sources")
           for source_id, product_key in expected.items():
             matches = [s for s in sources if s.get("id") == source_id]
