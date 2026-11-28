@@ -177,6 +177,74 @@ jobs:
           except Exception as exc: print("IROMART_CO_DIAGNOSTIC_FAILED",repr(exc))
           PY
 
+      - name: Register and verify independent black-sheet Pivan source in D1
+        env:
+          API_TOKEN: ${{ secrets.FOOLADB_API_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.parse, urllib.request, urllib.error
+          API = "https://fooladban-steel-api.n-razaniemail.workers.dev"
+          TOKEN = os.environ.get("API_TOKEN", "")
+          if not TOKEN:
+            raise SystemExit("Missing FOOLADB_API_TOKEN")
+          source = {
+            "id": "pivan-black-sheet-2mm-mobarakeh-1250-tehran",
+            "product_key": "black-sheet",
+            "product_name": "ورق سیاه",
+            "specification": "2 میلیمتر عرض 1.25 فولاد مبارکه برش خورده 2500x1250",
+            "source_kind": "free_market",
+            "market": "Iran",
+            "url": "https://pivan.co/",
+            "parser_mode": "auto",
+            "currency": "IRT",
+            "measure_unit": "kg",
+            "delivery": "انبار تهران",
+            "tax_basis": "",
+            "interval_minutes": 15
+          }
+          def call(path, method="GET", payload=None, auth=False):
+            data = None if payload is None else json.dumps(payload, ensure_ascii=False).encode()
+            headers = {"Accept":"application/json", "User-Agent":"FooladbanBlackSheetD1Verification/1.0"}
+            if data is not None: headers["Content-Type"] = "application/json"
+            if auth: headers["Authorization"] = "Bearer " + TOKEN
+            req = urllib.request.Request(API + path, data=data, headers=headers, method=method)
+            with urllib.request.urlopen(req, timeout=60) as response:
+              return json.loads(response.read().decode("utf-8"))
+          # First prove the live Pivan page has one exact, unambiguous price for this variant.
+          query = urllib.parse.urlencode({
+            "url":source["url"], "product_key":source["product_key"],
+            "product_name":source["product_name"], "specification":source["specification"],
+            "source_kind":source["source_kind"], "parser_mode":"auto",
+            "currency":source["currency"], "measure_unit":source["measure_unit"],
+            "delivery":source["delivery"]
+          })
+          preview = call("/public/price?" + query)
+          if not preview.get("ok") or float(preview.get("price") or 0) <= 0:
+            raise SystemExit("PIVAN_BLACK_SHEET_PRECHECK_FAILED: " + json.dumps(preview, ensure_ascii=False))
+          print("PIVAN_BLACK_SHEET_LIVE_PRICE:", preview["price"], preview["currency"], "/", preview["measure_unit"], "source_date=", preview.get("source_date"))
+          # Preserve any other registered source rows; upsert this exact independent source.
+          existing = call("/public/sources")
+          matches = [x for x in existing if x.get("product_key") == "black-sheet"]
+          print("BLACK_SHEET_SOURCES_BEFORE:", json.dumps(matches, ensure_ascii=False))
+          created = call("/sources", "POST", source, auth=True)
+          if not created.get("ok") or created.get("id") != source["id"]:
+            raise SystemExit("BLACK_SHEET_SOURCE_REGISTER_FAILED: " + json.dumps(created, ensure_ascii=False))
+          checked = call("/sources/" + urllib.parse.quote(source["id"], safe="") + "/check", "POST", {}, auth=True)
+          if not checked.get("ok") or not checked.get("stored") or float(checked.get("price") or 0) <= 0:
+            raise SystemExit("BLACK_SHEET_SOURCE_CHECK_FAILED: " + json.dumps(checked, ensure_ascii=False))
+          rows = call("/public/observations?" + urllib.parse.urlencode({"product_key":"black-sheet"}))
+          persisted = [x for x in rows if x.get("source_id") == source["id"] and float(x.get("raw_price") or 0) == float(checked["price"])]
+          if not persisted:
+            raise SystemExit("BLACK_SHEET_OBSERVATION_NOT_PERSISTED: " + json.dumps(rows[:5], ensure_ascii=False))
+          registered = call("/public/sources")
+          saved = next((x for x in registered if x.get("id") == source["id"]), None)
+          if not saved or saved.get("product_key") != "black-sheet" or not saved.get("enabled"):
+            raise SystemExit("BLACK_SHEET_SOURCE_NOT_VISIBLE_IN_D1: " + json.dumps(saved, ensure_ascii=False))
+          print("BLACK_SHEET_D1_SOURCE_REGISTERED:", json.dumps(saved, ensure_ascii=False))
+          print("BLACK_SHEET_D1_OBSERVATION_STORED:", json.dumps(persisted[0], ensure_ascii=False))
+          print("BLACK_SHEET_END_TO_END: PASS")
+          PY
+
       - name: Probe live Markaz Ahan hot-rolled sheet feed
         continue-on-error: true
         run: |
