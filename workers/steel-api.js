@@ -5,7 +5,7 @@ function json(data, status = 200, cors = {}) {
 }
 function originAllowed(origin, env) {
  const list = String(env.APP_ORIGIN || '').split(',').map(x => x.trim()).filter(Boolean).map(x => {
-  try { return new URL(x).origin; } catch { return x.replace(/\\/+$/, ''); }
+  try { return new URL(x).origin; } catch { return x.replace(/\/+$/, ''); }
  });
  return !!origin && list.includes(origin.replace(/\\/+$/, ''));
 }
