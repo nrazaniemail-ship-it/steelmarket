@@ -162,7 +162,7 @@ const assert = require('node:assert/strict');
   const afterOrder=await page.locator('#mcDashboardPicks .mc-dashboard-card').evaluateAll(xs=>xs.map(x=>x.dataset.catalogId+'::'+(x.dataset.variantKey||'')));
   assert.notDeepEqual(afterOrder,beforeOrder);
   assert.deepEqual(JSON.parse(await page.evaluate(()=>localStorage.getItem('fooladban.market-config.v1'))).cardOrder,afterOrder);
-  await page.evaluate(()=>window.dispatchEvent(new Event('fooladban:dashboard-selection-changed')));
+  await page.evaluate(()=>window.dispatchEvent(new Event('fooladban:product-updated')));
   await page.waitForFunction(expected=>JSON.stringify([...document.querySelectorAll('#mcDashboardPicks .mc-dashboard-card')].map(x=>x.dataset.catalogId+'::'+(x.dataset.variantKey||'')))===JSON.stringify(expected),afterOrder);
   const variant20=page.locator('#mcDashboardPicks .mc-dashboard-card[data-catalog-id="rebar"]').filter({hasText:'۲۰'});
   await variant20.locator('[data-remove-catalog]').click();
