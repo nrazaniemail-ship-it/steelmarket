@@ -14,7 +14,7 @@ const style=document.createElement('style');style.textContent=`
 @media(max-width:560px){.fb-compare-controls,.fb-assistant-form,.fb-compare-list{grid-template-columns:1fr}.fb-compare-canvas{height:250px}}
 `;document.head.append(style);
 const state=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return {products:[]}}};
-const products=()=>Array.isArray(state().products)?state().products:[];
+const products=()=>{const selected=new Set((window.FooladbanMarketConfig?.selectedProducts||[]).map(String));return Array.isArray(state().products)?state().products.filter(p=>selected.has(String(p.catalogId||p.productKey||''))):[]};
 const analysis=$('layer-analysis'),assistant=$('layer-assistant');
 if(analysis){
 const panel=document.createElement('section');panel.className='fb-tool-panel';panel.innerHTML='<h2>مقایسه روند قیمت چند محصول</h2><p class="fb-tool-muted">محصولات را انتخاب کنید تا تاریخچه قیمت آن‌ها روی یک نمودار زمان ـ قیمت نمایش داده شود. برای مقایسه محصولات با ارز یا واحد متفاوت، حالت شاخصی (مبنای ۱۰۰) را انتخاب کنید.</p>';
@@ -43,7 +43,7 @@ normalized.forEach((s,i)=>{const color=palette[i%palette.length];ctx.strokeStyle
 ctx.textAlign='center';ctx.fillStyle='#9aafc4';ctx.fillText(date(minT),pad.l,h-9);ctx.fillText(date(maxT),w-pad.r,h-9);
 }
 function refreshList(){const all=products(),old=new Set([...list.querySelectorAll('input:checked')].map(x=>x.value));list.replaceChildren();all.forEach(p=>{const label=document.createElement('label');label.className='fb-compare-item';const cb=document.createElement('input');cb.type='checkbox';cb.value=p.id;cb.checked=old.has(p.id);cb.addEventListener('change',draw);label.append(cb,document.createTextNode(p.name));list.append(label)});draw()}
-range.addEventListener('change',draw);mode.addEventListener('change',draw);refreshList();window.addEventListener('fooladban:product-updated',refreshList);window.addEventListener('storage',refreshList);window.addEventListener('resize',draw);setInterval(()=>{const n=products().length;if(n!==list.querySelectorAll('label').length)refreshList()},4000);
+range.addEventListener('change',draw);mode.addEventListener('change',draw);refreshList();window.addEventListener('fooladban:product-updated',refreshList);window.addEventListener('fooladban:dashboard-selection-changed',refreshList);window.addEventListener('storage',refreshList);window.addEventListener('resize',draw);setInterval(()=>{const n=products().length;if(n!==list.querySelectorAll('label').length)refreshList()},4000);
 }
 if(assistant){
 const panel=document.createElement('section');panel.className='fb-tool-panel';panel.innerHTML='<h2>پیشنهاد محصول متناسب با نیاز شما</h2><p class="fb-tool-muted">به چند پرسش کوتاه پاسخ دهید. دستیار، محصولات دارای قیمت ثبت‌شده را با توجه به حوزه مصرف، مقصد، مشخصات، بودجه و شرایط تحویل رتبه‌بندی می‌کند.</p>';
