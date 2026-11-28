@@ -75,12 +75,16 @@ jobs:
           grep -qi "access-control-allow-origin: $ORIGIN" /tmp/fooladban-cors-headers
           echo "Browser CORS preflight: OK"
       - name: Verify live price fetch and persisted D1 observation
+        env:
+          API_TOKEN: ${{ secrets.FOOLADB_API_TOKEN }}
         run: |
           python3 - <<'PY'
-          import json, urllib.request, urllib.parse, urllib.error
+          import json, os, urllib.request, urllib.parse, urllib.error
           base = "https://fooladban-steel-api.n-razaniemail.workers.dev"
-          def request(path, method="GET"):
+          def request(path, method="GET", admin=False):
               headers = {"Accept": "application/json", "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36 FooladbanDeployCheck/1.0"}
+              if admin:
+                  headers["Authorization"] = "Bearer " + os.environ["API_TOKEN"]
               if method == "POST":
                   headers["Content-Type"] = "application/json"
               req = urllib.request.Request(base + path, data=b"{}" if method == "POST" else None, headers=headers, method=method)
@@ -90,9 +94,13 @@ jobs:
               except urllib.error.HTTPError as error:
                   detail = error.read().decode("utf-8", "replace")
                   raise RuntimeError(path + " -> HTTP " + str(error.code) + ": " + detail[:300])
-          sources = request("/public/sources")
+          public_sources = request("/public/sources")
+          sources = request("/sources", admin=True)
           enabled = [s for s in sources if s.get("enabled")]
           print("Enabled D1 price sources:", len(enabled))
+          for source in enabled:
+              parts = urllib.parse.urlsplit(source.get("url", ""))
+              print("SOURCE CONFIG:", source.get("id"), source.get("product_name"), parts.netloc + parts.path, "parser=", source.get("parser_mode"), "currency=", source.get("currency"), "unit=", source.get("measure_unit"), "selector=", source.get("selector"), "regex=", source.get("regex"))
           verified = 0
           for source in enabled:
               sid = source["id"]
