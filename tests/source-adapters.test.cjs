@@ -6,6 +6,7 @@ test('source-specific steel price adapters',async t=>{
   assert.equal(identifyAdapter('https://ahanonline.com/product/example').id,'ahanonline');
   assert.equal(identifyAdapter('https://fa.tradingeconomics.com/commodity/steel').id,'tradingeconomics');
   assert.equal(identifyAdapter('https://pivan.co/product/x').id,'pivan');
+  assert.equal(identifyAdapter('https://www.ime.co.ir/offer-stat.html').id,'ime');
   assert.equal(identifyAdapter('https://unknown.example/prices').id,'custom');
  });
  await t.test('maps catalogue products to Trading Economics pages',()=>{
