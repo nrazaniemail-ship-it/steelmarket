@@ -117,7 +117,7 @@ function tableRows(html){
  return out;
 }
 export function extractIranianSheetTablePrice(body,source={},adapterId=''){
- const html=String(body||''),thickness=sourceThickness(source),width=sourceWidth(source),maker=sourceMaker(source);
+ const html=String(body||''),thickness=sourceThickness(source),width=sourceWidth(source),length=sourceLength(source),maker=sourceMaker(source);
  if(thickness===null||!/(hot-rolled|ورق)/i.test(String(source.product_key||'')+' '+String(source.product_name||'')))return null;
  const delivery=sourceText(source.delivery||'');
  const state=sourceText(source.specification||'');
@@ -133,6 +133,13 @@ export function extractIranianSheetTablePrice(body,source={},adapterId=''){
   if(t!==null&&Math.abs(t-thickness)>0.001)continue;
   if(maker&&!(joined.includes(maker)||near.includes(maker)||(maker.includes('فولاد مبارکه')&&joined.includes('مبارکه'))))continue;
   if(width&&!row.cells.some(c=>sourceDimension(c)===width||c.replace(/[^0-9]/g,'').includes(width)))continue;
+  if(length){
+   const exactPair=row.cells.some(c=>{
+    const dims=[...c.matchAll(/\d+(?:[.,٫]\d+)?/g)].map(m=>dimensionMm(m[0]));
+    return dims.includes(String(width))&&dims.includes(length);
+   });
+   if(!exactPair)continue;
+  }
   if(delivery){
    const city=delivery.includes('اصفهان')?'اصفهان':delivery.includes('تهران')?'تهران':'';
    if(city&&!joined.includes(city))continue;
