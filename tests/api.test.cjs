@@ -78,6 +78,7 @@ test('authenticated immediate check fetches, normalizes and appends a price obse
   assert.equal(res.status,200);
   assert.equal(body.price,12345);
   assert.equal(body.irr_per_kg,123450);
+  assert.equal(body.stored,true);
   assert.ok(calls.some(x=>x.sql.includes('INSERT INTO observations')));
  }finally{global.fetch=oldFetch}
 });
