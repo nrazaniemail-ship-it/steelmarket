@@ -299,7 +299,7 @@ const assert = require('node:assert/strict');
   await hotSourceCard.locator('[data-open-products]').click();
   await sourcePage.locator('#pCatalogProduct').selectOption('hot-rolled');
   await sourcePage.locator('#pGrade').selectOption('ST37');
-  await sourcePage.locator('#pSize').selectOption('۳');
+  await sourcePage.locator('#pSize').selectOption({label:'ضخامت ۳ · عرض ۱۲۵۰ میلی‌متر'});
   await sourcePage.locator('#pSourceRegistry').selectOption('ime');
   await sourcePage.locator('#pUrl').fill('https://example.invalid/rebar');
   await sourcePage.locator('#productForm button[type=submit]').click();
