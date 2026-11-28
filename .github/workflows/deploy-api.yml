@@ -84,20 +84,20 @@ jobs:
           common = {
             "product_key":"hot-rolled",
             "product_name":"ورق گرم",
-            "specification":"2 میلیمتر عرض 1.25 فولاد مبارکه",
+            "specification":"2 میلیمتر عرض 1.25 فولاد مبارکه برش خورده",
             "source_kind":"free_market",
             "parser_mode":"auto",
             "currency":"IRT",
             "measure_unit":"kg",
-            "delivery":"کارخانه"
+            "delivery":"بنگاه تهران"
           }
           probes = [
             ("IME","https://www.ime.co.ir/offer-stat.html","IRR","kg"),
             ("Ahanonline","https://ahanonline.com/product-category/انواع-ورق/ورق-سیاه/","IRT","kg"),
             ("Markaz Ahan","https://markazeahan.com/","IRT","kg"),
             ("Pivan","https://pivan.co/product-category/sheet/st37-sheet/","IRT","kg"),
-            ("Iromart","https://iromart.com/","IRT","kg"),
-            ("Ahanprice","https://ahanprice.com/","IRT","kg"),
+            ("Iromart","https://iromart.com/sheet/hot-rolled-steel/","IRT","kg"),
+            ("Ahanprice","https://ahanprice.com/Price/ورق-سیاه","IRT","kg"),
             ("Trading Economics","https://fa.tradingeconomics.com/commodity/hrc-steel","USD","ton")
           ]
           for name,url,currency,unit in probes:
@@ -105,6 +105,15 @@ jobs:
             if name=="Markaz Ahan":
               params["specification"]="2 میلیمتر عرض 1.25 فولاد سبا"
               params["delivery"]="انبار اصفهان"
+            if name=="Ahanprice":
+              params["specification"]="2 میلیمتر عرض 1.25 فولاد مبارکه شیت 2500*1250"
+              params["delivery"]=""
+            if name=="Pivan":
+              params["specification"]="2 میلیمتر فولاد مبارکه برش خورده"
+              params["delivery"]="انبار تهران"
+            if name=="Iromart":
+              params["specification"]="2 میلیمتر عرض 1.25 فولاد مبارکه رول"
+              params["delivery"]="انبار تهران"
             if name=="Trading Economics":
               params["product_name"]="Hot Rolled Coil Steel"
               params["specification"]="HRC"
