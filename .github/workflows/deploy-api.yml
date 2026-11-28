@@ -65,6 +65,12 @@ jobs:
           curl -fsS --max-time 30 "$API/public/sources" | python3 -c "import json,sys; d=json.load(sys.stdin); assert isinstance(d,list), d; print('D1 sources endpoint: OK ('+str(len(d))+' rows)')"
           curl -fsS --max-time 30 "$API/public/market" | python3 -c "import json,sys; d=json.load(sys.stdin); assert isinstance(d,list), d; print('D1 market endpoint: OK ('+str(len(d))+' rows)')"
           curl -fsS --max-time 30 "$API/public/events" | python3 -c "import json,sys; d=json.load(sys.stdin); assert isinstance(d,list), d; print('D1 events endpoint: OK ('+str(len(d))+' rows)')"
+          PRODUCT_KEY="$(curl -fsS --max-time 30 "$API/public/sources" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d[0][\"product_key\"] if d else \"\")")"
+          if [ -n "$PRODUCT_KEY" ]; then
+            curl -fsS --max-time 30 --get --data-urlencode "product_key=$PRODUCT_KEY" "$API/public/observations" | python3 -c "import json,sys; d=json.load(sys.stdin); assert isinstance(d,list), d; print('D1 observations endpoint: OK ('+str(len(d))+' rows)')"
+          else
+            echo "D1 observations endpoint: skipped (no registered sources)"
+          fi
           curl -sS --max-time 20 -D /tmp/fooladban-cors-headers -o /dev/null -X OPTIONS "$API/health" -H "Origin: $ORIGIN" -H "Access-Control-Request-Method: GET" -H "Access-Control-Request-Headers: authorization,content-type"
           grep -qi "access-control-allow-origin: $ORIGIN" /tmp/fooladban-cors-headers
           echo "Browser CORS preflight: OK"
