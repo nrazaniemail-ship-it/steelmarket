@@ -121,7 +121,7 @@ const assert = require('node:assert/strict');
   await marketSummary.locator('[data-aggregate-check]').click();
   await page.waitForFunction(()=>window.__aggregateCheckIds?.length===2);
   assert.equal(await page.evaluate(()=>window.__aggregateCheckIds.length),2,'Check-all action must send every registered source for the selected catalog item');
-  assert.ok(dialogMessages.some(x=>x.includes('۲ موفق')),'Check-all action must report the completed source checks: '+JSON.stringify(dialogMessages));
+  assert.ok(dialogMessages.some(x=>/[۲2] موفق/.test(x)),'Check-all action must report the completed source checks: '+JSON.stringify(dialogMessages));
   await page.waitForFunction(()=>{const p=document.querySelector('#addPanel'),card=document.querySelector('#mcDashboardPicks .mc-dashboard-card');return !!p&&!p.closest('.mc-dashboard-card')&&p.style.display==='none'&&card?.querySelector('[data-toggle-watch]')?.getAttribute('aria-expanded')==='false'});
   assert.equal(await page.locator('#productForm').count(),1,'Product form must remain mounted after save');
   await page.locator('#mcDashboardPicks [data-toggle-watch]').first().click();
