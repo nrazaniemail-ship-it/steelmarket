@@ -74,3 +74,12 @@ The product must clearly distinguish:
 - Iran Hadid (demo): https://iranhadid.com/en
 - Iran Felez: https://iranfelez.net/
 - Ahan Melal: https://panel.ahanmelal.com/
+
+## v1.6 — strengths adopted from the benchmark
+| Competitor strength | Fooladban 1.6 response |
+|---|---|
+| Ahantime / Ahan Assa: weight & cost calculators | «ابزارهای معامله‌گر ← ماشین‌حساب وزن و بهای مقاطع» (rebar, plate, round/square bar, pipe, box section) |
+| Zharfahan / Arznab: movers and stale-data indication | «نبض بازار»: 24h/7d/30d change, volatility, trend, freshness chip per product |
+| CRU / Fastmarkets: value-chain spread and margin context | «حاشیه تبدیل زنجیره» (billet→rebar etc.) with editable yield and conversion cost |
+| Argus / Platts: source transparency | Unchanged: raw quote vs normalized price vs forecast remain separate; implausible >4× jumps rejected before entering the append-only ledger |
+Not adopted (needs licensed data): proprietary assessments, analyst forecasts, transaction-derived benchmarks.
