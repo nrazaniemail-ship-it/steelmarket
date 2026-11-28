@@ -111,7 +111,7 @@ function renderDashboardPicks(){
     const priceLine=el('div','mc-dashboard-price-line');priceLine.append(el('strong','',last?money(last.price,p.currency):'—'));
     const status=last?((change===null?'بدون سابقه قبلی':(change>0?'▲ ':change<0?'▼ ':'')+Math.abs(change).toLocaleString('fa-IR',{maximumFractionDigits:2})+'٪')):(p.error?'دریافت ناموفق':'در انتظار اولین قیمت');
     priceLine.append(el('span','mc-dashboard-change '+(change>0?'up':change<0?'down':'neutral'),status));detail.append(priceLine);
-    const foot=el('div','mc-dashboard-record-foot');foot.append(el('small','',p.checkedAt?'آخرین بررسی: '+formatCheckedAt(p.checkedAt):'قیمت هنوز دریافت نشده'));
+    const foot=el('div','mc-dashboard-record-foot');foot.append(el('small','',last?.time?'تاریخ قیمت منبع: '+formatCheckedAt(last.time):'تاریخ قیمت: ثبت نشده'));foot.append(el('small','',p.checkedAt?'آخرین بررسی: '+formatCheckedAt(p.checkedAt):'هنوز بررسی نشده'));
     for(const [label,actionName] of [['نمودار','chart'],['ویرایش','edit'],['بررسی قیمت','refresh'],['منبع','source'],['حذف','delete']]){const b=el('button',actionName==='delete'?'mc-dashboard-watch-action danger':'mc-dashboard-watch-action',label);b.type='button';b.dataset.watchAction=actionName;b.dataset.watchId=p.id;foot.append(b)}
     detail.append(foot);watch.append(detail);
    }
