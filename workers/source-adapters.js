@@ -90,39 +90,38 @@ export function extractImeTradePrice(payload, source={}){
 
 
 function markazText(html){
- return String(html||'').replace(/<br\\s*\\/?\s*>/gi,'\\n').replace(/<\\/(?:p|li|div|h[1-6])\\s*>/gi,'\\n')
+ return String(html||'').replace(/<br\s*\/?\s*>/gi,'\n').replace(/<\/(?:p|li|div|h[1-6])\s*>/gi,'\n')
   .replace(/<[^>]+>/g,' ').replace(/&nbsp;|&#160;/gi,' ').replace(/&amp;/gi,'&')
-  .replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&#(\\d+);/g,(_,n)=>String.fromCodePoint(Number(n)))
-  .replace(/[ي]/g,'ی').replace(/[ك]/g,'ک').replace(/\\s+/g,' ').trim();
+  .replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&#(\d+);/g,(_,n)=>String.fromCodePoint(Number(n)))
+  .replace(/[ي]/g,'ی').replace(/[ك]/g,'ک').replace(/\s+/g,' ').trim();
 }
 export function extractMarkazAhanTelegramPrice(body,source={}){
  const html=String(body||'');
- const messages=[...html.matchAll(/<div[^>]*class=["'][^"']*tgme_widget_message_text[^"']*["'][^>]*>([\\s\\S]*?)<\\/div>/gi)].map(m=>markazText(m[1]));
+ const messages=[...html.matchAll(/<div[^>]*class=["'][^"']*tgme_widget_message_text[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi)].map(m=>markazText(m[1]));
  if(!messages.length)return null;
- const key=String(source.product_key||'');
- if(key!=='hot-rolled')return null;
+ if(String(source.product_key||'')!=='hot-rolled')return null;
  const spec=markazText([source.product_name,source.specification].filter(Boolean).join(' '));
- const thickness=spec.match(/(\\d+(?:[.,٫]\\d+)?)\\s*(?:میلی?متر|میل)/);
+ const thickness=spec.match(/(\d+(?:[.,٫]\d+)?)\s*(?:میلی?متر|میل)/);
  if(!thickness)return null;
- const width=spec.match(/(?:عرض\\s*)(\\d+(?:[.,٫]\\d+)?)/);
+ const width=spec.match(/عرض\s*(\d+(?:[.,٫]\d+)?)/);
  const makers=['فولاد مبارکه','فولاد سبا','اکسین','کاویان','فولاد غرب','قطعات'];
  const maker=makers.find(x=>spec.includes(x));
  const delivery=markazText(source.delivery||'');
- const isHot=line=>/ورق\\s*(?:سیاه|گرم)|ورق_(?:سیاه|گرم)/.test(line);
+ const isHot=line=>/ورق\s*(?:سیاه|گرم)|ورق_(?:سیاه|گرم)/.test(line);
  const num=v=>Number(String(v).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٫,٬]/g,'.'));
  for(const message of messages){
-  const rows=message.split(/(?=ورق\\s*(?:سیاه|گرم)|ورق_(?:سیاه|گرم))/).filter(isHot);
+  const rows=message.split(/(?=ورق\s*(?:سیاه|گرم)|ورق_(?:سیاه|گرم))/).filter(isHot);
   const matched=[];
   for(const line of rows){
    if(!line.includes('تومان'))continue;
-   const t=line.match(/ضخامت\\s*(\\d+(?:[.,٫]\\d+)?)\\s*(?:میلی?متر|میل)/);
+   const t=line.match(/ضخامت\s*(\d+(?:[.,٫]\d+)?)\s*(?:میلی?متر|میل)/);
    if(!t||Math.abs(num(t[1])-num(thickness[1]))>0.001)continue;
-   if(width){const w=line.match(/عرض\\s*(\\d+(?:[.,٫]\\d+)?)/);if(!w||Math.abs(num(w[1])-num(width[1]))>0.001)continue}
+   if(width){const w=line.match(/عرض\s*(\d+(?:[.,٫]\d+)?)/);if(!w||Math.abs(num(w[1])-num(width[1]))>0.001)continue}
    if(maker&&!line.includes(maker))continue;
    if(delivery.includes('اصفهان')&&!line.includes('اصفهان'))continue;
    if(delivery.includes('تهران')&&!line.includes('تهران'))continue;
    if(delivery.includes('کارخانه')&&!line.includes('کارخانه'))continue;
-   const p=line.match(/([0-9۰-۹٠-٩][0-9۰-۹٠-٩,٬٫.]*)\\s*تومان/);
+   const p=line.match(/([0-9۰-۹٠-٩][0-9۰-۹٠-٩,٬٫.]*)\s*تومان/);
    if(p){const price=numericPrice(p[1]);if(price)matched.push(price)}
   }
   if(matched.length){const unique=[...new Set(matched)];return unique.length===1?unique[0]:null}
