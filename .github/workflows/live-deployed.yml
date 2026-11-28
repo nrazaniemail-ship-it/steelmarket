@@ -1,0 +1,27 @@
+name: Fooladban live deployed smoke
+on:
+  workflow_run:
+    workflows: ["Deploy Fooladban to GitHub Pages"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live-browser:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: npm install --no-save playwright@latest
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Test the deployed GitHub Pages site against the live API
+        run: node tests/live-deployed.smoke.cjs
