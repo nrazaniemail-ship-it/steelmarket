@@ -72,7 +72,7 @@ function sourceDate(value){
    return {scope:reg.scope,script:reg.active?.scriptURL||'',names,entries};
   });
   assert.ok(swState.script.endsWith('/fooladban/sw.js'),'Expected the deployed Fooladban service worker to be active');
-  assert.ok(swState.names.includes('fooladban-shell-v3.6'),'Expected the new shell cache version to be installed');
+  assert.ok(swState.names.includes('fooladban-shell-v3.7'),'Expected the new shell cache version to be installed');
   assert.ok(swState.entries.some(x=>x.includes('/fooladban/index.html')),'The app shell must be cached for offline navigation');
   assert.ok(swState.entries.every(x=>!x.startsWith(API+'/')),'The service worker must never cache cross-origin API responses');
 
