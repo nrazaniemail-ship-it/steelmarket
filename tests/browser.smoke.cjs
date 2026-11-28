@@ -99,7 +99,7 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('#pSourceRegistry').inputValue(),'ime');
   assert.equal(await page.locator('#mcQuickPrice').isVisible(),true);
   await page.locator('#pGrade').selectOption('A3');
-  await page.locator('#pSize').selectOption('۱۶');
+  await page.locator('#pSize').selectOption({label:'قطر ۱۶ میلی‌متر · طول ۱۲ متر'});
   await page.locator('#pUrl').fill('https://example.invalid/rebar');
   const validity=await page.locator('#productForm').evaluate(f=>({valid:f.checkValidity(),invalid:[...f.querySelectorAll(':invalid')].map(x=>x.id)}));
   assert.deepEqual(validity,{valid:true,invalid:[]});
