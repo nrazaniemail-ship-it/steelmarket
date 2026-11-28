@@ -80,7 +80,7 @@ jobs:
           import json, urllib.request, urllib.parse, urllib.error
           base = "https://fooladban-steel-api.n-razaniemail.workers.dev"
           def request(path, method="GET"):
-              headers = {"Accept": "application/json"}
+              headers = {"Accept": "application/json", "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36 FooladbanDeployCheck/1.0"}
               if method == "POST":
                   headers["Content-Type"] = "application/json"
               req = urllib.request.Request(base + path, data=b"{}" if method == "POST" else None, headers=headers, method=method)
@@ -89,7 +89,7 @@ jobs:
                       return json.loads(response.read().decode("utf-8"))
               except urllib.error.HTTPError as error:
                   detail = error.read().decode("utf-8", "replace")
-                  raise RuntimeError("HTTP " + str(error.code) + ": " + detail[:300])
+                  raise RuntimeError(path + " -> HTTP " + str(error.code) + ": " + detail[:300])
           sources = request("/public/sources")
           enabled = [s for s in sources if s.get("enabled")]
           print("Enabled D1 price sources:", len(enabled))
