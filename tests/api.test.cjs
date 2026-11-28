@@ -46,6 +46,25 @@ test('public history requires a product key',async()=>{
  assert.equal((await res.json()).error,'product_key_required');
 });
 
+test('public manual check fetches an enabled registered source and appends an observation without admin token',async()=>{
+ const source={id:'src-public',product_key:'rebar16',product_name:'میلگرد ۱۶',url:'https://prices.example.com/p',source_kind:'factory',parser_mode:'regex',regex:'price: ([0-9]+)',currency:'IRT',measure_unit:'kg',enabled:1,last_attempt_at:null};
+ const calls=[];
+ const DB={prepare(sql){return{args:[],bind(...args){this.args=args;return this},async first(){calls.push({sql,args:this.args});return sql.includes('SELECT * FROM sources')?source:null},async run(){calls.push({sql,args:this.args});return{success:true,meta:{changes:1}}},async all(){return{results:[]}}}}};
+ const oldFetch=global.fetch;
+ global.fetch=async()=>new Response('price: 54321',{status:200,headers:{'content-type':'text/plain'}});
+ try{
+  const env={DB,APP_ORIGIN:'https://nrazaniemail-ship-it.github.io',ALLOWED_HOSTS:'prices.example.com'};
+  const req=new Request('https://api.example.workers.dev/public/sources/src-public/check',{method:'POST',headers:{Origin:env.APP_ORIGIN}});
+  const res=await worker.default.fetch(req,env),body=await res.json();
+  assert.equal(res.status,200);
+  assert.equal(res.headers.get('access-control-allow-origin'),env.APP_ORIGIN);
+  assert.equal(body.price,54321);
+  assert.equal(body.stored,true);
+  assert.ok(calls.some(x=>x.sql.includes('UPDATE sources SET last_attempt_at')));
+  assert.ok(calls.some(x=>x.sql.includes('INSERT INTO observations')));
+ }finally{global.fetch=oldFetch}
+});
+
 test('authenticated immediate check fetches, normalizes and appends a price observation',async()=>{
  const source={id:'src1',product_key:'rebar16',product_name:'میلگرد ۱۶',url:'https://prices.example.com/p',source_kind:'factory',parser_mode:'regex',regex:'price: ([0-9]+)',currency:'IRT',measure_unit:'kg',enabled:1};
  const calls=[];
